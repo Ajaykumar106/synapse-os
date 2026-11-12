@@ -228,12 +228,12 @@ updateDeviceMode();
 
 const themeCycle = ['dark', 'light'];
 const themeNames = {
-  dark: '🌙 Dark',
-  light: '☀️ Light'
+  dark: '🌙 Dark Mode',
+  light: '☀️ Light Mode'
 };
 
 function initTheme() {
-  const saved = localStorage.getItem('nova_clean_theme') || 'dark';
+  const saved = localStorage.getItem('nova_clean_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   if (themeToggleBtn) {
     themeToggleBtn.textContent = themeNames[saved] || '🌓 Theme';
@@ -241,8 +241,8 @@ function initTheme() {
 }
 
 themeToggleBtn?.addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme') || 'dark';
-  const next = current === 'dark' ? 'light' : 'dark';
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('nova_clean_theme', next);
   if (themeToggleBtn) {
@@ -1433,19 +1433,69 @@ function formatMarkdown(text) {
 
 let chatSessionHistory = [];
 
+const CHAT_ICONS = {
+  copy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`,
+  check: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+  edit: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+  retry: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>`,
+  thumbUp: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`,
+  thumbDown: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`,
+  voice: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`,
+  stop: `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>`,
+  note: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`
+};
+
 function appendUserMessage(text) {
   if (chatHero) chatHero.style.display = 'none';
 
   const row = document.createElement('div');
   row.className = 'message-row user';
-  row.innerHTML = `
-    <div class="msg-bubble-wrap">
-      <div class="message-bubble">${text}</div>
-    </div>
+  row.dataset.rawText = text;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-bubble-wrap';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'message-bubble';
+  bubble.innerHTML = text;
+  wrap.appendChild(bubble);
+
+  // Modern Meta AI style User actions: Edit & Copy
+  const userActions = document.createElement('div');
+  userActions.className = 'user-msg-actions';
+  userActions.innerHTML = `
+    <button type="button" class="btn-dock-icon" title="Edit question" onclick="editUserMessage(this)">
+      ${CHAT_ICONS.edit}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Copy text" onclick="copyUserMessage(this)">
+      ${CHAT_ICONS.copy}
+    </button>
   `;
+  wrap.appendChild(userActions);
+
+  row.appendChild(wrap);
   messagesContainer.appendChild(row);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
+
+window.editUserMessage = (btn) => {
+  const row = btn.closest('.message-row.user');
+  const txt = row.dataset.rawText || row.querySelector('.message-bubble')?.innerText || '';
+  if (userInput) {
+    userInput.value = txt;
+    userInput.focus();
+    userInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+};
+
+window.copyUserMessage = (btn) => {
+  const row = btn.closest('.message-row.user');
+  const txt = row.dataset.rawText || row.querySelector('.message-bubble')?.innerText || '';
+  navigator.clipboard.writeText(txt).then(() => {
+    btn.innerHTML = CHAT_ICONS.check;
+    setTimeout(() => { btn.innerHTML = CHAT_ICONS.copy; }, 2000);
+  });
+};
 
 function createAssistantEntry() {
   const row = document.createElement('div');
@@ -1468,23 +1518,28 @@ function createAssistantEntry() {
 
 function appendActionDock(wrap, originalQuery, answerText) {
   const dock = document.createElement('div');
-  dock.className = 'msg-action-dock';
+  dock.className = 'msg-action-dock meta-style-dock';
 
   const cleanQuery = originalQuery.replace(/[?"'#]/g, '').trim();
-  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(cleanQuery)}`;
 
   dock.innerHTML = `
     <button type="button" class="btn-dock-icon" title="Copy answer" onclick="copyAnswerText(this)">
-      <span>📋</span>
+      ${CHAT_ICONS.copy}
     </button>
-    <button type="button" class="btn-dock-icon" title="Save to offline notes" onclick="saveAnswerAsNote(this)">
-      <span>📝</span>
+    <button type="button" class="btn-dock-icon" title="Regenerate response" onclick="retryLastQuery(this)">
+      ${CHAT_ICONS.retry}
     </button>
-    <a href="${googleSearchUrl}" target="_blank" rel="noopener noreferrer" class="btn-dock-icon" title="Search Google online">
-      <span>🔍</span>
-    </a>
-    <button type="button" class="btn-dock-icon" title="Read aloud (Voice)" onclick="speakAnswerText(this)">
-      <span>🔊</span>
+    <button type="button" class="btn-dock-icon" title="Helpful" onclick="handleThumbFeedback(this, true)">
+      ${CHAT_ICONS.thumbUp}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Not helpful" onclick="handleThumbFeedback(this, false)">
+      ${CHAT_ICONS.thumbDown}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Save to Notes" onclick="saveAnswerAsNote(this)">
+      ${CHAT_ICONS.note}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Read Aloud (Voice)" onclick="speakAnswerText(this)">
+      ${CHAT_ICONS.voice}
     </button>
   `;
 
@@ -1493,12 +1548,31 @@ function appendActionDock(wrap, originalQuery, answerText) {
   wrap.appendChild(dock);
 }
 
+window.retryLastQuery = (btn) => {
+  const dock = btn.closest('.msg-action-dock');
+  const q = dock.dataset.query || '';
+  if (q && userInput && chatForm) {
+    userInput.value = q;
+    chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  }
+};
+
+window.handleThumbFeedback = (btn, isUp) => {
+  const parent = btn.closest('.msg-action-dock');
+  parent.querySelectorAll('.thumb-active').forEach(b => {
+    b.classList.remove('thumb-active');
+    b.style.color = '';
+  });
+  btn.classList.add('thumb-active');
+  btn.style.color = isUp ? '#10b981' : '#ef4444';
+};
+
 window.copyAnswerText = (btn) => {
   const dock = btn.closest('.msg-action-dock');
   const txt = dock.dataset.answer || '';
   navigator.clipboard.writeText(txt).then(() => {
-    btn.innerHTML = '<span>✓</span>';
-    setTimeout(() => { btn.innerHTML = '<span>📋</span>'; }, 2000);
+    btn.innerHTML = CHAT_ICONS.check;
+    setTimeout(() => { btn.innerHTML = CHAT_ICONS.copy; }, 2000);
   });
 };
 
@@ -1509,14 +1583,14 @@ window.speakAnswerText = (btn) => {
   if ('speechSynthesis' in window) {
     if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel();
-      btn.innerHTML = '<span>🔊</span>';
+      btn.innerHTML = CHAT_ICONS.voice;
       return;
     }
     const cleanSpeech = txt.replace(/[*#`_~]/g, '');
     const utter = new SpeechSynthesisUtterance(cleanSpeech);
-    utter.onend = () => { btn.innerHTML = '<span>🔊</span>'; };
-    utter.onerror = () => { btn.innerHTML = '<span>🔊</span>'; };
-    btn.innerHTML = '<span>⏹️</span>';
+    utter.onend = () => { btn.innerHTML = CHAT_ICONS.voice; };
+    utter.onerror = () => { btn.innerHTML = CHAT_ICONS.voice; };
+    btn.innerHTML = CHAT_ICONS.stop;
     window.speechSynthesis.speak(utter);
   }
 };
@@ -1526,7 +1600,7 @@ window.saveAnswerAsNote = async (btn) => {
   const query = dock.dataset.query || 'Quick Answer';
   const content = dock.dataset.answer || '';
 
-  btn.innerHTML = '<span>⏳</span>';
+  btn.innerHTML = CHAT_ICONS.check;
   try {
     await fetch('/api/notes', {
       method: 'POST',
@@ -1536,12 +1610,9 @@ window.saveAnswerAsNote = async (btn) => {
         content: content
       })
     });
-    btn.innerHTML = '<span>✓</span>';
     fetchNotes();
-  } catch {
-    btn.innerHTML = '<span>✕</span>';
-  }
-  setTimeout(() => { btn.innerHTML = '<span>📝</span>'; }, 2000);
+  } catch {}
+  setTimeout(() => { btn.innerHTML = CHAT_ICONS.note; }, 2000);
 };
 
 // Direct Google Button
