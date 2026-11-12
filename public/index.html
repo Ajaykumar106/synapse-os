@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Synapse OS — AI Study Coach & Focus OS</title>
+  <meta name="description" content="100% Offline AI Study Coach, Strict Focus Timer, STEM Knowledge Vault & Daily Discipline OS. Runs entirely on your device — no cloud, no subscriptions.">
+  <meta name="application-name" content="Synapse OS">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Synapse">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Ambient Soft Glass Glow Background -->
+  <div class="ambient-mesh-wrap" aria-hidden="true">
+    <div class="mesh-orb orb-1"></div>
+    <div class="mesh-orb orb-2"></div>
+    <div class="mesh-orb orb-3"></div>
+  </div>
+
+  <!-- Alarm Floating Toast -->
+  <div class="alarm-toast hidden" id="alarmToast">
+    <div class="alarm-toast-inner glass-card">
+      <div class="alarm-bell-icon">🔔</div>
+      <div class="alarm-text-block">
+        <span class="alarm-alert-tag">⏰ Reminder Due</span>
+        <strong id="alarmMessage">Reminder alert</strong>
+      </div>
+      <div class="alarm-btn-group">
+        <button class="btn-subtle" id="alarmSnoozeBtn">Snooze 5m</button>
+        <button class="btn-primary-sm" id="alarmDismissBtn">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile / Android Connection Modal -->
+  <div class="modal-backdrop hidden" id="phoneModal">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <h3>📱 Open on Android Phone</h3>
+        <button class="modal-close-btn" id="closePhoneModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Open this URL in Chrome or any browser on your Android phone connected to the same Wi-Fi:</p>
+        <div class="link-copy-box glass-inset">
+          <input type="text" id="phoneUrlInput" readonly value="Loading...">
+          <button class="btn-action-sm" id="copyPhoneUrlBtn">Copy Link</button>
+        </div>
+        <div class="install-card-tip">
+          <strong>💡 Android PWA Tip:</strong> In Chrome on your phone, tap the <strong>⋮ menu</strong> and select <strong>"Add to Home screen"</strong> to use Synapse like a lightning-fast native app!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Synapse Pro Lifetime Modal -->
+  <div class="modal-backdrop hidden" id="proModal">
+    <div class="modal-card glass-card pro-modal-card">
+      <div class="modal-header">
+        <div class="pro-badge-head">
+          <span class="pro-crown">👑</span>
+          <div>
+            <h3>Synapse Pro Lifetime</h3>
+            <span class="pro-sub">Own forever • Zero recurring subscriptions • 100% Offline</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="closeProModal">✕</button>
+      </div>
+      <div class="modal-body pro-modal-body">
+        <div class="pro-price-box glass-inset">
+          <div class="price-left">
+            <span class="price-strikethrough">$19.99 / year</span>
+            <div class="price-main-tag">
+              <span class="price-currency">$</span>
+              <span class="price-amount">1.99</span>
+              <span class="price-period">LIFETIME PASS</span>
+            </div>
+            <span class="price-inr">or ₹199 (One-Time Payment)</span>
+          </div>
+          <div class="price-right">
+            <span class="save-tag">SAVE 90%</span>
+            <span class="rival-tag">Competitors charge $99/yr</span>
+          </div>
+        </div>
+
+        <div class="pro-features-list">
+          <div class="pro-feat-item">
+            <span class="feat-icon">🧠</span>
+            <div class="feat-info">
+              <strong>Synapse On-Device Deep Intelligence</strong>
+              <span>Unlimited offline reasoning models running directly on your phone/PC. 100% private, zero server crashes, zero subscription token limits.</span>
+            </div>
+          </div>
+          <div class="pro-feat-item">
+            <span class="feat-icon">⚡</span>
+            <div class="feat-info">
+              <strong>Unlimited Custom Workflows</strong>
+              <span>Build and save unlimited daily routines, exam schedules & monk detox flows.</span>
+            </div>
+          </div>
+          <div class="pro-feat-item">
+            <span class="feat-icon">🎧</span>
+            <div class="feat-info">
+              <strong>Binaural Focus Audio Synthesizer</strong>
+              <span>Offline Brown Noise, 40Hz Gamma Focus Waves & Rain without streaming data.</span>
+            </div>
+          </div>
+          <div class="pro-feat-item">
+            <span class="feat-icon">📚</span>
+            <div class="feat-info">
+              <strong>Complete STEM & Study Knowledge Vault</strong>
+              <span>Offline formula sheets, physics laws, chemistry reactions & computer science cards.</span>
+            </div>
+          </div>
+          <div class="pro-feat-item">
+            <span class="feat-icon">🌓</span>
+            <div class="feat-info">
+              <strong>Distraction-Free Black & White</strong>
+              <span>Pure OLED Black & Crisp Paper White designed for zero eye strain.</span>
+            </div>
+          </div>
+          <div class="pro-feat-item">
+            <span class="feat-icon">📄</span>
+            <div class="feat-info">
+              <strong>Export Schedules & Notes to PDF</strong>
+              <span>Printable high-res daily timetables and study cheat-sheets.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pro-actions-box">
+          <button type="button" class="btn-pro-activate" id="activateProBtn">
+            ✨ Unlock Pro Lifetime ($1.99 / Free Test)
+          </button>
+          <span class="pro-guarantee-note">🔒 Google Play In-App Billing Ready • 100% Offline License</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Custom Workflow Modal -->
+  <div class="modal-backdrop hidden" id="workflowModal">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <h3>⚡ Create Custom Workflow</h3>
+        <button class="modal-close-btn" id="closeWorkflowModal">✕</button>
+      </div>
+      <form id="createWorkflowForm" class="workflow-modal-form">
+        <label>Workflow Name:</label>
+        <input type="text" id="newWfNameInput" placeholder="e.g. UPSC Prelims Sprint, Finals Week..." required>
+        <label>Template Foundation:</label>
+        <select id="newWfTemplateSelect" class="glass-select">
+          <option value="exam-grind">⚡ Competitive Exam Grind (6h Deep)</option>
+          <option value="monk-mode">🧘 Monk Mode & Digital Detox</option>
+          <option value="dev-focus">💻 Developer & Problem Solving</option>
+          <option value="standard-daily">🌅 Balanced Day & Habit Stacking</option>
+          <option value="blank">📄 Blank Schedule</option>
+        </select>
+        <div class="form-btn-group" style="margin-top: 14px;">
+          <button type="button" class="btn-subtle" id="cancelWorkflowModalBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Create & Customize</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App Shell -->
+  <div class="app-shell">
+    <!-- Sidebar Mobile Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Desktop Left Sidebar Drawer -->
+    <aside class="sidebar glass-panel" id="sidebar">
+      <div class="sidebar-top">
+        <div class="brand-row">
+          <div class="brand-badge-modern" style="background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); box-shadow: 0 4px 14px rgba(79, 172, 254, 0.4);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" fill="#ffffff"></circle>
+              <circle cx="4" cy="7" r="2"></circle>
+              <circle cx="20" cy="7" r="2"></circle>
+              <circle cx="4" cy="17" r="2"></circle>
+              <circle cx="20" cy="17" r="2"></circle>
+              <line x1="6" y1="8" x2="10" y2="11"></line>
+              <line x1="18" y1="8" x2="14" y2="11"></line>
+              <line x1="6" y1="16" x2="10" y2="13"></line>
+              <line x1="18" y1="16" x2="14" y2="13"></line>
+            </svg>
+          </div>
+          <div class="brand-info">
+            <span class="brand-title">Synapse OS</span>
+            <span class="brand-sub">AI Study & Focus Engine</span>
+          </div>
+          <button class="sidebar-close-btn" id="sidebarCloseBtn" title="Close Menu" aria-label="Close Menu">✕</button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs: Offline AI Coach is FIRST -->
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="tab-chat">
+          <span class="nav-icon">🧠</span>
+          <span class="nav-text">Offline AI Coach</span>
+          <span class="badge-status-dot"></span>
+        </button>
+        <button class="nav-item" data-tab="tab-routine">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-text">Synapse Flows & Routine</span>
+        </button>
+        <button class="nav-item" data-tab="tab-focus">
+          <span class="nav-icon">⏱️</span>
+          <span class="nav-text">Strict Study & Audio</span>
+        </button>
+        <button class="nav-item" data-tab="tab-vault">
+          <span class="nav-icon">📚</span>
+          <span class="nav-text">Knowledge Vault</span>
+          <span class="badge-count" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">50+</span>
+        </button>
+        <button class="nav-item" data-tab="tab-tasks">
+          <span class="nav-icon">✅</span>
+          <span class="nav-text">Tasks Checklist</span>
+          <span class="badge-count hidden" id="tasksCountBadge">0</span>
+        </button>
+        <button class="nav-item" data-tab="tab-notes">
+          <span class="nav-icon">📝</span>
+          <span class="nav-text">Notes & Scratchpad</span>
+        </button>
+        <button class="nav-item" data-tab="tab-calc">
+          <span class="nav-icon">🔢</span>
+          <span class="nav-text">Keypad Calculator</span>
+        </button>
+        <button class="nav-item" data-tab="tab-reminders">
+          <span class="nav-icon">⏰</span>
+          <span class="nav-text">Reminders & Alarms</span>
+          <span class="badge-count hidden" id="remindersCountBadge">0</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Bottom -->
+      <div class="sidebar-bottom">
+        <div class="clock-display-card glass-inset">
+          <span class="clock-lbl">System Time</span>
+          <span class="clock-txt" id="sidebarClock">--:--:--</span>
+        </div>
+        <div class="sidebar-pro-banner" id="sidebarProBanner">
+          <span class="pro-sparkle">👑</span>
+          <div class="pro-banner-txt">
+            <strong>Synapse Pro Lifetime</strong>
+            <span>Unlimited Flows • $1.99</span>
+          </div>
+          <button type="button" class="btn-pro-sm" id="sidebarProBtn">Unlock</button>
+        </div>
+        <div class="sidebar-action-row">
+          <button class="btn-subtle btn-sm" id="openPhoneModalBtn">📱 Mobile Link</button>
+          <button class="btn-subtle btn-sm" id="themeToggleBtn">🌓 Theme</button>
+        </div>
+        <div class="sidebar-legal-row">
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" class="privacy-link">Privacy Policy</a>
+          <span class="privacy-link-sep">·</span>
+          <span class="privacy-link">v2.0.0</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="main-workspace">
+      <!-- Top Bar -->
+      <header class="topbar glass-panel">
+        <div class="topbar-left">
+          <button class="menu-btn" id="sidebarToggle" title="Open Navigation Menu" aria-label="Open Navigation Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="2.2"></circle>
+              <circle cx="12" cy="12" r="2.2"></circle>
+              <circle cx="19" cy="12" r="2.2"></circle>
+            </svg>
+          </button>
+          <span class="active-title-pill" id="pageTitle">🧠 Synapse AI</span>
+        </div>
+        <div class="topbar-right">
+          <button type="button" class="btn-pro-pill" id="openProModalBtn" title="Upgrade to Synapse Pro Lifetime">
+            👑 Upgrade Pro
+          </button>
+          <span class="offline-badge-pill">⚡ 100% Offline AI</span>
+        </div>
+      </header>
+
+      <!-- Views Viewport -->
+      <div class="views-viewport">
+        <!-- 0. OFFLINE AI STUDY & DISCIPLINE COACH (DEFAULT ACTIVE VIEW) -->
+        <section class="view-panel active" id="tab-chat">
+          <div class="chat-flow-scroll" id="messagesContainer">
+            <!-- ChatGPT-style Clean Minimalist Hero -->
+            <div class="chat-welcome-simple" id="chatHero">
+              <div class="gpt-hero-brand">
+                <div class="gpt-brand-logo">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <circle cx="4" cy="7" r="2"></circle>
+                    <circle cx="20" cy="7" r="2"></circle>
+                    <circle cx="4" cy="17" r="2"></circle>
+                    <circle cx="20" cy="17" r="2"></circle>
+                    <line x1="6" y1="8" x2="10" y2="11"></line>
+                    <line x1="18" y1="8" x2="14" y2="11"></line>
+                    <line x1="6" y1="16" x2="10" y2="13"></line>
+                    <line x1="18" y1="16" x2="14" y2="13"></line>
+                  </svg>
+                </div>
+                <h2>What can I help with today?</h2>
+                <p>On-device neural intelligence. Ask questions, plan routines, manage tasks, or run your timer.</p>
+              </div>
+
+              <!-- Minimal Quick Suggestion Chips -->
+              <div class="hero-chips-minimal">
+                <button type="button" class="minimal-prompt-chip" data-prompt="Kal ke exam ka 4-ghante ka strict study plan bana do">
+                  <span>📅</span> Kal ke exam ka study plan
+                </button>
+                <button type="button" class="minimal-prompt-chip" data-prompt="Start 25m focus timer">
+                  <span>⏱️</span> 25m focus timer shuru karo
+                </button>
+                <button type="button" class="minimal-prompt-chip" data-prompt="Mere aaj ke tasks kya hain?">
+                  <span>✅</span> Mere aaj ke tasks check karo
+                </button>
+                <button type="button" class="minimal-prompt-chip" data-prompt="Padhai karte waqt phone chalane ki aadat kaise rokein?">
+                  <span>🛡️</span> Phone distraction kaise rokein?
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clean Input Bar with Direct Attachment -->
+          <div class="chat-input-wrapper">
+            <!-- Active File Attachment Badge (Hidden by default) -->
+            <div class="file-attachment-badge hidden" id="fileAttachmentBadge">
+              <span class="file-badge-icon">📄</span>
+              <span class="file-badge-name" id="fileBadgeName">document.txt</span>
+              <span class="file-badge-size" id="fileBadgeSize">(12 KB)</span>
+              <button type="button" class="btn-remove-attachment" id="removeAttachmentBtn" title="Remove attachment">✕</button>
+            </div>
+
+            <form id="chatForm" class="chat-input-pill glass-card">
+              <!-- Upload Attachment Button -->
+              <label for="chatFileInput" class="btn-attach-circle" title="Upload Study Notes, Syllabus, or Document for AI Analysis">
+                <input type="file" id="chatFileInput" accept=".txt,.pdf,.md,.csv,.json,.doc,.docx" style="display: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                </svg>
+              </label>
+
+              <input
+                type="text"
+                id="userInput"
+                placeholder="Message Synapse..."
+                autocomplete="off"
+              >
+              <button type="submit" id="sendBtn" class="btn-send-circle" title="Send message">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 1. ROUTINE & DISCIPLINE VIEW -->
+        <section class="view-panel" id="tab-routine">
+          <!-- Discipline Stats Banner -->
+          <div class="work-section-card glass-panel discipline-hero-card">
+            <div class="card-head-row">
+              <div class="title-with-count">
+                <h3>🎯 Daily Routine & Strict Discipline</h3>
+                <span class="counter-sub">No social media • Deep study • Unbreakable routine</span>
+              </div>
+            </div>
+
+            <!-- 4 Discipline Stat Metrics -->
+            <div class="discipline-stat-grid">
+              <div class="stat-box glass-inset">
+                <span class="stat-icon">🔥</span>
+                <div class="stat-info">
+                  <span class="stat-num" id="disciplineStreak">5 Days</span>
+                  <span class="stat-lbl">Discipline Streak</span>
+                </div>
+              </div>
+              <div class="stat-box glass-inset">
+                <span class="stat-info">⚡</span>
+                <div class="stat-info">
+                  <span class="stat-num" id="disciplineScore">92%</span>
+                  <span class="stat-lbl">Daily Discipline</span>
+                </div>
+              </div>
+              <div class="stat-box glass-inset">
+                <span class="stat-icon">🛡️</span>
+                <div class="stat-info">
+                  <span class="stat-num" id="distractionsResisted">8</span>
+                  <span class="stat-lbl">Urges Defeated</span>
+                </div>
+              </div>
+              <div class="stat-box glass-inset">
+                <span class="stat-icon">⏱️</span>
+                <div class="stat-info">
+                  <span class="stat-num" id="routineFocusTime">0h 00m</span>
+                  <span class="stat-lbl">Deep Work Today</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Anti-Social Media / Digital Detox Shield -->
+          <div class="work-section-card glass-panel anti-distraction-card">
+            <div class="shield-head-row">
+              <div class="shield-title-group">
+                <span class="shield-badge">🛡️ DIGITAL DETOX SHIELD</span>
+                <h4>Craving Instagram, YouTube, or TikTok?</h4>
+                <p>Scrolling gives you cheap fake dopamine. Deep study gives you real freedom and self-respect.</p>
+              </div>
+              <button type="button" class="btn-defeat-urge" id="defeatUrgeBtn">
+                🔥 I Resisted Social Media (+1 Win)
+              </button>
+            </div>
+            <div class="discipline-quote-banner" id="disciplineQuoteBanner">
+              "Discipline is choosing between what you want now and what you want most."
+            </div>
+          </div>
+
+          <!-- Customizable Workflow Selector Bar ("Synapse Flow") -->
+          <div class="work-section-card glass-panel workflow-presets-card">
+            <div class="card-head-row">
+              <div class="title-with-count">
+                <h3>⚡ Synapse Flow — Custom Daily Workflows</h3>
+                <span class="counter-sub" id="activeWorkflowName">Active: ⚡ Competitive Exam Grind (6h Deep)</span>
+              </div>
+              <div class="workflow-top-actions">
+                <button type="button" class="btn-subtle btn-sm" id="newWorkflowBtn">+ New Flow</button>
+                <button type="button" class="btn-subtle btn-sm" id="exportWorkflowBtn">📋 Copy Flow</button>
+              </div>
+            </div>
+
+            <!-- Workflow Preset Chips -->
+            <div class="workflow-pills-row" id="workflowPillsRow">
+              <button type="button" class="wf-pill active" data-wfid="exam-grind">⚡ Exam Grind (6h)</button>
+              <button type="button" class="wf-pill" data-wfid="monk-mode">🧘 Monk Mode Detox</button>
+              <button type="button" class="wf-pill" data-wfid="dev-focus">💻 Dev & Code Sprint</button>
+              <button type="button" class="wf-pill" data-wfid="standard-daily">🌅 Balanced Day</button>
+            </div>
+          </div>
+
+          <!-- Current Active Block Highlight -->
+          <div class="work-section-card glass-panel current-routine-card" id="currentRoutineCard">
+            <div class="current-block-head">
+              <span class="live-dot-pulse">🟢</span>
+              <span class="current-block-label">CURRENT ACTIVE SCHEDULE</span>
+            </div>
+            <div class="current-block-body">
+              <div class="current-block-info">
+                <strong id="currentBlockTitle">📚 Deep Study Block 1 (Hardest Topic)</strong>
+                <span id="currentBlockTime" class="current-block-time">07:30 - 09:30 AM</span>
+              </div>
+              <button class="btn-primary" id="startCurrentBlockBtn">
+                Lock Focus Now 🔒
+              </button>
+            </div>
+          </div>
+
+          <!-- Daily Routine Schedule Timetable -->
+          <div class="work-section-card glass-panel">
+            <div class="card-head-row">
+              <div class="title-with-count">
+                <h3>📅 Strict Daily Routine Timetable</h3>
+                <span class="counter-sub" id="routineProgressText">0 of 8 completed</span>
+              </div>
+              <div class="routine-actions">
+                <button type="button" class="btn-subtle btn-sm" id="toggleAddRoutineBtn">+ Add Block</button>
+                <button type="button" class="btn-subtle btn-sm" id="resetRoutineBtn">Reset Today</button>
+                <button type="button" class="btn-primary-sm" id="aiGenRoutineBtn">🧠 AI Routine</button>
+              </div>
+            </div>
+
+            <!-- Add Block Form (Collapsible) -->
+            <form id="addRoutineForm" class="routine-add-form hidden glass-inset">
+              <div class="form-row-2">
+                <input type="text" id="routineTimeInput" placeholder="Time slot (e.g. 02:00 - 03:30 PM)" required>
+                <input type="text" id="routineTitleInput" placeholder="Activity (e.g. Math Practice, Physics revision)" required>
+              </div>
+              <div class="form-row-actions">
+                <div class="category-pills" id="routineCategoryPills">
+                  <button type="button" class="cat-pill active" data-cat="Study">📚 Study</button>
+                  <button type="button" class="cat-pill" data-cat="Health">💪 Health</button>
+                  <button type="button" class="cat-pill" data-cat="Review">📖 Review</button>
+                </div>
+                <div class="form-btn-group">
+                  <button type="button" class="btn-subtle btn-sm" id="cancelAddRoutineBtn">Cancel</button>
+                  <button type="submit" class="btn-primary btn-sm">Add to Routine</button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Routine Items List -->
+            <div class="routine-list" id="routineList">
+              <!-- Dynamically populated from JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 1. TASKS VIEW -->
+        <section class="view-panel" id="tab-tasks">
+          <!-- Add Task Card -->
+          <div class="work-section-card glass-panel">
+            <div class="card-head-row">
+              <h3>Add New Task</h3>
+              <div class="category-pills" id="taskCategoryPills">
+                <button type="button" class="cat-pill active" data-cat="Work">💼 Work</button>
+                <button type="button" class="cat-pill" data-cat="Personal">👤 Personal</button>
+                <button type="button" class="cat-pill" data-cat="Urgent">🚨 Urgent</button>
+                <button type="button" class="cat-pill" data-cat="Study">📚 Study</button>
+              </div>
+            </div>
+            <form id="addTaskForm" class="task-form-clean">
+              <input type="text" id="taskTextInput" placeholder="What do you need to do? (Type and press Enter)..." required autocomplete="off">
+              <button type="submit" class="btn-primary">Add Task</button>
+            </form>
+          </div>
+
+          <!-- Tasks Checklist List -->
+          <div class="work-section-card glass-panel">
+            <div class="card-head-row">
+              <div class="title-with-count">
+                <h3>My Tasks</h3>
+                <span class="counter-sub" id="tasksOverviewText">Loading...</span>
+              </div>
+              <div class="filter-group">
+                <button class="btn-filter active" data-filter="all">All</button>
+                <button class="btn-filter" data-filter="pending">Pending</button>
+                <button class="btn-filter" data-filter="done">Completed</button>
+              </div>
+            </div>
+            <div class="tasks-list" id="tasksList">
+              <div class="empty-state">No tasks created yet. Write a task above!</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. NOTES VIEW -->
+        <section class="view-panel" id="tab-notes">
+          <!-- Note Composer -->
+          <div class="work-section-card glass-panel">
+            <h3>Take a Note</h3>
+            <form id="addNoteForm" class="note-form-clean">
+              <input type="text" id="noteTitleInput" placeholder="Note Title (e.g. Project Idea, Meeting Takeaway)..." autocomplete="off">
+              <textarea id="noteContentInput" rows="3" placeholder="Write your thoughts or details here..." required></textarea>
+              <div class="note-form-actions">
+                <button type="submit" class="btn-primary">Save Note</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Notes List Grid -->
+          <div class="work-section-card glass-panel">
+            <div class="card-head-row">
+              <h3>Saved Notes (<span id="notesCountNum">0</span>)</h3>
+              <input type="text" id="searchNotesInput" placeholder="Search notes..." class="notes-search-input">
+            </div>
+            <div class="notes-grid" id="notesGrid">
+              <div class="empty-state" style="grid-column: 1/-1;">No notes saved yet. Add your first note above!</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. STRICT STUDY TIMER VIEW -->
+        <section class="view-panel" id="tab-focus">
+          <div class="focus-layout-clean">
+            <!-- Pomodoro Clock Card -->
+            <div class="work-section-card glass-panel focus-card-clean" id="focusCardMain">
+              <!-- Strict Lock Bar -->
+              <div class="strict-lock-bar glass-inset">
+                <label class="strict-toggle-wrap">
+                  <input type="checkbox" id="strictModeToggle" checked>
+                  <span class="strict-label-text">🔒 Strict Anti-Distraction Lock (Zero Social Media)</span>
+                </label>
+                <button type="button" class="btn-defeat-mini" id="timerDefeatUrgeBtn" title="Resisted social media urge">
+                  🛡️ Resisted Urge (+1)
+                </button>
+              </div>
+
+              <!-- Strict Active Banner (Visible during focus) -->
+              <div class="strict-active-banner hidden" id="strictActiveBanner">
+                <span class="strict-tag">🔒 STRICT FOCUS ACTIVE</span>
+                <p id="strictQuoteText">"Discipline is choosing between what you want now and what you want most."</p>
+              </div>
+
+              <div class="focus-category-picker">
+                <span class="picker-label">Current Focus Category:</span>
+                <div class="category-pills" id="focusCategoryPills">
+                  <button type="button" class="cat-pill active" data-cat="📚 Deep Study">📚 Deep Study</button>
+                  <button type="button" class="cat-pill" data-cat="⚡ Problem Solving">⚡ Practice</button>
+                  <button type="button" class="cat-pill" data-cat="🧠 Concept Revision">🧠 Revision</button>
+                  <button type="button" class="cat-pill" data-cat="💻 Coding & Dev">💻 Coding</button>
+                  <button type="button" class="cat-pill" data-cat="☕ Refresh Break">☕ Break</button>
+                </div>
+              </div>
+
+              <!-- Big Glass Timer Clock -->
+              <div class="pomo-clock-wrap">
+                <div class="pomo-clock" id="pomodoroDisplay">50:00</div>
+                <div class="pomo-sub" id="pomodoroStatus">Ready for deep study (50 Mins)</div>
+              </div>
+
+              <!-- Controls -->
+              <div class="pomo-controls">
+                <button class="btn-primary btn-lg" id="pomodoroStartBtn">▶ Start Focus</button>
+                <button class="btn-subtle btn-lg" id="pomodoroResetBtn">↺ Reset</button>
+                <button class="btn-subtle btn-lg" id="pomodoroLogManualBtn">+ Log Time</button>
+              </div>
+
+              <!-- Modes -->
+              <div class="pomo-modes">
+                <button class="btn-mode active" data-time="50">50m Study</button>
+                <button class="btn-mode" data-time="25">25m Quick</button>
+                <button class="btn-mode" data-time="90">90m Sprint</button>
+                <button class="btn-mode" data-time="10">10m Rest</button>
+              </div>
+
+              <!-- Custom Duration Setter -->
+              <div class="custom-pomo-setter glass-inset">
+                <div class="custom-pomo-head">
+                  <span class="custom-pomo-lbl">⏱️ Custom Duration:</span>
+                  <div class="custom-quick-chips">
+                    <button type="button" class="quick-chip" id="quickSub5Btn">-5m</button>
+                    <button type="button" class="quick-chip" id="quickAdd5Btn">+5m</button>
+                    <button type="button" class="quick-chip" id="quickAdd15Btn">+15m</button>
+                  </div>
+                </div>
+                <div class="custom-pomo-input-row">
+                  <input type="number" id="customPomoMinutesInput" min="1" max="360" placeholder="Custom minutes (e.g. 45)" class="custom-pomo-input">
+                  <button type="button" class="btn-primary-sm" id="setCustomPomoBtn">Set Custom Timer</button>
+                </div>
+              </div>
+
+              <!-- Offline Ambient Focus Noise Synthesizer (Zero-Bandwidth Web Audio) -->
+              <div class="ambient-sound-card glass-inset" id="ambientSoundCard">
+                <div class="sound-card-header">
+                  <div class="sound-title-block">
+                    <span class="sound-icon">🎧</span>
+                    <div>
+                      <strong>Offline Binaural Focus Audio</strong>
+                      <span class="sound-sub-note">On-device Web Audio synthesis • Zero streaming data needed</span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-sound-toggle" id="ambientAudioToggleBtn">
+                    ▶ Play Focus Waves
+                  </button>
+                </div>
+                <div class="sound-selector-row">
+                  <button type="button" class="sound-chip active" data-sound="brown">🟤 Brown Noise (Deep Study)</button>
+                  <button type="button" class="sound-chip" data-sound="gamma">⚡ 40 Hz Gamma (Cognitive Peak)</button>
+                  <button type="button" class="sound-chip" data-sound="rain">🌧️ Rain Noise (Calm Masking)</button>
+                </div>
+                <div class="sound-volume-row">
+                  <span class="vol-icon">🔉</span>
+                  <input type="range" id="soundVolumeSlider" min="0" max="1" step="0.05" value="0.35" class="sound-slider" title="Sound Volume">
+                  <span class="vol-icon">🔊</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- "Where You Spend Your Time" Analytics -->
+            <div class="work-section-card glass-panel time-analytics-clean">
+              <div class="card-head-row">
+                <div class="analytics-head-info">
+                  <h3>📊 Where You Spend Your Time</h3>
+                  <p class="section-subtitle">Track your focus hours and daily distribution</p>
+                </div>
+              </div>
+
+              <!-- 3 Metrics -->
+              <div class="analytics-stat-grid">
+                <div class="stat-box glass-inset">
+                  <span class="stat-icon">⏱️</span>
+                  <div class="stat-info">
+                    <span class="stat-num" id="totalFocusHours">0h 00m</span>
+                    <span class="stat-lbl">Total Focused Time</span>
+                  </div>
+                </div>
+                <div class="stat-box glass-inset">
+                  <span class="stat-icon">🎯</span>
+                  <div class="stat-info">
+                    <span class="stat-num" id="totalSessionsCount">0</span>
+                    <span class="stat-lbl">Sessions Completed</span>
+                  </div>
+                </div>
+                <div class="stat-box glass-inset">
+                  <span class="stat-icon">🏆</span>
+                  <div class="stat-info">
+                    <span class="stat-num" id="topFocusCategory">None yet</span>
+                    <span class="stat-lbl">Top Focus Category</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Category Distribution Bars -->
+              <div class="category-breakdown-section">
+                <h4>Category Breakdown (% of Focused Time)</h4>
+                <div class="category-bars-list" id="categoryBarsList">
+                  <div class="empty-state">Complete a focus session or tap "+ Log Time" to see your stats!</div>
+                </div>
+              </div>
+
+              <!-- Recent Session Logs -->
+              <div class="focus-history-section">
+                <div class="history-head">
+                  <h4>Recent Sessions</h4>
+                  <button class="btn-link-sm" id="clearTimeLogsBtn">Clear History</button>
+                </div>
+                <div class="focus-history-list" id="focusHistoryList">
+                  <div class="empty-state">No focus sessions recorded yet.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. OFFLINE KNOWLEDGE & STUDY VAULT -->
+        <section class="view-panel" id="tab-vault">
+          <div class="work-section-card glass-panel vault-hero-card">
+            <div class="card-head-row">
+              <div class="title-with-count">
+                <h3>📚 Synapse Offline Knowledge Vault</h3>
+                <span class="counter-sub">50+ Battle-Tested Study Science Laws, STEM Formulas & CS Cheat-Sheets (100% Offline)</span>
+              </div>
+              <button type="button" class="btn-primary-sm" id="vaultAskCoachBtn">🧠 Ask AI Coach</button>
+            </div>
+
+            <!-- Vault Search & Filter Bar -->
+            <div class="vault-search-box glass-inset">
+              <span class="vault-search-icon">🔍</span>
+              <input type="text" id="vaultSearchInput" placeholder="Search formulas, Feynman technique, Newton's laws, Python, dopamine reset..." autocomplete="off">
+              <button type="button" class="btn-clear-search hidden" id="clearVaultSearchBtn">✕</button>
+            </div>
+
+            <!-- Category Pills -->
+            <div class="vault-cat-pills" id="vaultCatPills">
+              <button type="button" class="vcat-pill active" data-vcat="all">🌟 All Knowledge (<span id="vaultAllCount">16</span>)</button>
+              <button type="button" class="vcat-pill" data-vcat="study">🧠 Study Science</button>
+              <button type="button" class="vcat-pill" data-vcat="focus">🛡️ Focus & Detox</button>
+              <button type="button" class="vcat-pill" data-vcat="stem">🔬 STEM & Science</button>
+              <button type="button" class="vcat-pill" data-vcat="code">💻 Tech & CS</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Knowledge Cards Grid -->
+          <div class="vault-cards-grid" id="vaultCardsGrid">
+            <!-- Dynamically populated from JS with high-yield study cards -->
+          </div>
+        </section>
+
+        <!-- 4. KEYPAD CALCULATOR VIEW -->
+        <section class="view-panel" id="tab-calc">
+          <div class="calc-view-container">
+            <!-- Native-like Keypad Calculator -->
+            <div class="calc-card glass-panel">
+              <div class="calc-card-header">
+                <div class="calc-header-brand">
+                  <span class="calc-icon">🔢</span>
+                  <span class="calc-title">Calculator</span>
+                </div>
+                <div class="calc-shortcuts-hint">Keyboard friendly (0-9, +, -, *, /, Enter)</div>
+              </div>
+
+              <!-- Display -->
+              <div class="calc-screen glass-inset">
+                <div class="calc-expr" id="calcExpression">0</div>
+                <div class="calc-val" id="calcCurrentValue">0</div>
+              </div>
+
+              <!-- Scientific / Extra Row -->
+              <div class="calc-extra-row">
+                <button class="btn-calc-fn" data-fn="square">x²</button>
+                <button class="btn-calc-fn" data-fn="sqrt">√x</button>
+                <button class="btn-calc-fn" data-fn="paren-open">(</button>
+                <button class="btn-calc-fn" data-fn="paren-close">)</button>
+                <button class="btn-calc-fn" data-fn="copy" title="Copy result">📋 Copy</button>
+              </div>
+
+              <!-- Main Keypad Grid -->
+              <div class="calc-grid">
+                <button class="calc-btn btn-danger-action" data-action="all-clear">AC</button>
+                <button class="calc-btn btn-secondary-action" data-action="backspace">⌫</button>
+                <button class="calc-btn btn-secondary-action" data-action="percent">%</button>
+                <button class="calc-btn btn-operator" data-op="/">÷</button>
+
+                <button class="calc-btn btn-digit" data-digit="7">7</button>
+                <button class="calc-btn btn-digit" data-digit="8">8</button>
+                <button class="calc-btn btn-digit" data-digit="9">9</button>
+                <button class="calc-btn btn-operator" data-op="*">×</button>
+
+                <button class="calc-btn btn-digit" data-digit="4">4</button>
+                <button class="calc-btn btn-digit" data-digit="5">5</button>
+                <button class="calc-btn btn-digit" data-digit="6">6</button>
+                <button class="calc-btn btn-operator" data-op="-">−</button>
+
+                <button class="calc-btn btn-digit" data-digit="1">1</button>
+                <button class="calc-btn btn-digit" data-digit="2">2</button>
+                <button class="calc-btn btn-digit" data-digit="3">3</button>
+                <button class="calc-btn btn-operator" data-op="+">+</button>
+
+                <button class="calc-btn btn-digit" data-action="negate">±</button>
+                <button class="calc-btn btn-digit" data-digit="0">0</button>
+                <button class="calc-btn btn-digit" data-digit=".">.</button>
+                <button class="calc-btn btn-equals" data-action="equals">=</button>
+              </div>
+            </div>
+
+            <!-- Calculation History Tape -->
+            <div class="calc-history-card glass-panel">
+              <div class="card-head-row">
+                <div class="history-title-group">
+                  <h3>📜 Calculation Tape</h3>
+                  <span class="sub-tape-hint">Tap any record to reuse</span>
+                </div>
+                <button class="btn-subtle btn-sm" id="clearCalcTapeBtn">Clear Tape</button>
+              </div>
+              <div class="calc-tape-list" id="calcTapeList">
+                <div class="empty-state">No calculations yet. Use the keypad or physical keyboard!</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. REMINDERS & ALARMS VIEW -->
+        <section class="view-panel" id="tab-reminders">
+          <div class="work-section-card glass-panel">
+            <h3>⏰ Set Reminder Alert</h3>
+            <form id="addReminderForm" class="rem-form-clean">
+              <input type="text" id="remTextInput" placeholder="Reminder message (e.g. Call client, Submit report)..." required autocomplete="off">
+              <div class="presets-row">
+                <span>Quick Time:</span>
+                <button type="button" class="btn-preset" data-mins="5">+5m</button>
+                <button type="button" class="btn-preset" data-mins="15">+15m</button>
+                <button type="button" class="btn-preset" data-mins="30">+30m</button>
+                <button type="button" class="btn-preset" data-mins="60">+1h</button>
+              </div>
+              <div class="time-submit-row">
+                <input type="datetime-local" id="remTimeInput" required>
+                <button type="submit" class="btn-primary">Set Reminder</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="work-section-card glass-panel">
+            <h3>Active Reminders (<span id="remindersCountNum">0</span>)</h3>
+            <div class="reminders-list" id="remindersList">
+              <div class="empty-state">No reminders active right now.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Mobile Floating Glass Bottom Navigation: AI Coach FIRST -->
+      <nav class="mobile-nav-bar glass-panel">
+        <button class="m-tab active" data-tab="tab-chat">
+          <span class="m-icon">🧠</span>
+          <span class="m-lbl">Coach</span>
+        </button>
+        <button class="m-tab" data-tab="tab-routine">
+          <span class="m-icon">⚡</span>
+          <span class="m-lbl">Flows</span>
+        </button>
+        <button class="m-tab" data-tab="tab-focus">
+          <span class="m-icon">⏱️</span>
+          <span class="m-lbl">Focus</span>
+        </button>
+        <button class="m-tab" data-tab="tab-vault">
+          <span class="m-icon">📚</span>
+          <span class="m-lbl">Vault</span>
+        </button>
+        <button class="m-tab" data-tab="tab-tasks">
+          <span class="m-icon">✅</span>
+          <span class="m-lbl">Tasks</span>
+        </button>
+      </nav>
+    </main>
+  </div>
+
+  <script src="app.js?v=3.0"></script>
+  <script>
+    // Register Service Worker for PWA installability
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

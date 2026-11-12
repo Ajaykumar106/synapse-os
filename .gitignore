@@ -1,0 +1,19 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Environment secrets - NEVER commit .env
+.env
+.env.local
+.env.production
+
+# User data (device-local JSON store)
+data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp

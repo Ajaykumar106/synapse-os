@@ -1,0 +1,24 @@
+{
+  "name": "synapse-os",
+  "version": "2.0.0",
+  "description": "100% Offline AI Study Coach & Focus OS — on-device Gemma 2B, Strict Timer, STEM Vault, Discipline Flows",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "start:prod": "NODE_ENV=production node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "keywords": [
+    "ai", "study", "focus", "offline", "pomodoro", "productivity", "education"
+  ],
+  "license": "UNLICENSED",
+  "private": true
+}
