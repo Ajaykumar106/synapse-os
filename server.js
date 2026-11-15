@@ -1425,6 +1425,13 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
     return;
   }
 
+  // Tactical Offline Subject & Study Coach Engine
+  const coachReply = getOfflineCoachResponse(raw, lower, timeInfo);
+  if (coachReply) {
+    sendEvent({ token: coachReply, done: true });
+    return;
+  }
+
   const isHinglish = /(?:kya|kaise|bhai|yaar|hai|ho|karo|batao)/i.test(lower);
   const fallbackReply = isHinglish
     ? `Main samajh gaya. **"${raw}"** ke liye sabse best approach ye hai ki pehle isko chhote 15-minute ke focus block me divide kar lo. Kya main iske liye ek task add kar doon ya timer start karoon?`
