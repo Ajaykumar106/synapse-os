@@ -1716,6 +1716,50 @@ button {
   color: var(--text-main);
 }
 
+/* Interactive OS Superpower Action Strip inside Chat */
+.os-quick-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+.btn-os-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--glass-inset);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-os-action:hover {
+  background: var(--text-main);
+  color: var(--bg-gradient-base);
+  border-color: var(--text-main);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-os-action:hover span {
+  filter: brightness(1.2);
+}
+
+.btn-os-action.action-completed {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #10b981 !important;
+}
+
 /* Modern Meta AI-style Assistant Action Dock */
 .msg-action-dock {
   display: flex;

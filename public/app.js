@@ -1516,11 +1516,43 @@ function createAssistantEntry() {
   return { row, wrap, bubble };
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function appendActionDock(wrap, originalQuery, answerText) {
+  const cleanQuery = (originalQuery || '').replace(/[?"'#]/g, '').trim();
+  
+  // Extract a sensible topic name from query
+  let taskTitle = cleanQuery
+    .replace(/^(tell me about|what is|explain|solve|how to|kya hai|kaise karein|prepare|study|revise)\s+/i, '')
+    .trim();
+  if (taskTitle.length < 3 || taskTitle.length > 35) {
+    taskTitle = 'Study Session';
+  } else {
+    taskTitle = taskTitle.charAt(0).toUpperCase() + taskTitle.slice(1) + ' Revision';
+  }
+
+  // 1. Interactive OS Superpower Action Strip
+  const actionStrip = document.createElement('div');
+  actionStrip.className = 'os-quick-actions-row';
+  actionStrip.innerHTML = `
+    <button type="button" class="btn-os-action" onclick="triggerPillTimer(25)">
+      <span>⏱️</span> Start 25m Focus Lock
+    </button>
+    <button type="button" class="btn-os-action" onclick="triggerPillTask(this, '${escapeHtml(taskTitle)}')">
+      <span>✅</span> Add "${escapeHtml(taskTitle.slice(0, 22))}" to Tasks
+    </button>
+    <button type="button" class="btn-os-action" onclick="triggerPillUrge(this)">
+      <span>🛡️</span> Resisted Urge (+1)
+    </button>
+  `;
+  wrap.appendChild(actionStrip);
+
+  // 2. Meta AI Style Feedback & Utility Icons
   const dock = document.createElement('div');
   dock.className = 'msg-action-dock meta-style-dock';
-
-  const cleanQuery = originalQuery.replace(/[?"'#]/g, '').trim();
 
   dock.innerHTML = `
     <button type="button" class="btn-dock-icon" title="Copy answer" onclick="copyAnswerText(this)">
@@ -1547,6 +1579,38 @@ function appendActionDock(wrap, originalQuery, answerText) {
   dock.dataset.query = cleanQuery;
   wrap.appendChild(dock);
 }
+
+window.triggerPillTimer = (mins = 25) => {
+  setTimerDuration(mins);
+  switchTab('tab-focus');
+  if (!isPomodoroRunning && pomodoroStartBtn) {
+    pomodoroStartBtn.click();
+  }
+};
+
+window.triggerPillTask = async (btn, taskName) => {
+  if (!taskName) taskName = 'Study Focus Session';
+  btn.innerHTML = '<span>✓</span> Added!';
+  btn.classList.add('action-completed');
+  try {
+    await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: taskName, category: 'Study' })
+    });
+    fetchTasks();
+  } catch {
+    tasks.push({ id: Date.now().toString(), text: taskName, completed: false, category: 'Study' });
+    localStorage.setItem('synapse_tasks', JSON.stringify(tasks));
+    renderTasks();
+  }
+};
+
+window.triggerPillUrge = async (btn) => {
+  btn.innerHTML = '<span>🔥</span> +1 Win Logged!';
+  btn.classList.add('action-completed');
+  handleDefeatUrge();
+};
 
 window.retryLastQuery = (btn) => {
   const dock = btn.closest('.msg-action-dock');
