@@ -3525,7 +3525,7 @@ button {
 .btn-live-voice-pill {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--text-main);
@@ -3543,27 +3543,37 @@ button {
   transform: translateY(-1px);
 }
 
-.live-voice-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-  animation: liveDotPulse 1.8s infinite;
+/* Sleek Animated Audio Spectrum (Top Bar) */
+.live-wave-spectrum {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 14px;
 }
 
-@keyframes liveDotPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+.spectrum-bar {
+  width: 2.5px;
+  background: #3b82f6;
+  border-radius: 2px;
+  animation: spectrumBounce 1.2s infinite ease-in-out;
 }
 
-/* Chat Input Bar Microphone Button */
-.btn-mic-circle {
+.spectrum-bar.sb-1 { height: 6px; animation-delay: 0.1s; }
+.spectrum-bar.sb-2 { height: 13px; animation-delay: 0.3s; }
+.spectrum-bar.sb-3 { height: 9px; animation-delay: 0.2s; }
+.spectrum-bar.sb-4 { height: 5px; animation-delay: 0.4s; }
+
+@keyframes spectrumBounce {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1.15); }
+}
+
+/* Modern Waveform Voice Button in Chat Input Bar (ChatGPT / Siri Style) */
+.btn-voice-waveform-circle {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   background: var(--glass-inset);
-  color: var(--text-main);
   border: 1px solid var(--glass-border);
   display: flex;
   align-items: center;
@@ -3571,25 +3581,48 @@ button {
   flex-shrink: 0;
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 0;
 }
 
-.btn-mic-circle:hover {
+.btn-voice-waveform-circle:hover {
   background: var(--glass-bg-hover);
-  color: #2563eb;
+  border-color: #3b82f6;
   transform: scale(1.05);
 }
 
-.btn-mic-circle.recording {
-  background: #ef4444 !important;
-  color: #fff !important;
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
-  animation: micRecordingPulse 1.2s infinite;
+.voice-bars-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 16px;
 }
 
-@keyframes micRecordingPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+.vbar {
+  width: 2.5px;
+  background: var(--text-main);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.vbar.vb-1 { height: 6px; }
+.vbar.vb-2 { height: 15px; }
+.vbar.vb-3 { height: 10px; }
+.vbar.vb-4 { height: 6px; }
+
+.btn-voice-waveform-circle:hover .vbar {
+  background: #2563eb;
+  animation: waveBarBounce 0.8s infinite ease-in-out;
+}
+
+.btn-voice-waveform-circle.recording {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.5);
+}
+
+.btn-voice-waveform-circle.recording .vbar {
+  background: #ffffff !important;
+  animation: waveBarBounce 0.6s infinite ease-in-out;
 }
 
 /* Gemini Live Voice Modal Card */

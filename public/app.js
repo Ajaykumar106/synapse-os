@@ -3328,16 +3328,16 @@ function initGeminiLiveVoice() {
     if (state === 'listening') {
       voiceOrbContainer?.classList.add('listening');
       if (voiceSoundwaves) voiceSoundwaves.classList.remove('hidden');
-      if (voiceStatusPill) voiceStatusPill.textContent = customText || '🎙️ Listening to you...';
+      if (voiceStatusPill) voiceStatusPill.textContent = customText || 'Listening to you...';
     } else if (state === 'thinking') {
       voiceOrbContainer?.classList.add('thinking');
-      if (voiceStatusPill) voiceStatusPill.textContent = customText || '⚡ Synapse Thinking...';
+      if (voiceStatusPill) voiceStatusPill.textContent = customText || 'Synapse Thinking...';
     } else if (state === 'speaking') {
       voiceOrbContainer?.classList.add('speaking');
       if (voiceSoundwaves) voiceSoundwaves.classList.remove('hidden');
-      if (voiceStatusPill) voiceStatusPill.textContent = customText || '🔊 Synapse Speaking...';
+      if (voiceStatusPill) voiceStatusPill.textContent = customText || 'Synapse Speaking...';
     } else {
-      if (voiceStatusPill) voiceStatusPill.textContent = '⚪ Paused';
+      if (voiceStatusPill) voiceStatusPill.textContent = 'Session Paused';
     }
   }
 
@@ -3529,7 +3529,7 @@ function initGeminiLiveVoice() {
   // Interrupt button (cuts off AI voice immediately)
   voiceInterruptBtn?.addEventListener('click', () => {
     stopAllSpeech();
-    setLiveState('listening', '🎙️ Interrupted — Listening to you...');
+    setLiveState('listening', 'Interrupted — Listening to you...');
     setTimeout(startLiveListening, 300);
   });
 
@@ -3537,11 +3537,10 @@ function initGeminiLiveVoice() {
   voiceOrbContainer?.addEventListener('click', () => {
     if (isAiSpeaking) {
       stopAllSpeech();
-      setLiveState('listening', '🎙️ Interrupted — Listening to you...');
+      setLiveState('listening', 'Interrupted — Listening to you...');
       setTimeout(startLiveListening, 300);
     } else if (isLiveMuted) {
       isLiveMuted = false;
-      if (voiceMuteIcon) voiceMuteIcon.textContent = '🎙️';
       if (voiceMuteText) voiceMuteText.textContent = 'Mute';
       startLiveListening();
     }
@@ -3553,11 +3552,9 @@ function initGeminiLiveVoice() {
     if (isLiveMuted) {
       try { liveRecognizer.stop(); } catch (e) {}
       stopAllSpeech();
-      setLiveState('paused', '🔇 Mic Muted');
-      if (voiceMuteIcon) voiceMuteIcon.textContent = '🔇';
+      setLiveState('paused', 'Muted');
       if (voiceMuteText) voiceMuteText.textContent = 'Unmute';
     } else {
-      if (voiceMuteIcon) voiceMuteIcon.textContent = '🎙️';
       if (voiceMuteText) voiceMuteText.textContent = 'Mute';
       startLiveListening();
     }
