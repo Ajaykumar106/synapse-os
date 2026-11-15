@@ -45,22 +45,59 @@
     </div>
   </div>
 
-  <!-- Mobile / Android Connection Modal -->
-  <div class="modal-backdrop hidden" id="phoneModal">
-    <div class="modal-card glass-card">
-      <div class="modal-header">
-        <h3>📱 Open on Android Phone</h3>
-        <button class="modal-close-btn" id="closePhoneModal">✕</button>
+  <!-- Gemini Live Voice Chat Modal -->
+  <div class="modal-backdrop hidden" id="voiceLiveModal">
+    <div class="voice-live-card glass-card">
+      <div class="voice-live-header">
+        <div class="voice-live-brand">
+          <span class="live-dot-pulse">🟢</span>
+          <strong>Synapse Live</strong>
+          <span class="live-sub-tag">Hands-Free Conversational Voice</span>
+        </div>
+        <button class="modal-close-btn" id="closeVoiceLiveBtn" title="Exit Voice Session">✕</button>
       </div>
-      <div class="modal-body">
-        <p>Open this URL in Chrome or any browser on your Android phone connected to the same Wi-Fi:</p>
-        <div class="link-copy-box glass-inset">
-          <input type="text" id="phoneUrlInput" readonly value="Loading...">
-          <button class="btn-action-sm" id="copyPhoneUrlBtn">Copy Link</button>
+
+      <!-- Glowing Animated Neural Orb -->
+      <div class="voice-orb-container" id="voiceOrbContainer">
+        <div class="voice-orb-halo"></div>
+        <div class="voice-orb-core" id="voiceOrbCore">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
         </div>
-        <div class="install-card-tip">
-          <strong>💡 Android PWA Tip:</strong> In Chrome on your phone, tap the <strong>⋮ menu</strong> and select <strong>"Add to Home screen"</strong> to use Synapse like a lightning-fast native app!
+        <div class="voice-soundwaves hidden" id="voiceSoundwaves">
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
         </div>
+      </div>
+
+      <!-- Status indicator & Subtitles -->
+      <div class="voice-status-box">
+        <span class="voice-status-pill" id="voiceStatusPill">🎙️ Listening to you...</span>
+        <p class="voice-transcript-user" id="voiceTranscriptUser">Listening... speak naturally in English, Hindi, or Hinglish.</p>
+        <p class="voice-transcript-ai" id="voiceTranscriptAi"></p>
+      </div>
+
+      <!-- Live Voice Controls -->
+      <div class="voice-live-controls">
+        <button type="button" class="btn-voice-ctrl" id="voiceMuteToggleBtn" title="Mute / Pause mic">
+          <span id="voiceMuteIcon">🎙️</span>
+          <span id="voiceMuteText">Mute</span>
+        </button>
+        <button type="button" class="btn-voice-ctrl btn-voice-stop" id="voiceInterruptBtn" title="Stop Speaking">
+          <span>⏹️</span>
+          <span>Interrupt</span>
+        </button>
+        <button type="button" class="btn-voice-ctrl btn-voice-exit" id="voiceExitBtn" title="End Session">
+          <span>✕</span>
+          <span>End Live</span>
+        </button>
       </div>
     </div>
   </div>
@@ -286,6 +323,10 @@
           <span class="active-title-pill" id="pageTitle">🧠 Synapse AI</span>
         </div>
         <div class="topbar-right">
+          <button type="button" class="btn-live-voice-pill" id="openVoiceLiveBtn" title="Launch Gemini Live Voice Mode">
+            <span class="live-voice-dot"></span>
+            <span>🎙️ Live Voice</span>
+          </button>
           <button type="button" class="btn-pro-pill" id="openProModalBtn" title="Upgrade to Synapse Pro Lifetime">
             👑 Upgrade Pro
           </button>
@@ -361,6 +402,15 @@
                 placeholder="Message Synapse..."
                 autocomplete="off"
               >
+              <!-- Voice Microphone Button -->
+              <button type="button" id="micBtn" class="btn-mic-circle" title="Voice Input (Tap to speak in English or Hindi)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="23"></line>
+                  <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+              </button>
               <button type="submit" id="sendBtn" class="btn-send-circle" title="Send message">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
                   <line x1="12" y1="19" x2="12" y2="5"></line>

@@ -3214,3 +3214,354 @@ fetchReminders();
 renderCalcTape();
 loadNetworkInfo();
 
+
+
+// ========================================================
+// 17. GEMINI LIVE CONVERSATIONAL VOICE & REAL-TIME SPEECH
+// 100% Free • Native Web Speech Recognition & Synthesis
+// ========================================================
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const micBtn = document.getElementById('micBtn');
+const openVoiceLiveBtn = document.getElementById('openVoiceLiveBtn');
+const voiceLiveModal = document.getElementById('voiceLiveModal');
+const closeVoiceLiveBtn = document.getElementById('closeVoiceLiveBtn');
+const voiceOrbContainer = document.getElementById('voiceOrbContainer');
+const voiceSoundwaves = document.getElementById('voiceSoundwaves');
+const voiceStatusPill = document.getElementById('voiceStatusPill');
+const voiceTranscriptUser = document.getElementById('voiceTranscriptUser');
+const voiceTranscriptAi = document.getElementById('voiceTranscriptAi');
+const voiceMuteToggleBtn = document.getElementById('voiceMuteToggleBtn');
+const voiceMuteIcon = document.getElementById('voiceMuteIcon');
+const voiceMuteText = document.getElementById('voiceMuteText');
+const voiceInterruptBtn = document.getElementById('voiceInterruptBtn');
+const voiceExitBtn = document.getElementById('voiceExitBtn');
+
+let inputRecognizer = null;
+let liveRecognizer = null;
+let isInputRecording = false;
+let isLiveActive = false;
+let isLiveMuted = false;
+let isAiSpeaking = false;
+
+// 1. Quick Chat Input Mic (Tap to dictate & auto-send)
+function initInputMic() {
+  if (!SpeechRec) {
+    if (micBtn) {
+      micBtn.title = 'Voice input not supported in this browser (Use Chrome/Edge/Safari)';
+      micBtn.style.opacity = '0.5';
+    }
+    return;
+  }
+
+  inputRecognizer = new SpeechRec();
+  inputRecognizer.continuous = false;
+  inputRecognizer.interimResults = true;
+  inputRecognizer.lang = 'en-IN'; // Excellent for Hinglish, Hindi, and English accents
+
+  inputRecognizer.onstart = () => {
+    isInputRecording = true;
+    micBtn?.classList.add('recording');
+    if (userInput) userInput.placeholder = '🎙️ Listening... speak now...';
+  };
+
+  inputRecognizer.onresult = (e) => {
+    const transcript = Array.from(e.results)
+      .map(r => r[0].transcript)
+      .join('');
+    if (userInput) userInput.value = transcript;
+  };
+
+  inputRecognizer.onerror = (e) => {
+    console.warn('Speech recognition notice:', e.error);
+    stopInputMic();
+  };
+
+  inputRecognizer.onend = () => {
+    stopInputMic();
+    // Auto-send if text was recorded
+    if (userInput && userInput.value.trim() && chatForm) {
+      setTimeout(() => {
+        chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }, 300);
+    }
+  };
+
+  micBtn?.addEventListener('click', () => {
+    if (isInputRecording) {
+      inputRecognizer.stop();
+    } else {
+      try {
+        inputRecognizer.start();
+      } catch (err) {
+        inputRecognizer.stop();
+      }
+    }
+  });
+}
+
+function stopInputMic() {
+  isInputRecording = false;
+  micBtn?.classList.remove('recording');
+  if (userInput) userInput.placeholder = 'Message Synapse...';
+}
+
+initInputMic();
+
+// 2. Gemini Live Hands-Free Conversational Voice Loop
+function initGeminiLiveVoice() {
+  if (!SpeechRec) {
+    openVoiceLiveBtn?.addEventListener('click', () => {
+      alert('Live voice mode requires Google Chrome, Microsoft Edge, or Safari on your phone/PC.');
+    });
+    return;
+  }
+
+  liveRecognizer = new SpeechRec();
+  liveRecognizer.continuous = false;
+  liveRecognizer.interimResults = true;
+  liveRecognizer.lang = 'en-IN';
+
+  function setLiveState(state, customText) {
+    voiceOrbContainer?.classList.remove('listening', 'speaking', 'thinking');
+    if (voiceSoundwaves) voiceSoundwaves.classList.add('hidden');
+
+    if (state === 'listening') {
+      voiceOrbContainer?.classList.add('listening');
+      if (voiceSoundwaves) voiceSoundwaves.classList.remove('hidden');
+      if (voiceStatusPill) voiceStatusPill.textContent = customText || '🎙️ Listening to you...';
+    } else if (state === 'thinking') {
+      voiceOrbContainer?.classList.add('thinking');
+      if (voiceStatusPill) voiceStatusPill.textContent = customText || '⚡ Synapse Thinking...';
+    } else if (state === 'speaking') {
+      voiceOrbContainer?.classList.add('speaking');
+      if (voiceSoundwaves) voiceSoundwaves.classList.remove('hidden');
+      if (voiceStatusPill) voiceStatusPill.textContent = customText || '🔊 Synapse Speaking...';
+    } else {
+      if (voiceStatusPill) voiceStatusPill.textContent = '⚪ Paused';
+    }
+  }
+
+  liveRecognizer.onstart = () => {
+    setLiveState('listening');
+  };
+
+  let liveFinalTranscript = '';
+
+  liveRecognizer.onresult = (e) => {
+    let interim = '';
+    liveFinalTranscript = '';
+    for (let i = 0; i < e.results.length; ++i) {
+      if (e.results[i].isFinal) {
+        liveFinalTranscript += e.results[i][0].transcript;
+      } else {
+        interim += e.results[i][0].transcript;
+      }
+    }
+    const current = liveFinalTranscript || interim;
+    if (voiceTranscriptUser && current) {
+      voiceTranscriptUser.textContent = `"${current}"`;
+    }
+  };
+
+  liveRecognizer.onerror = (e) => {
+    if (e.error !== 'no-speech' && isLiveActive && !isLiveMuted && !isAiSpeaking) {
+      setTimeout(startLiveListening, 600);
+    }
+  };
+
+  liveRecognizer.onend = () => {
+    if (!isLiveActive || isLiveMuted) return;
+
+    if (liveFinalTranscript && liveFinalTranscript.trim()) {
+      handleLiveVoiceTurn(liveFinalTranscript.trim());
+      liveFinalTranscript = '';
+    } else if (!isAiSpeaking) {
+      // Keep listening in continuous loop
+      setTimeout(startLiveListening, 400);
+    }
+  };
+
+  function startLiveListening() {
+    if (!isLiveActive || isLiveMuted || isAiSpeaking) return;
+    try {
+      liveRecognizer.start();
+    } catch (e) {}
+  }
+
+  async function handleLiveVoiceTurn(userVoiceText) {
+    setLiveState('thinking');
+    if (voiceTranscriptAi) voiceTranscriptAi.textContent = 'Thinking...';
+
+    // Also populate chat in background so history is saved
+    appendUserMessage(userVoiceText);
+    const { wrap, bubble } = createAssistantEntry();
+
+    let aiFullReply = '';
+    try {
+      const res = await fetch('/api/chat-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userVoiceText,
+          history: chatSessionHistory.slice(-8)
+        })
+      });
+
+      if (!res.ok) throw new Error('Network response not ok');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        for (const line of chunk.split('\n\n')) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.substring(6));
+              if (data.token) {
+                aiFullReply += data.token;
+                bubble.innerHTML = formatMarkdown(aiFullReply);
+              }
+              if (data.triggerFocus) {
+                setTimerDuration(data.triggerFocus.duration);
+              }
+              if (data.refreshTasks) fetchTasks();
+              if (data.refreshRoutine) fetchRoutines();
+              if (data.triggerUrgeDefeated) handleDefeatUrge();
+            } catch {}
+          }
+        }
+      }
+
+      appendActionDock(wrap, userVoiceText, aiFullReply);
+      chatSessionHistory.push({ role: 'user', content: userVoiceText });
+      chatSessionHistory.push({ role: 'assistant', content: aiFullReply });
+    } catch (err) {
+      aiFullReply = getClientOfflineCoachReply(userVoiceText);
+      bubble.innerHTML = formatMarkdown(aiFullReply);
+      appendActionDock(wrap, userVoiceText, aiFullReply);
+    }
+
+    // Clean text for smooth voice playback (strip markdown symbols)
+    const cleanSpeech = aiFullReply
+      .replace(/\[\[?[\s\S]*?\]\]?/g, '')
+      .replace(/[*#`_~•-]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (voiceTranscriptAi) {
+      voiceTranscriptAi.textContent = cleanSpeech.slice(0, 140) + (cleanSpeech.length > 140 ? '...' : '');
+    }
+
+    speakLiveAnswer(cleanSpeech);
+  }
+
+  function speakLiveAnswer(speechText) {
+    if (!('speechSynthesis' in window) || !isLiveActive) {
+      setTimeout(startLiveListening, 1000);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    isAiSpeaking = true;
+    setLiveState('speaking');
+
+    const utter = new SpeechSynthesisUtterance(speechText);
+    utter.rate = 1.05; // Natural modern pace
+    utter.pitch = 1.0;
+
+    // Pick best natural voice available
+    const voices = window.speechSynthesis.getVoices();
+    const naturalVoice = voices.find(v => v.lang.startsWith('en-IN')) ||
+                         voices.find(v => v.lang.startsWith('en-GB')) ||
+                         voices.find(v => v.lang.startsWith('en-US')) ||
+                         voices[0];
+    if (naturalVoice) utter.voice = naturalVoice;
+
+    utter.onend = () => {
+      isAiSpeaking = false;
+      if (isLiveActive && !isLiveMuted) {
+        setLiveState('listening');
+        setTimeout(startLiveListening, 500); // Continuous loop!
+      }
+    };
+
+    utter.onerror = () => {
+      isAiSpeaking = false;
+      if (isLiveActive && !isLiveMuted) {
+        setLiveState('listening');
+        setTimeout(startLiveListening, 500);
+      }
+    };
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  function stopAllSpeech() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    isAiSpeaking = false;
+  }
+
+  // Open & Close Handlers
+  openVoiceLiveBtn?.addEventListener('click', () => {
+    isLiveActive = true;
+    isLiveMuted = false;
+    voiceLiveModal?.classList.remove('hidden');
+    if (voiceTranscriptUser) voiceTranscriptUser.textContent = 'Listening... speak naturally to Synapse.';
+    if (voiceTranscriptAi) voiceTranscriptAi.textContent = '';
+    startLiveListening();
+  });
+
+  function closeLiveSession() {
+    isLiveActive = false;
+    stopAllSpeech();
+    try { liveRecognizer.stop(); } catch (e) {}
+    voiceLiveModal?.classList.add('hidden');
+  }
+
+  closeVoiceLiveBtn?.addEventListener('click', closeLiveSession);
+  voiceExitBtn?.addEventListener('click', closeLiveSession);
+
+  // Interrupt button (cuts off AI voice immediately)
+  voiceInterruptBtn?.addEventListener('click', () => {
+    stopAllSpeech();
+    setLiveState('listening', '🎙️ Interrupted — Listening to you...');
+    setTimeout(startLiveListening, 300);
+  });
+
+  // Tap orb directly to interrupt or talk
+  voiceOrbContainer?.addEventListener('click', () => {
+    if (isAiSpeaking) {
+      stopAllSpeech();
+      setLiveState('listening', '🎙️ Interrupted — Listening to you...');
+      setTimeout(startLiveListening, 300);
+    } else if (isLiveMuted) {
+      isLiveMuted = false;
+      if (voiceMuteIcon) voiceMuteIcon.textContent = '🎙️';
+      if (voiceMuteText) voiceMuteText.textContent = 'Mute';
+      startLiveListening();
+    }
+  });
+
+  // Mute / Unmute
+  voiceMuteToggleBtn?.addEventListener('click', () => {
+    isLiveMuted = !isLiveMuted;
+    if (isLiveMuted) {
+      try { liveRecognizer.stop(); } catch (e) {}
+      stopAllSpeech();
+      setLiveState('paused', '🔇 Mic Muted');
+      if (voiceMuteIcon) voiceMuteIcon.textContent = '🔇';
+      if (voiceMuteText) voiceMuteText.textContent = 'Unmute';
+    } else {
+      if (voiceMuteIcon) voiceMuteIcon.textContent = '🎙️';
+      if (voiceMuteText) voiceMuteText.textContent = 'Mute';
+      startLiveListening();
+    }
+  });
+}
+
+initGeminiLiveVoice();
