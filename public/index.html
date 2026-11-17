@@ -227,6 +227,88 @@
     </div>
   </div>
 
+  <!-- AI Engine Architecture & Provider Settings Modal -->
+  <div class="modal-backdrop hidden" id="aiEngineModal">
+    <div class="modal-card glass-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">⚡</span>
+          <div>
+            <h3 style="margin: 0; font-size: 16px;">AI Brain Engine</h3>
+            <span style="font-size: 11px; color: var(--text-muted);">Cloud Ultra-Fast (Mobile) or 100% Offline (PC)</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="closeAiEngineModal" title="Close">✕</button>
+      </div>
+
+      <div class="ai-engine-body" style="padding: 16px 0; display: flex; flex-direction: column; gap: 16px;">
+        <!-- Engine Status Banner -->
+        <div class="engine-status-box" id="engineStatusBox" style="background: var(--glass-inset); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.5;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span id="engineActiveDot">🟢</span>
+            <strong id="engineActiveName">Detecting active brain...</strong>
+          </div>
+          <span id="engineActiveDetail" style="color: var(--text-muted); font-size: 11.5px;">Connecting to intelligent streaming pipeline...</span>
+        </div>
+
+        <!-- Option 1: Cloud AI (Recommended for Mobile / Vercel) -->
+        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+              🚀 Cloud AI (Zero-Download for Mobile)
+            </strong>
+            <span style="font-size: 10px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 12px;">Recommended</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.5;">
+            Zero model downloads required on your phone! Runs at 300+ tokens/sec like WhatsApp Meta AI.
+          </p>
+
+          <label style="font-size: 11.5px; font-weight: 600; display: block; margin-bottom: 4px;">
+            Google Gemini API Key (100% Free):
+          </label>
+          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+            <input type="password" id="geminiApiKeyInput" class="glass-input" placeholder="AIzaSy... (saved on device)" style="flex: 1; font-size: 12px;">
+            <button type="button" class="btn-subtle btn-sm" id="toggleGeminiKeyVis">👁️</button>
+          </div>
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #3b82f6; text-decoration: none; display: inline-block; margin-bottom: 12px;">
+            👉 Get free Google Gemini API key (takes 10 seconds)
+          </a>
+
+          <label style="font-size: 11.5px; font-weight: 600; display: block; margin-bottom: 4px;">
+            Groq API Key (Meta Llama 3.3 70B - Free & Blazing Fast):
+          </label>
+          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+            <input type="password" id="groqApiKeyInput" class="glass-input" placeholder="gsk_... (saved on device)" style="flex: 1; font-size: 12px;">
+            <button type="button" class="btn-subtle btn-sm" id="toggleGroqKeyVis">👁️</button>
+          </div>
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #3b82f6; text-decoration: none; display: inline-block;">
+            👉 Get free Groq Meta Llama key (takes 10 seconds)
+          </a>
+        </div>
+
+        <!-- Option 2: Local On-Device AI -->
+        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px;">
+          <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            💻 Local On-Device AI (For PC / Laptop)
+          </strong>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+            Uses Ollama (<code style="font-size: 11px;">gemma2:2b</code>) running locally on your computer with 100% zero internet connection.
+          </p>
+        </div>
+
+        <!-- Vercel Deployment Note -->
+        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 10px; padding: 10px 12px; font-size: 11px; line-height: 1.5; color: var(--text-main);">
+          💡 <strong>Host tip for Vercel:</strong> Add <code style="background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 4px;">GEMINI_API_KEY</code> or <code style="background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 4px;">GROQ_API_KEY</code> in your Vercel Project Settings &rarr; Environment Variables so all mobile users get instant AI without entering any keys!
+        </div>
+
+        <div class="form-btn-group" style="margin-top: 4px;">
+          <button type="button" class="btn-subtle" id="cancelAiEngineModalBtn">Close</button>
+          <button type="button" class="btn-primary" id="saveAiEngineBtn">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main App Shell -->
   <div class="app-shell">
     <!-- Sidebar Mobile Backdrop Overlay -->
@@ -311,7 +393,8 @@
           </div>
           <button type="button" class="btn-pro-sm" id="sidebarProBtn">Unlock</button>
         </div>
-        <div class="sidebar-action-row">
+        <div class="sidebar-action-row" style="flex-direction: column; gap: 6px;">
+          <button class="btn-subtle btn-sm" id="sidebarAiEngineBtn" style="width: 100%; justify-content: center;">⚡ AI Engine Settings</button>
           <button class="btn-subtle btn-sm" id="themeToggleBtn" style="width: 100%; justify-content: center;">☀️ Light Mode</button>
         </div>
         <div class="sidebar-legal-row">
@@ -349,7 +432,10 @@
           <button type="button" class="btn-pro-pill" id="openProModalBtn" title="Upgrade to Synapse Pro Lifetime">
             👑 Upgrade Pro
           </button>
-          <span class="offline-badge-pill">⚡ 100% Offline AI</span>
+          <button type="button" class="btn-ai-engine-pill" id="openAiEngineBtn" title="AI Brain Settings: Cloud AI (Meta Llama 3 / Gemini) or Local On-Device (Ollama)">
+            <span class="engine-indicator-dot" id="engineDot">🟢</span>
+            <span id="engineBadgeText">AI Engine</span>
+          </button>
         </div>
       </header>
 

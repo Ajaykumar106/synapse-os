@@ -2012,7 +2012,11 @@ chatForm.addEventListener('submit', async (e) => {
 
     const res = await fetch('/api/chat-stream', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-gemini-key': localStorage.getItem('synapse_gemini_key') || '',
+        'x-groq-key': localStorage.getItem('synapse_groq_key') || ''
+      },
       body: JSON.stringify({
         message: promptText,
         history: chatSessionHistory.slice(-8)
@@ -3400,7 +3404,11 @@ function initGeminiLiveVoice() {
     try {
       const res = await fetch('/api/chat-stream', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-key': localStorage.getItem('synapse_gemini_key') || '',
+          'x-groq-key': localStorage.getItem('synapse_groq_key') || ''
+        },
         body: JSON.stringify({
           message: userVoiceText,
           history: chatSessionHistory.slice(-8)
@@ -3562,3 +3570,110 @@ function initGeminiLiveVoice() {
 }
 
 initGeminiLiveVoice();
+
+// ========================================================
+// AI ENGINE ARCHITECTURE & PROVIDER SWITCHER (CLOUD / LOCAL)
+// ========================================================
+let serverEngineStatus = { hasGroq: false, hasGemini: false, isOllamaRunning: false, isVercel: false };
+
+async function updateEngineStatusBadge() {
+  const engineDot = document.getElementById('engineDot');
+  const engineBadgeText = document.getElementById('engineBadgeText');
+  const engineActiveDot = document.getElementById('engineActiveDot');
+  const engineActiveName = document.getElementById('engineActiveName');
+  const engineActiveDetail = document.getElementById('engineActiveDetail');
+
+  const userGemini = localStorage.getItem('synapse_gemini_key') || '';
+  const userGroq = localStorage.getItem('synapse_groq_key') || '';
+
+  try {
+    const res = await fetch('/api/engine-status');
+    if (res.ok) {
+      serverEngineStatus = await res.json();
+    }
+  } catch (e) {}
+
+  let title = '⚡ AI Engine';
+  let detail = 'Zero-Cloud Tactical Study Engine active. Add a free API key for full generative AI.';
+  let dot = '🟡';
+
+  if (userGroq || serverEngineStatus.hasGroq) {
+    title = 'Meta Llama 3 (Cloud)';
+    detail = '⚡ Ultra-fast 300+ tok/sec cloud streaming (Meta AI Engine). Zero model downloads!';
+    dot = '🟢';
+  } else if (userGemini || serverEngineStatus.hasGemini) {
+    title = 'Gemini 1.5 (Cloud)';
+    detail = '🧠 Google Gemini 1.5 Flash active with 1M context. Zero model downloads!';
+    dot = '🟢';
+  } else if (serverEngineStatus.isOllamaRunning) {
+    title = 'Gemma 2B (On-Device)';
+    detail = '💻 100% Offline On-Device Gemma 2B running locally via Ollama.';
+    dot = '🟢';
+  }
+
+  if (engineDot) engineDot.textContent = dot;
+  if (engineBadgeText) engineBadgeText.textContent = title;
+  if (engineActiveDot) engineActiveDot.textContent = dot;
+  if (engineActiveName) engineActiveName.textContent = title;
+  if (engineActiveDetail) engineActiveDetail.textContent = detail;
+}
+
+function initAiEngineModal() {
+  const openBtn = document.getElementById('openAiEngineBtn');
+  const sidebarBtn = document.getElementById('sidebarAiEngineBtn');
+  const modal = document.getElementById('aiEngineModal');
+  const closeBtn = document.getElementById('closeAiEngineModal');
+  const cancelBtn = document.getElementById('cancelAiEngineModalBtn');
+  const saveBtn = document.getElementById('saveAiEngineBtn');
+
+  const geminiInput = document.getElementById('geminiApiKeyInput');
+  const groqInput = document.getElementById('groqApiKeyInput');
+  const toggleGeminiVis = document.getElementById('toggleGeminiKeyVis');
+  const toggleGroqVis = document.getElementById('toggleGroqKeyVis');
+
+  if (geminiInput) geminiInput.value = localStorage.getItem('synapse_gemini_key') || '';
+  if (groqInput) groqInput.value = localStorage.getItem('synapse_groq_key') || '';
+
+  const openModal = () => {
+    updateEngineStatusBadge();
+    if (geminiInput) geminiInput.value = localStorage.getItem('synapse_gemini_key') || '';
+    if (groqInput) groqInput.value = localStorage.getItem('synapse_groq_key') || '';
+    modal?.classList.remove('hidden');
+  };
+
+  const closeModal = () => modal?.classList.add('hidden');
+
+  openBtn?.addEventListener('click', openModal);
+  sidebarBtn?.addEventListener('click', () => {
+    closeSidebarDrawer();
+    openModal();
+  });
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+
+  toggleGeminiVis?.addEventListener('click', () => {
+    if (geminiInput) geminiInput.type = geminiInput.type === 'password' ? 'text' : 'password';
+  });
+  toggleGroqVis?.addEventListener('click', () => {
+    if (groqInput) groqInput.type = groqInput.type === 'password' ? 'text' : 'password';
+  });
+
+  saveBtn?.addEventListener('click', () => {
+    const gemVal = (geminiInput?.value || '').trim();
+    const groqVal = (groqInput?.value || '').trim();
+
+    if (gemVal) localStorage.setItem('synapse_gemini_key', gemVal);
+    else localStorage.removeItem('synapse_gemini_key');
+
+    if (groqVal) localStorage.setItem('synapse_groq_key', groqVal);
+    else localStorage.removeItem('synapse_groq_key');
+
+    updateEngineStatusBadge();
+    closeModal();
+    alert('✅ AI Engine settings saved! Your app will now use this cloud engine for instant Meta AI/Gemini responses.');
+  });
+
+  updateEngineStatusBadge();
+}
+
+initAiEngineModal();

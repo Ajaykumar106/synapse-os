@@ -742,6 +742,17 @@ app.post('/api/discipline-stats', (req, res) => {
   res.json({ success: true, stats });
 });
 
+// AI Engine Status (Cloud & Local)
+app.get('/api/engine-status', async (_req, res) => {
+  const ollamaRunning = await isOllamaAvailable();
+  res.json({
+    hasGroq: Boolean(process.env.GROQ_API_KEY),
+    hasGemini: Boolean(process.env.GEMINI_API_KEY),
+    isOllamaRunning: ollamaRunning,
+    isVercel: isVercel
+  });
+});
+
 function getOfflineCoachResponse(raw, lower, timeInfo) {
   // 1. Anti-Social Media / Digital Detox / Procrastination / Urges
   if (/(?:social\s+media|instagram|tiktok|youtube|twitter|reels|shorts|doomscroll|scroll|distract\w*|procrastinat\w*|lazy|unmotivat\w*|can't\s+focus|dopamine|urge)/i.test(lower)) {
@@ -1093,8 +1104,10 @@ Would you like me to create a dedicated **Task**, schedule a **Study Timer**, or
 }
 
 // ========================================================
-// ON-DEVICE NEURAL INTELLIGENCE ENGINE (OLLAMA + GEMMA 2B)
+// AI INTELLIGENCE ENGINES: CLOUD (GROQ / GEMINI) & LOCAL (OLLAMA)
 // ========================================================
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://127.0.0.1:11434';
 // Ollama executable path — override via OLLAMA_EXE env var on different machines
 const OLLAMA_EXE_PATH = process.env.OLLAMA_EXE || 'C:\\Users\\ajayk\\AppData\\Local\\Programs\\Ollama\\ollama.exe';
@@ -1258,11 +1271,8 @@ function executeActionTags(fullText, sendEvent, userMessage = '') {
   }
 }
 
-async function streamOllamaChat({ message, history = [], sendEvent }) {
-  const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
-  const appContext = await getAppContext(needsNews);
-
-  const systemPrompt = `You are Synapse, the user's sharp, friendly AI study companion and all-rounder dost (matching the style of Meta AI and ChatGPT).
+function getAssistantSystemPrompt(appContext) {
+  return `You are Synapse, the user's sharp, friendly AI study companion and all-rounder dost (matching the style of Meta AI and ChatGPT).
 
 STYLE RULES:
 1. Talk like a smart, warm friend/dost—conversational, punchy, and encouraging. Fluently use natural Hinglish/Hindi or English matching the user.
@@ -1296,6 +1306,192 @@ User: Hi
 Response: Hi bro! 😄 Bolo, aaj kya tackle karein—koi tough topic samajhna hai, aaj ke tasks plan karein ya 25m ka deep focus timer lagayein?
 
 ${appContext}`;
+}
+
+function createStreamTokenizer(sendEvent, userMessage) {
+  let fullResponse = '';
+  let streamBuffer = '';
+  const ACTION_TAG_REGEX = /\[\[?\s*(?:ADD_TASK|START_TIMER|ADD_ROUTINE|SAVE_NOTE|DEFEAT_URGE|TASK|TIMER|ROUTINE|NOTE)[\s\S]*?(?:\]\]?|$)|:\s*\d+\s*\]+|\[Pending Tasks[\s\S]*?\]|\[Pending Checklist Tasks[\s\S]*?\]|\]\]/gi;
+
+  return {
+    push(token) {
+      if (!token) return;
+      fullResponse += token;
+      streamBuffer += token;
+
+      const openIdx = streamBuffer.search(/\[\[?|\b(?:ADD_TASK|START_TIMER|ADD_ROUTINE|SAVE_NOTE|DEFEAT_URGE|TASK|TIMER)/i);
+      if (openIdx === -1) {
+        sendEvent({ token: streamBuffer });
+        streamBuffer = '';
+      } else {
+        if (openIdx > 0) {
+          sendEvent({ token: streamBuffer.slice(0, openIdx) });
+          streamBuffer = streamBuffer.slice(openIdx);
+        }
+        if (streamBuffer.includes(']') || streamBuffer.length > 120) {
+          const cleaned = streamBuffer.replace(ACTION_TAG_REGEX, '');
+          if (cleaned) sendEvent({ token: cleaned });
+          streamBuffer = '';
+        }
+      }
+    },
+    finish() {
+      if (streamBuffer) {
+        const cleanRemaining = streamBuffer.replace(ACTION_TAG_REGEX, '');
+        if (cleanRemaining) sendEvent({ token: cleanRemaining });
+      }
+      executeActionTags(fullResponse, sendEvent, userMessage);
+      sendEvent({ done: true });
+    },
+    getFull() {
+      return fullResponse;
+    }
+  };
+}
+
+// 1. Groq Ultra-Fast Cloud Stream (Meta Llama 3.3 70B - 300+ tok/sec, Meta AI's Open Engine)
+async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
+  const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
+  const appContext = await getAppContext(needsNews);
+  const systemPrompt = getAssistantSystemPrompt(appContext);
+  const tokenizer = createStreamTokenizer(sendEvent, message);
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.slice(-8).map(h => ({
+      role: h.role === 'assistant' ? 'assistant' : 'user',
+      content: h.content
+    })),
+    { role: 'user', content: message }
+  ];
+
+  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey.trim()}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      temperature: 0.7,
+      max_tokens: 600,
+      stream: true
+    }),
+    signal: AbortSignal.timeout(35000)
+  });
+
+  if (!groqRes.ok) {
+    const errText = await groqRes.text().catch(() => '');
+    throw new Error(`Groq API error (${groqRes.status}): ${errText}`);
+  }
+
+  const reader = groqRes.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data:')) continue;
+      const dataStr = trimmed.slice(5).trim();
+      if (dataStr === '[DONE]') continue;
+
+      try {
+        const parsed = JSON.parse(dataStr);
+        const token = parsed.choices?.[0]?.delta?.content || '';
+        if (token) tokenizer.push(token);
+      } catch (e) {}
+    }
+  }
+
+  tokenizer.finish();
+}
+
+// 2. Google Gemini 1.5 Flash Cloud Stream (Google AI Studio Free Tier, Multilingual, 1M Context)
+async function streamGeminiChat({ message, history = [], apiKey, sendEvent }) {
+  const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
+  const appContext = await getAppContext(needsNews);
+  const systemPrompt = getAssistantSystemPrompt(appContext);
+  const tokenizer = createStreamTokenizer(sendEvent, message);
+
+  const contents = [];
+  for (const h of history.slice(-8)) {
+    contents.push({
+      role: h.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: h.content }]
+    });
+  }
+  contents.push({
+    role: 'user',
+    parts: [{ text: message }]
+  });
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey.trim()}`;
+  const geminiRes = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      contents,
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 600
+      }
+    }),
+    signal: AbortSignal.timeout(35000)
+  });
+
+  if (!geminiRes.ok) {
+    const errText = await geminiRes.text().catch(() => '');
+    throw new Error(`Gemini API error (${geminiRes.status}): ${errText}`);
+  }
+
+  const reader = geminiRes.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data:')) continue;
+      const dataStr = trimmed.slice(5).trim();
+
+      try {
+        const parsed = JSON.parse(dataStr);
+        const candidates = parsed.candidates || [];
+        for (const cand of candidates) {
+          const parts = cand.content?.parts || [];
+          for (const p of parts) {
+            const token = p.text || '';
+            if (token) tokenizer.push(token);
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  tokenizer.finish();
+}
+
+// 3. Local On-Device Ollama Stream (Gemma 2B)
+async function streamOllamaChat({ message, history = [], sendEvent }) {
+  const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
+  const appContext = await getAppContext(needsNews);
+  const systemPrompt = getAssistantSystemPrompt(appContext);
+  const tokenizer = createStreamTokenizer(sendEvent, message);
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -1324,9 +1520,6 @@ ${appContext}`;
 
   const reader = ollamaRes.body.getReader();
   const decoder = new TextDecoder();
-  let fullResponse = '';
-  let streamBuffer = '';
-  const ACTION_TAG_REGEX = /\[\[?\s*(?:ADD_TASK|START_TIMER|ADD_ROUTINE|SAVE_NOTE|DEFEAT_URGE|TASK|TIMER|ROUTINE|NOTE)[\s\S]*?(?:\]\]?|$)|:\s*\d+\s*\]+|\[Pending Tasks[\s\S]*?\]|\[Pending Checklist Tasks[\s\S]*?\]|\]\]/gi;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -1340,38 +1533,49 @@ ${appContext}`;
       try {
         const parsed = JSON.parse(line);
         if (parsed.message?.content) {
-          const token = parsed.message.content;
-          fullResponse += token;
-          streamBuffer += token;
-
-          const openIdx = streamBuffer.search(/\[\[?|\b(?:ADD_TASK|START_TIMER|ADD_ROUTINE|SAVE_NOTE|DEFEAT_URGE|TASK|TIMER)/i);
-          if (openIdx === -1) {
-            sendEvent({ token: streamBuffer });
-            streamBuffer = '';
-          } else {
-            if (openIdx > 0) {
-              sendEvent({ token: streamBuffer.slice(0, openIdx) });
-              streamBuffer = streamBuffer.slice(openIdx);
-            }
-            if (streamBuffer.includes(']') || streamBuffer.length > 120) {
-              const cleaned = streamBuffer.replace(ACTION_TAG_REGEX, '');
-              if (cleaned) sendEvent({ token: cleaned });
-              streamBuffer = '';
-            }
-          }
+          tokenizer.push(parsed.message.content);
         }
       } catch (err) {}
     }
   }
 
-  if (streamBuffer) {
-    const cleanRemaining = streamBuffer.replace(ACTION_TAG_REGEX, '');
-    if (cleanRemaining) sendEvent({ token: cleanRemaining });
-  }
+  tokenizer.finish();
+}
 
-  // Execute action tags
-  executeActionTags(fullResponse, sendEvent, message);
-  sendEvent({ done: true });
+// 4. Live Knowledge Retrieval Engine (DuckDuckGo & Wikipedia)
+async function synthesizeKnowledge(query) {
+  try {
+    const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+    const ddgRes = await fetch(ddgUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(3500) });
+    if (ddgRes.ok) {
+      const ddg = await ddgRes.json();
+      if (ddg.AbstractText && ddg.AbstractText.length > 25) {
+        return {
+          title: ddg.Heading || query,
+          text: ddg.AbstractText,
+          source: ddg.AbstractSource || 'DuckDuckGo'
+        };
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const cleanQuery = query.replace(/^(?:tell\s+me\s+about|what\s+is|who\s+is|explain|kya\s+hai|define)\s+/i, '').trim();
+    const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanQuery)}`;
+    const wikiRes = await fetch(wikiUrl, { headers: { 'User-Agent': 'SynapseOS/2.0' }, signal: AbortSignal.timeout(3500) });
+    if (wikiRes.ok) {
+      const wiki = await wikiRes.json();
+      if (wiki.extract && wiki.extract.length > 25) {
+        return {
+          title: wiki.title || query,
+          text: wiki.extract,
+          source: 'Wikipedia'
+        };
+      }
+    }
+  } catch (e) {}
+
+  return null;
 }
 
 function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
@@ -1396,6 +1600,31 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
       done: true
     });
     return;
+  }
+
+  // Natural Language Task Addition (Zero-Cloud / Fallback mode)
+  const taskPromptMatch = raw.match(/(?:checklist|task(?:s)?)\s+(?:me\s+)?(?:add\s+karo|daalo|likho)\s+(.+?)(?:\s+(?:aur|and|with|\+)\s+|\s*$)/i) ||
+    raw.match(/(?:add\s+to\s+tasks?|add\s+to\s+checklist|add\s+task)\s+(.+?)(?:\s+(?:and|with|\+)\s+|\s*$)/i);
+  if (taskPromptMatch && taskPromptMatch[1]) {
+    const taskText = taskPromptMatch[1].replace(/^(?:bhai|please)\s+/i, '').trim();
+    if (taskText && taskText.length > 2) {
+      const tasks = getJsonFile('tasks.json', []);
+      const newTask = {
+        id: Date.now().toString() + Math.random().toString().slice(2, 5),
+        text: taskText,
+        category: 'Study',
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      tasks.push(newTask);
+      saveJsonFile('tasks.json', tasks);
+      sendEvent({
+        token: `✅ **Checklist me Add Ho Gaya!**\n\n📌 **${taskText}**\n\nAapke task list me save kar diya hai!`,
+        refreshTasks: true,
+        done: true
+      });
+      return;
+    }
   }
 
   if (/(?:mere\s+tasks|pending\s+tasks|aaj\s+ke\s+tasks|show\s+tasks|my\s+tasks)\b/i.test(lower)) {
@@ -1444,10 +1673,10 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
 }
 
 // ========================================================
-// REAL-TIME STREAMING CHAT (OFFLINE NEURAL ENGINE & TOOLS)
+// REAL-TIME STREAMING CHAT (CLOUD AI & ON-DEVICE NEURAL ENGINES)
 // ========================================================
 app.post('/api/chat-stream', async (req, res) => {
-  const { message, history = [] } = req.body;
+  const { message, history = [], groqKey: bodyGroqKey, geminiKey: bodyGeminiKey } = req.body;
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'Message cannot be empty' });
   }
@@ -1455,6 +1684,12 @@ app.post('/api/chat-stream', async (req, res) => {
   const raw = message.trim();
   const lower = raw.toLowerCase();
   const timeInfo = getSystemTimeInfo();
+
+  // Extract keys from headers or request body or server env
+  const headerGroqKey = req.headers['x-groq-key'];
+  const headerGeminiKey = req.headers['x-gemini-key'];
+  const groqApiKey = (headerGroqKey || bodyGroqKey || GROQ_API_KEY || '').trim();
+  const geminiApiKey = (headerGeminiKey || bodyGeminiKey || GEMINI_API_KEY || '').trim();
 
   // Set SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -1507,13 +1742,42 @@ app.post('/api/chat-stream', async (req, res) => {
     }
   }
 
-  // 3. On-Device Neural Stream with Live App Integration (Gemma 2B via Ollama)
+  // 3. Multi-Engine Streaming Pipeline
   let streamedAny = false;
   const wrappedSendEvent = (data) => {
     if (data.token) streamedAny = true;
     sendEvent(data);
   };
 
+  // Option A: Groq Cloud (Meta Llama 3.3 70B - Fastest, Meta AI's actual model)
+  if (groqApiKey) {
+    try {
+      await streamGroqChat({ message: raw, history, apiKey: groqApiKey, sendEvent: wrappedSendEvent });
+      return res.end();
+    } catch (err) {
+      console.warn('Groq streaming notice:', err.message);
+      if (streamedAny) {
+        sendEvent({ done: true });
+        return res.end();
+      }
+    }
+  }
+
+  // Option B: Google Gemini 1.5 Flash (Google AI Studio Free Tier, Multilingual, 1M Context)
+  if (geminiApiKey) {
+    try {
+      await streamGeminiChat({ message: raw, history, apiKey: geminiApiKey, sendEvent: wrappedSendEvent });
+      return res.end();
+    } catch (err) {
+      console.warn('Gemini streaming notice:', err.message);
+      if (streamedAny) {
+        sendEvent({ done: true });
+        return res.end();
+      }
+    }
+  }
+
+  // Option C: Local On-Device Ollama Stream (Gemma 2B)
   try {
     const ollamaReady = await isOllamaAvailable();
     if (ollamaReady) {
@@ -1521,14 +1785,29 @@ app.post('/api/chat-stream', async (req, res) => {
       return res.end();
     }
   } catch (err) {
-    console.warn('Ollama streaming error, falling back:', err.message);
+    console.warn('Ollama streaming notice:', err.message);
     if (streamedAny) {
       sendEvent({ done: true });
       return res.end();
     }
   }
 
-  // 4. Smart Context-Aware Fallback (only reached if zero tokens were streamed)
+  // Option D: Live Knowledge Retrieval (DuckDuckGo / Wikipedia) when user asks factual question
+  if (/^(?:tell\s+me\s+about|what\s+is|who\s+is|explain|kya\s+hai|define|history\s+of|summary\s+of)\b/i.test(lower) || raw.endsWith('?')) {
+    try {
+      const knowledge = await synthesizeKnowledge(raw);
+      if (knowledge) {
+        const synthesizedReply = `💡 **${knowledge.title}**\n\n${knowledge.text}\n\n` +
+          `• **Key Takeaway:** Real-time knowledge retrieved from ${knowledge.source}.\n` +
+          `• **Next Step:** Would you like to schedule a **25m Focus Block** on this or save it to **📝 Notes**?\n\n` +
+          `⚡ *Pro Tip: Connect a free Gemini or Groq key in Settings (top bar) to unlock 100% full conversational AI on your mobile with zero downloads!*`;
+        sendEvent({ token: synthesizedReply, done: true });
+        return res.end();
+      }
+    } catch (e) {}
+  }
+
+  // Option E: Smart Context-Aware Fallback (Urges, Focus Timers, Tasks, Offline Coach)
   smartContextFallback({ raw, lower, timeInfo, sendEvent });
   return res.end();
 });

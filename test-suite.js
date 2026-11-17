@@ -273,6 +273,26 @@ async function runTests() {
     }
   });
 
+  await test('7.3 Engine Status API', async () => {
+    const res = await fetch(`${BASE}/api/engine-status`);
+    assert(res.ok, `HTTP ${res.status}`);
+    const data = await res.json();
+    assert(typeof data.hasGroq === 'boolean', 'hasGroq is not boolean');
+    assert(typeof data.hasGemini === 'boolean', 'hasGemini is not boolean');
+    assert(typeof data.isOllamaRunning === 'boolean', 'isOllamaRunning is not boolean');
+  });
+
+  await test('7.4 Chat Stream: Knowledge synthesis without model download', async () => {
+    const res = await fetch(`${BASE}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'tell me about mitochondria' })
+    });
+    assert(res.ok, `HTTP ${res.status}`);
+    const text = await res.text();
+    assert(text.toLowerCase().includes('mitochondria') || text.toLowerCase().includes('atp'), 'Response did not synthesize mitochondria knowledge');
+  });
+
   console.log('\n=================================================');
   console.log(`📊 TEST SUMMARY: ${passed} PASSED | ${failed} FAILED`);
   console.log('=================================================\n');

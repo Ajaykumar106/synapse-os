@@ -3543,6 +3543,50 @@ button {
   transform: translateY(-1px);
 }
 
+.btn-ai-engine-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-ai-engine-pill:hover {
+  background: var(--glass-bg-hover);
+  border-color: #10b981;
+  transform: translateY(-1px);
+}
+
+.engine-indicator-dot {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.glass-input {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text-main);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.glass-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
 /* Sleek Animated Audio Spectrum (Top Bar) */
 .live-wave-spectrum {
   display: inline-flex;
