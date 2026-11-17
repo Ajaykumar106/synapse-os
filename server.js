@@ -9,6 +9,24 @@ import { spawn } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Lightweight native .env loader (zero external dependency)
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envLines = fs.readFileSync(envPath, 'utf8').split('\n');
+    for (const line of envLines) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let val = (match[2] || '').trim();
+        if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+        if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
+        if (!process.env[key]) process.env[key] = val;
+      }
+    }
+  }
+} catch (e) {}
+
 const APP_VERSION = '2.0.0';
 
 const app = express();
@@ -1365,6 +1383,7 @@ async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
     { role: 'user', content: message }
   ];
 
+  const groqModel = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
   const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -1372,7 +1391,7 @@ async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: groqModel,
       messages,
       temperature: 0.7,
       max_tokens: 600,
