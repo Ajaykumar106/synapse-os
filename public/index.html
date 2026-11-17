@@ -286,7 +286,44 @@
           </a>
         </div>
 
-        <!-- Option 2: Local On-Device AI -->
+        <!-- Option 2: In-Browser Phone AI (100% Offline via WebGPU) -->
+        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; background: rgba(59, 130, 246, 0.04);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+              📱 In-Browser Phone AI (100% Offline via WebGPU)
+            </strong>
+            <span id="webgpuSupportBadge" style="font-size: 10px; font-weight: 700; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 8px; border-radius: 12px;">Checking WebGPU...</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
+            Download an on-device brain once. After downloading, you can chat in <strong>Airplane Mode with zero internet, zero servers, and zero Ollama</strong>!
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <select id="webLlmModelSelect" class="glass-select" style="flex: 1; min-width: 200px; font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);">
+                <option value="SmolLM2-360M-Instruct-q4f16_1">⚡ SmolLM2 360M (~220 MB - Ultra Lightweight)</option>
+                <option value="Qwen2-0.5B-Instruct-q4f16_1" selected>🧠 Qwen2 0.5B (~350 MB - Fast STEM & Bilingual)</option>
+                <option value="Llama-3.2-1B-Instruct-q4f16_1">🚀 Llama 3.2 1B (~850 MB - Highest Quality)</option>
+              </select>
+              <button type="button" class="btn-primary-sm" id="downloadWebLlmBtn" style="white-space: nowrap; padding: 7px 14px; border-radius: 8px;">
+                📥 Download to Phone
+              </button>
+            </div>
+
+            <!-- Download Progress Bar (Hidden by default) -->
+            <div class="webllm-progress-box hidden" id="webLlmProgressBox" style="margin-top: 6px;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                <span id="webLlmProgressText">Initializing download...</span>
+                <span id="webLlmProgressPercent">0%</span>
+              </div>
+              <div style="height: 6px; border-radius: 3px; background: var(--glass-border); overflow: hidden;">
+                <div id="webLlmProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.2s ease;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Option 3: Local On-Device AI -->
         <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px;">
           <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
             💻 Local On-Device AI (For PC / Laptop)
@@ -308,6 +345,28 @@
       </div>
     </div>
   </div>
+
+  <!-- Strict Anti-Distraction Alert Modal (Fired when user leaves tab during focus timer) -->
+  <div class="modal-backdrop hidden" id="distractionAlertModal" style="z-index: 99999;">
+    <div class="modal-card glass-card" style="max-width: 440px; text-align: center; border: 2px solid #ef4444; box-shadow: 0 10px 40px rgba(239, 68, 68, 0.35);">
+      <div style="font-size: 48px; margin-bottom: 10px;">🚨</div>
+      <h3 style="color: #ef4444; margin: 0 0 8px 0; font-size: 18px;">Stay Off Social Media!</h3>
+      <p style="font-size: 13.5px; line-height: 1.6; color: var(--text-main); margin: 0 0 16px 0;">
+        You navigated away from your study room while your <strong>Strict Focus Lock</strong> was running. Don't trade your future success for cheap dopamine!
+      </p>
+      <div style="background: rgba(239, 68, 68, 0.08); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--text-muted);">
+        🔥 <em>"Discipline is choosing between what you want NOW and what you want MOST."</em>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: center;">
+        <button type="button" class="btn-primary" id="returnToFocusBtn" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px 20px; font-weight: 700;">
+          🛡️ I Resisted the Urge (+1 Win)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Celebratory Confetti Canvas (For Streak Wins & Goal Completion) -->
+  <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999999;"></canvas>
 
   <!-- Main App Shell -->
   <div class="app-shell">

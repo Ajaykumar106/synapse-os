@@ -911,6 +911,9 @@ async function recordCompletedFocus(mins, catName) {
 pomodoroStartBtn.addEventListener('click', () => {
   if (!isPomodoroRunning) {
     isPomodoroRunning = true;
+    distractionCount = 0;
+    requestWakeLock();
+    requestNotificationPermission();
     pomodoroStartBtn.textContent = '⏸ Pause';
     if (strictModeToggle?.checked) {
       strictActiveBanner?.classList.remove('hidden');
@@ -922,17 +925,25 @@ pomodoroStartBtn.addEventListener('click', () => {
       } else {
         clearInterval(pomodoroInterval);
         isPomodoroRunning = false;
+        releaseWakeLock();
         strictActiveBanner?.classList.add('hidden');
         pomodoroStartBtn.textContent = '▶ Start Focus';
         playAlertChime();
         const durationMins = Math.round(pomodoroDuration / 60);
         recordCompletedFocus(durationMins, currentFocusCategory);
+        checkDailyStreakGoal(durationMins);
+        launchConfettiBurst();
+        sendPhoneNotification(
+          '🎉 Study Session Complete!',
+          `You locked in ${durationMins} minutes of deep focus on ${currentFocusCategory}!`
+        );
         alert(`⏱️ Deep Study Session Complete! Logged ${durationMins} minutes to ${currentFocusCategory}. Great discipline!`);
       }
     }, 1000);
   } else {
     clearInterval(pomodoroInterval);
     isPomodoroRunning = false;
+    releaseWakeLock();
     pomodoroStartBtn.textContent = '▶ Resume';
     strictActiveBanner?.classList.add('hidden');
   }
@@ -944,6 +955,7 @@ pomodoroResetBtn.addEventListener('click', () => {
       return;
     }
   }
+  releaseWakeLock();
   resetPomodoro();
 });
 
@@ -2098,9 +2110,36 @@ chatForm.addEventListener('submit', async (e) => {
     }
   } catch (err) {
     // 100% Client-Side Offline AI Brain (runs directly on Android in Airplane mode / no server)
-    const offlineReply = getClientOfflineCoachReply(promptText);
-    fullReply = offlineReply;
-    bubble.innerHTML = formatMarkdown(fullReply);
+    if (webLlmEngine) {
+      try {
+        bubble.innerHTML = '<em>🧠 Generating offline response via WebGPU...</em>';
+        const chunks = await webLlmEngine.chat.completions.create({
+          messages: [
+            { role: 'system', content: 'You are Synapse, a friendly Meta AI style study dost. Explain in punchy Hinglish or English with bold concepts.' },
+            ...chatSessionHistory.slice(-6).map(h => ({ role: h.role, content: h.content })),
+            { role: 'user', content: promptText }
+          ],
+          stream: true,
+          temperature: 0.7,
+          max_tokens: 350
+        });
+
+        fullReply = '';
+        for await (const chunk of chunks) {
+          const delta = chunk.choices[0]?.delta?.content || '';
+          fullReply += delta;
+          bubble.innerHTML = formatMarkdown(fullReply);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      } catch (webLlmErr) {
+        fullReply = getClientOfflineCoachReply(promptText);
+        bubble.innerHTML = formatMarkdown(fullReply);
+      }
+    } else {
+      const offlineReply = getClientOfflineCoachReply(promptText);
+      fullReply = offlineReply;
+      bubble.innerHTML = formatMarkdown(fullReply);
+    }
     chatSessionHistory.push({ role: 'user', content: promptText });
     chatSessionHistory.push({ role: 'assistant', content: fullReply });
     appendActionDock(wrap, googleQuery, fullReply);
@@ -3698,6 +3737,233 @@ function initAiEngineModal() {
   });
 
   updateEngineStatusBadge();
+  checkWebGpuSupport();
+
+  // WebLLM in-browser download
+  document.getElementById('downloadWebLlmBtn')?.addEventListener('click', initWebLlmDownload);
 }
 
 initAiEngineModal();
+
+// ========================================================
+// 1. CONFETTI CELEBRATION ENGINE (PURE CANVAS - ZERO DEPENDENCY)
+// ========================================================
+function launchConfettiBurst() {
+  const canvas = document.getElementById('confettiCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = [];
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4'];
+  for (let i = 0; i < 90; i++) {
+    pieces.push({
+      x: canvas.width / 2,
+      y: canvas.height * 0.4,
+      vx: (Math.random() - 0.5) * 16,
+      vy: (Math.random() - 0.7) * 18,
+      size: Math.random() * 8 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      vRot: (Math.random() - 0.5) * 10,
+      opacity: 1
+    });
+  }
+
+  let animationId;
+  function updateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let active = 0;
+    for (const p of pieces) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.45; // gravity
+      p.vx *= 0.98;
+      p.rotation += p.vRot;
+      p.opacity -= 0.012;
+
+      if (p.opacity > 0) {
+        active++;
+        ctx.save();
+        ctx.globalAlpha = p.opacity;
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+        ctx.restore();
+      }
+    }
+    if (active > 0) {
+      animationId = requestAnimationFrame(updateConfetti);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      cancelAnimationFrame(animationId);
+    }
+  }
+  updateConfetti();
+}
+
+// ========================================================
+// 2. NATIVE PHONE NOTIFICATIONS ENGINE
+// ========================================================
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function sendPhoneNotification(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(title, {
+          body,
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png',
+          vibrate: [200, 100, 200]
+        });
+      });
+    } else {
+      new Notification(title, { body, icon: '/icons/icon-192.png' });
+    }
+  } catch (e) {}
+}
+
+// ========================================================
+// 3. SCREEN WAKE LOCK & ANTI-DISTRACTION GUARD
+// ========================================================
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch (e) {}
+}
+function releaseWakeLock() {
+  try {
+    if (wakeLock) {
+      wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (e) {}
+}
+
+let distractionCount = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && isPomodoroRunning) {
+    distractionCount++;
+    playAlertChime();
+    sendPhoneNotification(
+      '⚠️ Strict Focus Lock Broken!',
+      'Stay off social media! Your study session is running. Don\'t break your streak.'
+    );
+  } else if (!document.hidden && isPomodoroRunning && distractionCount > 0) {
+    document.getElementById('distractionAlertModal')?.classList.remove('hidden');
+  }
+});
+
+document.getElementById('returnToFocusBtn')?.addEventListener('click', () => {
+  document.getElementById('distractionAlertModal')?.classList.add('hidden');
+  distractionCount = 0;
+  handleDefeatUrge();
+  launchConfettiBurst();
+});
+
+// ========================================================
+// 4. DAILY STREAK PROGRESSION ENGINE
+// ========================================================
+function checkDailyStreakGoal(completedMinutes) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const lastActive = disciplineStats.lastActiveDate || '';
+
+  if (lastActive !== todayStr) {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    if (lastActive === yesterday) {
+      disciplineStats.streak = (disciplineStats.streak || 0) + 1;
+    } else if (!lastActive) {
+      disciplineStats.streak = 1;
+    }
+    disciplineStats.lastActiveDate = todayStr;
+    saveDisciplineStats();
+    renderDisciplineStats();
+
+    setTimeout(() => {
+      launchConfettiBurst();
+      sendPhoneNotification(
+        '🔥 Daily Streak Extended!',
+        `Incredible work! You are now on a ${disciplineStats.streak}-Day study streak!`
+      );
+    }, 500);
+  }
+}
+
+// ========================================================
+// 5. IN-BROWSER WEBGPU OFFLINE AI ENGINE (WEBLLM)
+// ========================================================
+let webLlmEngine = null;
+let isWebLlmLoading = false;
+
+async function checkWebGpuSupport() {
+  const badge = document.getElementById('webgpuSupportBadge');
+  if (!badge) return;
+  if ('gpu' in navigator) {
+    badge.textContent = '🟢 WebGPU Supported';
+    badge.style.background = 'rgba(16, 185, 129, 0.15)';
+    badge.style.color = '#10b981';
+  } else {
+    badge.textContent = '⚠️ WebGPU Unavailable (Fallback Active)';
+    badge.style.background = 'rgba(239, 68, 68, 0.15)';
+    badge.style.color = '#ef4444';
+  }
+}
+
+async function initWebLlmDownload() {
+  const downloadBtn = document.getElementById('downloadWebLlmBtn');
+  const modelSelect = document.getElementById('webLlmModelSelect');
+  const progressBox = document.getElementById('webLlmProgressBox');
+  const progressText = document.getElementById('webLlmProgressText');
+  const progressBar = document.getElementById('webLlmProgressBar');
+  const progressPercent = document.getElementById('webLlmProgressPercent');
+
+  if (!('gpu' in navigator)) {
+    alert('⚠️ WebGPU is not supported on this browser version. Your app will automatically use the built-in fast client study engine when offline!');
+    return;
+  }
+
+  const modelId = modelSelect?.value || 'Qwen2-0.5B-Instruct-q4f16_1';
+  isWebLlmLoading = true;
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = '⏳ Loading...';
+  progressBox?.classList.remove('hidden');
+
+  try {
+    const webllm = await import('https://esm.run/@mlc-ai/web-llm');
+    webLlmEngine = await webllm.CreateMLCEngine(modelId, {
+      initProgressCallback: (report) => {
+        const pct = Math.round(report.progress * 100);
+        if (progressPercent) progressPercent.textContent = `${pct}%`;
+        if (progressBar) progressBar.style.width = `${pct}%`;
+        if (progressText) progressText.textContent = report.text.slice(0, 36) + (report.text.length > 36 ? '...' : '');
+      }
+    });
+
+    localStorage.setItem('synapse_webllm_ready', 'true');
+    localStorage.setItem('synapse_webllm_model', modelId);
+    downloadBtn.textContent = '✅ Offline Brain Ready';
+    downloadBtn.style.background = '#10b981';
+    if (progressText) progressText.textContent = 'Brain downloaded! You can now chat in 100% Airplane Mode.';
+    launchConfettiBurst();
+    alert('🎉 Success! Offline Phone Brain is downloaded and ready. You can now turn on Airplane Mode and chat with zero internet!');
+    updateEngineStatusBadge();
+  } catch (err) {
+    console.error('WebLLM init error:', err);
+    downloadBtn.disabled = false;
+    downloadBtn.textContent = '❌ Retry Download';
+    if (progressText) progressText.textContent = 'Download notice: ' + err.message;
+  } finally {
+    isWebLlmLoading = false;
+  }
+}
