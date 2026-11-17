@@ -1523,7 +1523,15 @@ function escapeHtml(str) {
 
 function appendActionDock(wrap, originalQuery, answerText) {
   const cleanQuery = (originalQuery || '').replace(/[?"'#]/g, '').trim();
-  
+  const lowerQuery = cleanQuery.toLowerCase();
+  const lowerAnswer = (answerText || '').toLowerCase();
+  const combined = lowerQuery + ' ' + lowerAnswer;
+
+  // Detect query context
+  const isUrgeRelated = /(?:social\s+media|instagram|reels|shorts|phone|distract\w*|procrastinat\w*|scroll|doomscroll|urge|temptation|dopamine|lazy|unmotivat\w*)/i.test(combined);
+  const isMathOrCalc = /^(?:calculate|solve|what\s+is\s+)?(\(?\s*\d+\s*[-+*/.]\s*[\d-+*/.()\s]+)$/i.test(cleanQuery) || /🔢 \*\*Calculation Result/i.test(answerText || '');
+  const isGreeting = /^(?:hi+|hello+|hey+|yo|wassup|namaste|kaise\s+ho|bhai)\b/i.test(lowerQuery);
+
   // Extract a sensible topic name from query
   let taskTitle = cleanQuery
     .replace(/^(tell me about|what is|explain|solve|how to|kya hai|kaise karein|prepare|study|revise)\s+/i, '')
@@ -1534,21 +1542,37 @@ function appendActionDock(wrap, originalQuery, answerText) {
     taskTitle = taskTitle.charAt(0).toUpperCase() + taskTitle.slice(1) + ' Revision';
   }
 
-  // 1. Interactive OS Superpower Action Strip
-  const actionStrip = document.createElement('div');
-  actionStrip.className = 'os-quick-actions-row';
-  actionStrip.innerHTML = `
-    <button type="button" class="btn-os-action" onclick="triggerPillTimer(25)">
-      <span>⏱️</span> Start 25m Focus Lock
-    </button>
-    <button type="button" class="btn-os-action" onclick="triggerPillTask(this, '${escapeHtml(taskTitle)}')">
-      <span>✅</span> Add "${escapeHtml(taskTitle.slice(0, 22))}" to Tasks
-    </button>
-    <button type="button" class="btn-os-action" onclick="triggerPillUrge(this)">
-      <span>🛡️</span> Resisted Urge (+1)
-    </button>
-  `;
-  wrap.appendChild(actionStrip);
+  // 1. Context-Aware Superpower Action Strip
+  let pillHtml = '';
+  if (isUrgeRelated) {
+    // Only show urge defense when user is dealing with distraction/social media
+    pillHtml = `
+      <button type="button" class="btn-os-action" onclick="triggerPillUrge(this)">
+        <span>🛡️</span> Resisted Urge (+1)
+      </button>
+      <button type="button" class="btn-os-action" onclick="triggerPillTimer(15)">
+        <span>⏱️</span> 15m Focus Reset Lock
+      </button>
+    `;
+  } else if (!isMathOrCalc && !isGreeting) {
+    // Show focused study timer and task checklist for academic topics (like mitochondria, physics, etc.)
+    const cleanSubject = taskTitle.replace(/ Revision$/i, '');
+    pillHtml = `
+      <button type="button" class="btn-os-action" onclick="triggerPillTimer(25)">
+        <span>⏱️</span> 25m Focus on ${escapeHtml(cleanSubject.slice(0, 18))}
+      </button>
+      <button type="button" class="btn-os-action" onclick="triggerPillTask(this, '${escapeHtml(taskTitle)}')">
+        <span>✅</span> Add to Tasks
+      </button>
+    `;
+  }
+
+  if (pillHtml) {
+    const actionStrip = document.createElement('div');
+    actionStrip.className = 'os-quick-actions-row';
+    actionStrip.innerHTML = pillHtml;
+    wrap.appendChild(actionStrip);
+  }
 
   // 2. Meta AI Style Feedback & Utility Icons
   const dock = document.createElement('div');
@@ -3593,21 +3617,21 @@ async function updateEngineStatusBadge() {
     }
   } catch (e) {}
 
-  let title = '⚡ AI Engine';
-  let detail = 'Zero-Cloud Tactical Study Engine active. Add a free API key for full generative AI.';
-  let dot = '🟡';
+  let title = '100% Offline AI';
+  let detail = 'Zero-Distraction Offline Study Coach active with zero internet.';
+  let dot = '🟢';
 
   if (userGroq || serverEngineStatus.hasGroq) {
-    title = 'Meta Llama 3 (Cloud)';
-    detail = '⚡ Ultra-fast 300+ tok/sec cloud streaming (Meta AI Engine). Zero model downloads!';
+    title = 'Cloud AI Coach';
+    detail = '⚡ Ultra-fast cloud intelligence active. Zero model downloads needed!';
     dot = '🟢';
   } else if (userGemini || serverEngineStatus.hasGemini) {
-    title = 'Gemini 1.5 (Cloud)';
-    detail = '🧠 Google Gemini 1.5 Flash active with 1M context. Zero model downloads!';
+    title = 'Cloud AI Coach';
+    detail = '🧠 Google Gemini cloud intelligence active. Zero model downloads needed!';
     dot = '🟢';
   } else if (serverEngineStatus.isOllamaRunning) {
-    title = 'Gemma 2B (On-Device)';
-    detail = '💻 100% Offline On-Device Gemma 2B running locally via Ollama.';
+    title = '100% Offline AI';
+    detail = '💻 100% Offline on-device study coach running locally with zero internet.';
     dot = '🟢';
   }
 

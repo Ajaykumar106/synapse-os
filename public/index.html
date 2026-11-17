@@ -420,7 +420,8 @@
           <span class="active-title-pill" id="pageTitle">🧠 Synapse AI</span>
         </div>
         <div class="topbar-right">
-          <button type="button" class="btn-live-voice-pill" id="openVoiceLiveBtn" title="Launch Gemini Live Hands-Free Voice Mode">
+          <!-- Hidden utility triggers (accessible via sidebar or chat voice) -->
+          <button type="button" class="btn-live-voice-pill hidden" id="openVoiceLiveBtn" title="Live Voice Session" style="display: none;">
             <span class="live-wave-spectrum">
               <span class="spectrum-bar sb-1"></span>
               <span class="spectrum-bar sb-2"></span>
@@ -429,12 +430,13 @@
             </span>
             <span class="live-voice-label">Live Voice</span>
           </button>
-          <button type="button" class="btn-pro-pill" id="openProModalBtn" title="Upgrade to Synapse Pro Lifetime">
+          <button type="button" class="btn-pro-pill hidden" id="openProModalBtn" title="Upgrade Pro" style="display: none;">
             👑 Upgrade Pro
           </button>
-          <button type="button" class="btn-ai-engine-pill" id="openAiEngineBtn" title="AI Brain Settings: Cloud AI (Meta Llama 3 / Gemini) or Local On-Device (Ollama)">
+          <!-- Clean Minimalist Status Pill -->
+          <button type="button" class="btn-ai-engine-pill" id="openAiEngineBtn" title="AI Coach Status & Settings">
             <span class="engine-indicator-dot" id="engineDot">🟢</span>
-            <span id="engineBadgeText">AI Engine</span>
+            <span id="engineBadgeText">100% Offline AI</span>
           </button>
         </div>
       </header>
