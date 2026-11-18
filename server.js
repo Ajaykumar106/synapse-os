@@ -27,7 +27,7 @@ try {
   }
 } catch (e) {}
 
-const APP_VERSION = '3.2.1';
+const APP_VERSION = '3.2.2';
 
 const app = express();
 const PORT = process.env.PORT || 5100;
@@ -777,11 +777,11 @@ app.post('/api/discipline-stats', (req, res) => {
 });
 
 // AI Engine Status (Cloud & Local)
-app.get('/api/engine-status', async (_req, res) => {
+app.get(['/api/engine-status', '/engine-status'], async (_req, res) => {
   const ollamaRunning = await isOllamaAvailable();
   res.json({
-    hasGroq: Boolean(process.env.GROQ_API_KEY),
-    hasGemini: Boolean(process.env.GEMINI_API_KEY),
+    hasGroq: Boolean(process.env.GROQ_API_KEY || process.env.GROQ_KEY || GROQ_API_KEY),
+    hasGemini: Boolean(process.env.GEMINI_API_KEY || process.env.GEMINI_KEY || GEMINI_API_KEY),
     isOllamaRunning: ollamaRunning,
     isVercel: isVercel
   });
@@ -1399,46 +1399,54 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
   const isMathOrTechnical = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(message);
   const dynamicTemp = isMathOrTechnical ? 0.35 : 0.65;
 
-  const groqModel = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
-  let groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey.trim()}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: groqModel,
-      messages,
-      temperature: dynamicTemp,
-      max_tokens: 850,
-      stream: true
-    }),
-    signal: AbortSignal.timeout(35000)
-  });
+  const candidateModels = [
+    process.env.GROQ_MODEL,
+    'qwen/qwen3.8-27b',
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant'
+  ].filter(Boolean);
 
-  // If rate-limited on Qwen (429 OTPM limit), gracefully fallback to gpt-oss-20b
-  if (groqRes.status === 429 && groqModel !== 'openai/gpt-oss-20b') {
-    console.warn('Groq Qwen rate-limited (429). Seamlessly falling back to gpt-oss-20b...');
-    groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey.trim()}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-20b',
-        messages,
-        temperature: dynamicTemp,
-        max_tokens: 800,
-        stream: true
-      }),
-      signal: AbortSignal.timeout(35000)
-    });
+  let groqRes = null;
+  let lastError = null;
+
+  for (const model of candidateModels) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: dynamicTemp,
+          max_tokens: 850,
+          stream: true
+        }),
+        signal: AbortSignal.timeout(9000)
+      });
+
+      if (res.ok) {
+        groqRes = res;
+        break;
+      } else {
+        const errText = await res.text().catch(() => '');
+        lastError = new Error(`Groq model ${model} error (${res.status}): ${errText}`);
+        if (res.status === 404 || res.status === 400 || res.status === 429) {
+          continue;
+        } else {
+          break;
+        }
+      }
+    } catch (e) {
+      lastError = e;
+      continue;
+    }
   }
 
-  if (!groqRes.ok) {
-    const errText = await groqRes.text().catch(() => '');
-    throw new Error(`Groq API error (${groqRes.status}): ${errText}`);
+  if (!groqRes) {
+    throw lastError || new Error('All Groq candidate models failed to respond');
   }
 
   const reader = groqRes.body.getReader();
@@ -1741,7 +1749,7 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
 // ========================================================
 // REAL-TIME STREAMING CHAT (CLOUD AI & ON-DEVICE NEURAL ENGINES)
 // ========================================================
-app.post('/api/chat-stream', async (req, res) => {
+app.post(['/api/chat-stream', '/chat-stream'], async (req, res) => {
   const { message, history = [], groqKey: bodyGroqKey, geminiKey: bodyGeminiKey } = req.body;
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'Message cannot be empty' });
@@ -1751,19 +1759,28 @@ app.post('/api/chat-stream', async (req, res) => {
   const lower = raw.toLowerCase();
   const timeInfo = getSystemTimeInfo();
 
-  // Extract keys from headers or request body or server env
-  const headerGroqKey = req.headers['x-groq-key'];
-  const headerGeminiKey = req.headers['x-gemini-key'];
-  const groqApiKey = (headerGroqKey || bodyGroqKey || process.env.GROQ_API_KEY || GROQ_API_KEY || '').trim();
-  const geminiApiKey = (headerGeminiKey || bodyGeminiKey || process.env.GEMINI_API_KEY || GEMINI_API_KEY || '').trim();
+  // Extract keys from headers or request body or server env (supporting common casing & Vercel formats)
+  const headerGroqKey = (req.headers['x-groq-key'] || '').trim();
+  const headerGeminiKey = (req.headers['x-gemini-key'] || '').trim();
+  const envGroq = (process.env.GROQ_API_KEY || process.env.GROQ_KEY || process.env.GROQ || GROQ_API_KEY || '').trim();
+  const envGemini = (process.env.GEMINI_API_KEY || process.env.GEMINI_KEY || process.env.GEMINI || GEMINI_API_KEY || '').trim();
+  const groqApiKey = (headerGroqKey || bodyGroqKey || envGroq || '').replace(/^["']|["']$/g, '').trim();
+  const geminiApiKey = (headerGeminiKey || bodyGeminiKey || envGemini || '').replace(/^["']|["']$/g, '').trim();
 
-  // Set SSE Headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
+  // Set SSE Headers with Vercel & proxy buffering bypass
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
 
   const sendEvent = (data) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
+    if (typeof res.flush === 'function') {
+      res.flush();
+    }
   };
 
   // 1. Pure Math Calculation

@@ -2312,9 +2312,16 @@ chatForm.addEventListener('submit', async (e) => {
   let fullReply = '';
   let googleQuery = rawText || 'study notes';
 
+  const safetyUnlock = setTimeout(() => {
+    if (isGenerating) {
+      isGenerating = false;
+      sendBtn.disabled = false;
+    }
+  }, 14000);
+
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     const res = await fetch('/api/chat-stream', {
       method: 'POST',
@@ -2435,6 +2442,16 @@ chatForm.addEventListener('submit', async (e) => {
         }
       }
     }
+
+    if (!fullReply.trim()) {
+      throw new Error('Empty stream response from server');
+    }
+
+    if (!chatSessionHistory.some(h => h.role === 'assistant' && h.content === fullReply)) {
+      chatSessionHistory.push({ role: 'user', content: promptText });
+      chatSessionHistory.push({ role: 'assistant', content: fullReply });
+      appendActionDock(wrap, googleQuery, fullReply);
+    }
   } catch (err) {
     // 100% Client-Side Offline AI Brain (runs directly on Android in Airplane mode / no server)
     if (webLlmEngine) {
@@ -2476,6 +2493,7 @@ chatForm.addEventListener('submit', async (e) => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }, 50);
   } finally {
+    clearTimeout(safetyUnlock);
     isGenerating = false;
     sendBtn.disabled = false;
     userInput.focus();
@@ -2789,15 +2807,48 @@ A **noun** is a word that represents a person, place, thing, or abstract idea.
 • **Collective Noun:** Group of entities (*team, class, fleet*).`;
   }
 
-  return `💡 **Discipline & Study Insight:**
+  // Physics: Ohm's Law & Electricity
+  if (/(?:ohm(?:'s)?\s+law|resistance|resistor|voltage|current\s+electricity|circuit|kirchhoff)\b/i.test(lower)) {
+    return `⚡ **Ohm's Law & Circuit Analysis (Physics Core):**\n\nOhm's Law states that at constant temperature, the current ($I$) flowing through a conductor is directly proportional to the potential difference ($V$) across its ends.\n\n**Fundamental Formulas:**\n• **Ohm's Equation:** \`V = I · R\` *(V in Volts, I in Amperes, R in Ohms $\\Omega$)*\n• **Electrical Power:** \`P = V · I = I²R = V² / R\` *(in Watts)*\n• **Series Resistance:** \`R_eq = R₁ + R₂ + R₃\` *(Current stays constant, voltage divides)*\n• **Parallel Resistance:** \`1 / R_eq = 1/R₁ + 1/R₂ + 1/R₃\` *(Voltage stays constant, current divides)*\n• **Kirchhoff's Current Law (KCL):** Total current entering a junction = Total current leaving ($\Sigma I = 0$, Conservation of Charge).`;
+  }
 
-Regarding **"${text}"**:
+  // Physics: Newton's Laws & Mechanics
+  if (/(?:newton(?:'s)?\s+law|laws\s+of\s+motion|inertia|f\s*=\s*ma|action\s+reaction)\b/i.test(lower)) {
+    return `🎯 **Newton's Laws of Motion (Classical Mechanics):**\n\n1. **First Law (Law of Inertia):** An object remains at rest or in uniform motion along a straight line unless acted upon by an external net force.\n2. **Second Law (Fundamental Law of Dynamics):** The rate of change of momentum is proportional to the applied force: \`F_net = m · a\` *(or F = dp/dt)*.\n3. **Third Law (Action-Reaction):** For every action, there is an equal and opposite reaction: \`F_AB = -F_BA\`.\n\n⚠️ *Exam Trap: Action and reaction forces act on **two different bodies**, so they never cancel each other out!*`;
+  }
 
-• **Action First:** Break this topic into an uninterrupted 15-minute study sprint. Momentum always follows action.
-• **Active Engagement:** Test yourself by explaining this in your own words without checking your notes (The Feynman Method).
-• **Eliminate Friction:** Keep your study desk clean and put your phone in another room.
+  // Physics: Kinematics (Equations of Motion)
+  if (/(?:kinematic|equations?\s+of\s+motion|velocity|acceleration|projectile|speed\s+and\s+distance)\b/i.test(lower)) {
+    return `🚀 **Kinematics & Equations of Uniform Acceleration:**\n\nFor motion in a straight line with constant acceleration ($a$):\n• **Velocity-Time Relation:** \`v = u + a · t\`\n• **Position-Time Relation:** \`s = u · t + ½ · a · t²\`\n• **Velocity-Position Relation:** \`v² = u² + 2 · a · s\`\n• **Distance in n-th second:** \`s_n = u + ½ · a · (2n - 1)\`\n\n*Symbols: $u$ = initial velocity, $v$ = final velocity, $a$ = acceleration, $t$ = time, $s$ = displacement.*`;
+  }
 
-Would you like me to create a dedicated **Task**, schedule a **Study Timer**, or add this to your **Routine**?`;
+  // Chemistry: Periodic Table & Chemical Bonding
+  if (/(?:periodic\s+table|chemical\s+bond|covalent|ionic\s+bond|electronegativity|atomic\s+number)\b/i.test(lower)) {
+    return `🧪 **Periodic Table & Chemical Bonding (Chemistry Core):**\n\n• **Modern Periodic Law (Moseley):** Properties of elements are periodic functions of their **atomic numbers ($Z$)**, not atomic mass.\n• **Ionic Bonding:** Transfer of electrons between a metal (low ionization energy) and non-metal (high electron affinity), held by electrostatic forces.\n• **Covalent Bonding:** Sharing of electron pairs between non-metals to achieve a stable octet (noble gas configuration).\n• **Electronegativity Trend:** Increases across a period (left to right ➔ Fluorine is the most electronegative element at 4.0), decreases down a group.`;
+  }
+
+  // Chemistry: Acids, Bases & pH
+  if (/(?:acid|base|ph\s+scale|neutralization|titration|buffer)\b/i.test(lower)) {
+    return `⚗️ **Acids, Bases & The pH Scale:**\n\n• **Arrhenius Definition:** Acids release $H^+$ ions in water; Bases release $OH^-$ ions.\n• **pH Formula:** \`pH = -log₁₀[H⁺]\`  |  \`pH + pOH = 14\` (at 25°C)\n• **Scale:** $\\text{pH} < 7$ is Acidic (e.g. Gastric Juice $\\approx 1.5$), $\\text{pH} = 7$ is Neutral (Pure Water), $\\text{pH} > 7$ is Basic (e.g. Bleach $\\approx 12$).\n• **Neutralization Reaction:** \`Acid + Base → Salt + Water\` (e.g., \`HCl + NaOH → NaCl + H₂O\`).`;
+  }
+
+  // Mathematics: Trigonometry
+  if (/(?:trigonometr|sin|cos|tan|pythagor|hypotenuse)\b/i.test(lower)) {
+    return `📐 **Trigonometry Essentials & Core Identities:**\n\n• **Right Triangle Ratios (SOH CAH TOA):**\n  - \`sin θ = Opposite / Hypotenuse\`\n  - \`cos θ = Adjacent / Hypotenuse\`\n  - \`tan θ = Opposite / Adjacent\`\n\n• **Pythagorean Identities:**\n  - \`sin² θ + cos² θ = 1\`\n  - \`1 + tan² θ = sec² θ\`\n  - \`1 + cot² θ = cosec² θ\`\n\n• **Double Angle Formulas:**\n  - \`sin(2θ) = 2 · sin θ · cos θ\`\n  - \`cos(2θ) = cos² θ - sin² θ = 2cos² θ - 1 = 1 - 2sin² θ\``;
+  }
+
+  // Mathematics: Quadratic Equations
+  if (/(?:quadratic|roots\s+of\s+equation|discriminant|parabola)\b/i.test(lower)) {
+    return `📊 **Quadratic Equations & Roots:**\n\nStandard Form: \`a·x² + b·x + c = 0\` *(a ≠ 0)*\n\n• **Quadratic Formula:** \`x = (-b ± √(b² - 4ac)) / (2a)\`\n• **Discriminant ($D = b² - 4ac$):**\n  - If $D > 0$: Two distinct real roots.\n  - If $D = 0$: Two equal real roots ($x = -b / 2a$).\n  - If $D < 0$: Two complex conjugate roots (no real roots).\n• **Vieta's Formulas:** Sum of roots $\\alpha + \\beta = -b/a$, Product of roots $\\alpha \\cdot \\beta = c/a$.`;
+  }
+
+  // Student Motivation / Exam Fear / Padhai me mann nahi lag rha
+  if (/(?:padh(?:ne|ai)?\s+(?:me\s+)?(?:mann?\s+)?(?:nhi|nahi)\s+lag|demotivat|lazy|distract|kal\s+exam|dar\s+lag\s+rha|procrastinat)\b/i.test(lower)) {
+    return `🔥 **Dost, ek gehri saans lo. Suno dhyan se:**\n\nAbhi jo feel ho raha hai (overwhelm, boredom, distraction), woh har topper ko hota hai. Fark sirf itna hai ki topper **feeling ke bharose nahi baithta, action leta hai**.\n\n**3 Rules Right Now (Next 25 Minutes):**\n1. **5-Minute Rule:** Yeh mat socho ki 5 ghante padhna hai. Sirf 5 minute ke liye kitaab kholo aur sirf 1 page padho. Momentum khud banega.\n2. **Phone Digital Disconnect:** Phone ko airplane mode par daal kar dusre kamre me rakh do.\n3. **Timer On:** Niche **⏱️ 25m Timer** par tap karo. Ek 25m session complete karte hi dimag automatic focus zone me chala jayega.\n\nTum kar sakte ho bhai. Shuru karo abhi! 🚀`;
+  }
+
+  // Comprehensive Smart Structured Analysis Fallback for ANY Academic Query
+  return `💡 **Synapse Study Coach (On-Device Analysis): "${text}"**\n\n### 🧠 1. Core Concept & First Principles\nTo master **"${text}"** effectively, break it down from first principles rather than blind memorization:\n• **Core Thesis:** Identify the primary law, mechanism, or definition behind this topic.\n• **Feynman Simplification:** Explain this concept aloud in 2 plain sentences without checking notes or using complex jargon.\n\n### ⚡ 2. Step-by-Step Study Framework\n• **Step 1 (Isolate Variables):** What are the governing equations, cause-and-effect relationships, or chronological facts?\n• **Step 2 (Exam Traps):** Look out for tricky negative signs, unit conversions (e.g. cm to meters, grams to kg), or common edge cases.\n• **Step 3 (Immediate Application):** Solve 2 practice numericals or write a 5-line summary immediately.\n\n### 🎯 3. Active Recall Challenge\n1. Can you write down the 3 most important points of **"${text}"** from memory right now?\n2. What question from this chapter is most likely to appear on your upcoming exam?\n\n*💡 Tip: Tap **⏱️ 25m Timer** below to start an uninterrupted deep focus sprint on this topic!*`;
 }
 
 // ========================================================
@@ -4214,13 +4265,10 @@ function handleFocusLoss() {
 }
 
 document.addEventListener('visibilitychange', () => {
+  // Only trigger anti-distraction lock if student truly navigates away from tab/browser
   if (document.hidden) {
     handleFocusLoss();
   }
-});
-
-window.addEventListener('blur', () => {
-  handleFocusLoss();
 });
 
 document.getElementById('returnToFocusBtn')?.addEventListener('click', () => {
