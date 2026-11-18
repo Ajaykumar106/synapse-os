@@ -10,14 +10,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Synapse">
-  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.3">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.3">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.3">
-  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.3">
-  <link rel="manifest" href="/manifest.json?v=3.2.3">
+  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.4">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.4">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.4">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.4">
+  <link rel="manifest" href="/manifest.json?v=3.2.4">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.2.3">
+  <link rel="stylesheet" href="/style.css?v=3.2.4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -498,33 +498,6 @@
       <div class="views-viewport">
         <!-- 0. OFFLINE AI STUDY & DISCIPLINE COACH (DEFAULT ACTIVE VIEW) -->
         <section class="view-panel active" id="tab-chat">
-          <!-- Daily Mission Control HUD (Instant Live Progress Glance) -->
-          <div class="daily-mission-hud" id="dailyMissionHud">
-            <div class="hud-item" onclick="switchTab('tab-routine')" title="View Daily Flows & Discipline Streak">
-              <span class="hud-icon">🔥</span>
-              <div class="hud-info">
-                <span class="hud-val" id="hudStreak">5 Days</span>
-                <span class="hud-lbl">Streak</span>
-              </div>
-            </div>
-            <div class="hud-sep"></div>
-            <div class="hud-item" onclick="switchTab('tab-focus')" title="Open Strict Focus Clock & Syllabus Tracker">
-              <span class="hud-icon">⏱️</span>
-              <div class="hud-info">
-                <span class="hud-val" id="hudFocus">0m</span>
-                <span class="hud-lbl">Today's Focus</span>
-              </div>
-            </div>
-            <div class="hud-sep"></div>
-            <div class="hud-item" onclick="switchTab('tab-tasks')" title="Open Tasks Checklist">
-              <span class="hud-icon">✅</span>
-              <div class="hud-info">
-                <span class="hud-val" id="hudTasks">0 Done</span>
-                <span class="hud-lbl">Tasks Done</span>
-              </div>
-            </div>
-          </div>
-
           <div class="chat-flow-scroll" id="messagesContainer">
             <!-- ChatGPT-style Clean Minimalist Hero -->
             <div class="chat-welcome-simple" id="chatHero">
@@ -1131,14 +1104,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.2.3"></script>
+  <script src="app.js?v=3.2.4"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.2.3)
+    // PWA Auto-Updating Engine (v3.2.4)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.2.3';
+        const CURRENT_VERSION = 'synapse-os-v3.2.4';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1149,7 +1122,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.2.3').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.2.4').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 
