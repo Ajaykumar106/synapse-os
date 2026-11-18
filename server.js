@@ -1172,17 +1172,18 @@ function ensureOllamaRunning() {
 }
 ensureOllamaRunning();
 
-async function getAppContext(includeNews = false) {
+async function getAppContext(message = '') {
   try {
-    const tasks = getJsonFile('tasks.json', []);
-    const stats = getJsonFile('discipline.json', { score: 92, distractionsResisted: 8, todayFocusMinutes: 0 });
     const time = getSystemTimeInfo();
-
-    const pendingTasks = tasks.filter(t => !t.completed).map(t => t.text).slice(0, 3);
-
-    return `Time: ${time.timeShort}. Tasks: ${pendingTasks.join(', ') || 'None'}. Focus: ${stats.todayFocusMinutes || 0}m.`;
+    const isTaskQuery = /(?:task|todo|checklist|aaj\s+kya|pending|kya\s+karna\s+hai)/i.test(message);
+    if (isTaskQuery) {
+      const tasks = getJsonFile('tasks.json', []);
+      const pendingTasks = tasks.filter(t => !t.completed).map(t => t.text).slice(0, 4);
+      return `Current Time: ${time.timeShort}. User's Pending Tasks: ${pendingTasks.join(', ') || 'None'}`;
+    }
+    return `Current Time: ${time.timeShort}`;
   } catch (e) {
-    return 'Ready';
+    return '';
   }
 }
 
@@ -1306,17 +1307,19 @@ function executeActionTags(fullText, sendEvent, userMessage = '') {
   }
 }
 
-function getAssistantSystemPrompt(appContext) {
-  return `You are Synapse, the user's sharp, friendly AI study companion and all-rounder dost (matching the style of ChatGPT and Meta AI).
+function getAssistantSystemPrompt(appContext = '') {
+  return `You are Synapse, an omniscient, razor-sharp AI study companion and notebook tutor (matching the standard of ChatGPT and Meta AI).
 
-STYLE & FORMATTING RULES:
-1. Talk like a smart, warm friend/dost—conversational, punchy, and encouraging. Fluently use natural Hinglish/Hindi or English matching the user.
-2. ADAPTIVE DEPTH (Match the user's requirement):
-   - For quick queries (e.g. "What is ATP?", "Formula of momentum", greetings): Give a direct, punchy 2-4 line answer with bold keywords.
-   - For deep academic topics, derivations, numericals, complex concepts, or document/notes analysis: Give a comprehensive, structured response with clear bold sections (### Core Concept, ### Step-by-Step Breakdown, ### Key Formulas/Takeaways, ### Exam Traps to Avoid).
+CORE CAPABILITIES & DIRECTIVES:
+1. UNIVERSAL NOTEBOOK KNOWLEDGE: You possess comprehensive mastery across Science (Physics, Chemistry, Biology), Mathematics, Engineering, Coding, Humanities, and General Knowledge. You can solve, explain, and derive solutions for any question methodically.
+2. NO UNPROMPTED BOOK / TASK FIXATION: NEVER randomly mention specific textbooks (like HC Verma, Irodov, RD Sharma, etc.) or user tasks unless the user explicitly asks about them in their prompt.
+3. CONVERSATIONAL TONE: Talk like a smart, warm friend/dost—conversational, punchy, and encouraging. Fluently use natural Hinglish/Hindi or English matching the user.
+4. ADAPTIVE DEPTH:
+   - For quick queries (e.g. "What is ATP?", "Formula of momentum", greetings): Give a direct, punchy 2-4 line answer with bold keywords. Do not invent context.
+   - For academic questions, derivations, numericals, complex concepts, or document/notes analysis: Provide a comprehensive, structured response with clear bold sections (### Core Concept, ### Step-by-Step Breakdown, ### Key Formulas/Takeaways, ### Exam Traps to Avoid).
    - When analyzing uploaded study material or notes: Extract the main themes, key formulas/dates, and generate 3 active recall practice questions.
-3. Use clean standard markdown formatting: bold keywords (**key term**), neat bullet points, and code/math blocks. Never output messy raw tags.
-4. NEVER introduce yourself or say "I am Synapse OS" or "As an AI". Jump straight into helping your dost.
+5. Standard clean Markdown: Bold keywords (**key term**), neat bullet points, and code/math blocks. Never output messy raw tags.
+6. NEVER introduce yourself or say "I am Synapse OS" or "As an AI". Jump straight into answering.
 
 APP COMMAND TAGS (append on a new line at the very end only when needed):
 - [[ADD_TASK: <task title>]]
@@ -1325,7 +1328,7 @@ APP COMMAND TAGS (append on a new line at the very end only when needed):
 - [[SAVE_NOTE: <title> | <content>]]
 - [[DEFEAT_URGE]]
 
-${appContext}`;
+${appContext ? `CONTEXT: ${appContext}` : ''}`;
 }
 
 function createStreamTokenizer(sendEvent, userMessage) {
@@ -1371,8 +1374,7 @@ function createStreamTokenizer(sendEvent, userMessage) {
 
 // 1. Groq Ultra-Fast Cloud Stream (Meta Llama 3.3 70B - 300+ tok/sec, Meta AI's Open Engine)
 async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
-  const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
-  const appContext = await getAppContext(needsNews);
+  const appContext = await getAppContext(message);
   let systemPrompt = getAssistantSystemPrompt(appContext);
 
   if (message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('Extracted Content:')) {
@@ -1478,8 +1480,7 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
 
 // 2. Google Gemini 1.5 Flash Cloud Stream (Google AI Studio Free Tier, Multilingual, 1M Context)
 async function streamGeminiChat({ message, history = [], apiKey, sendEvent }) {
-  const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
-  const appContext = await getAppContext(needsNews);
+  const appContext = await getAppContext(message);
   let systemPrompt = getAssistantSystemPrompt(appContext);
 
   if (message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('Extracted Content:')) {
@@ -1562,8 +1563,7 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
 
 // 3. Local On-Device Ollama Stream (Gemma 2B)
 async function streamOllamaChat({ message, history = [], sendEvent }) {
-  const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
-  const appContext = await getAppContext(needsNews);
+  const appContext = await getAppContext(message);
   const systemPrompt = getAssistantSystemPrompt(appContext);
   const tokenizer = createStreamTokenizer(sendEvent, message);
 
