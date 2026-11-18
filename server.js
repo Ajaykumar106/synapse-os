@@ -1299,15 +1299,15 @@ function executeActionTags(fullText, sendEvent, userMessage = '') {
 }
 
 function getAssistantSystemPrompt(appContext) {
-  return `You are Synapse, the user's sharp, friendly AI study companion and all-rounder dost (matching the style of Meta AI and ChatGPT).
+  return `You are Synapse, the user's sharp, friendly AI study companion and all-rounder dost (matching the style of ChatGPT and Meta AI).
 
-STYLE RULES:
+STYLE & FORMATTING RULES:
 1. Talk like a smart, warm friend/dost—conversational, punchy, and encouraging. Fluently use natural Hinglish/Hindi or English matching the user.
-2. NEVER write long, dry textbook essays or encyclopedia dumps. Keep responses engaging, high-yield, and under 150-200 words.
-3. When explaining concepts (e.g. mitochondria, laws of motion, optics):
-   - Start with 1 memorable real-world analogy (e.g., "Mitochondria cell ka main power plant / inverter hai").
-   - Follow with 3 crisp bullet points with bold keywords (**ATP Battery**, **Cristae folds**, **Self DNA**).
-   - End with a friendly, natural follow-up question or offer to lock in with a focus timer.
+2. ADAPTIVE DEPTH (Match the user's requirement):
+   - For quick queries (e.g. "What is ATP?", "Formula of momentum", greetings): Give a direct, punchy 2-4 line answer with bold keywords.
+   - For deep academic topics, derivations, numericals, complex concepts, or document/notes analysis: Give a comprehensive, structured response with clear bold sections (### Core Concept, ### Step-by-Step Breakdown, ### Key Formulas/Takeaways, ### Exam Traps to Avoid).
+   - When analyzing uploaded study material or notes: Extract the main themes, key formulas/dates, and generate 3 active recall practice questions.
+3. Use clean standard markdown formatting: bold keywords (**key term**), neat bullet points, and code/math blocks. Never output messy raw tags.
 4. NEVER introduce yourself or say "I am Synapse OS" or "As an AI". Jump straight into helping your dost.
 
 APP COMMAND TAGS (append on a new line at the very end only when needed):
@@ -1316,21 +1316,6 @@ APP COMMAND TAGS (append on a new line at the very end only when needed):
 - [[ADD_ROUTINE: <time> | <title>]]
 - [[SAVE_NOTE: <title> | <content>]]
 - [[DEFEAT_URGE]]
-
-EXAMPLES:
-User: tell me about mitochondria
-Response: Mitochondria cell ka **power plant / inverter** hai—ye glucose aur oxygen ko process karke body ki battery currency **ATP** banata hai.
-
-Quick breakdown:
-• **ATP Factory:** Saari metabolic energy yahi produce hoti hai (cellular respiration ke through).
-• **Double Membrane:** Iski inner membrane fold ho kar *cristae* banati hai, taaki energy production ke liye maximum surface area mile.
-• **Apna Khud Ka DNA:** Mitochondria ke paas apna circular DNA aur ribosomes hote hain (jo mother se inherit hote hain).
-
-Bhai, iska ATP cycle diagram ya exam questions practice karein?
-[[START_TIMER: 20]]
-
-User: Hi
-Response: Hi bro! 😄 Bolo, aaj kya tackle karein—koi tough topic samajhna hai, aaj ke tasks plan karein ya 25m ka deep focus timer lagayein?
 
 ${appContext}`;
 }
@@ -1380,7 +1365,18 @@ function createStreamTokenizer(sendEvent, userMessage) {
 async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
   const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
   const appContext = await getAppContext(needsNews);
-  const systemPrompt = getAssistantSystemPrompt(appContext);
+  let systemPrompt = getAssistantSystemPrompt(appContext);
+
+  if (message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('Extracted Content:')) {
+    systemPrompt += `\n\nDOCUMENT / IMAGE SOLVER & PEDAGOGICAL DIRECTIVE:
+The student has attached study notes, syllabus, or an exam question extracted via OCR/document parser.
+You must analyze this with extreme academic precision, similar to ChatGPT and Meta AI:
+1. Direct Answer & Core Thesis: Provide the core takeaway or answer first in 2-3 crisp sentences.
+2. Step-by-Step Breakdown: Break down the logic, formulas, mathematical derivation, or concepts methodically.
+3. Exam Traps & Common Mistakes: Explicitly warn about tricky mistakes students often make on this topic.
+4. Active Recall & Formulas: Highlight key revision formulas or provide 2 quick self-test questions.`;
+  }
+
   const tokenizer = createStreamTokenizer(sendEvent, message);
 
   const messages = [
@@ -1393,7 +1389,7 @@ async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
   ];
 
   const groqModel = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
-  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  let groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey.trim()}`,
@@ -1403,11 +1399,31 @@ async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
       model: groqModel,
       messages,
       temperature: 0.7,
-      max_tokens: 600,
+      max_tokens: 850,
       stream: true
     }),
     signal: AbortSignal.timeout(35000)
   });
+
+  // If rate-limited on Qwen (429 OTPM limit), gracefully fallback to gpt-oss-20b
+  if (groqRes.status === 429 && groqModel !== 'openai/gpt-oss-20b') {
+    console.warn('Groq Qwen rate-limited (429). Seamlessly falling back to gpt-oss-20b...');
+    groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey.trim()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-oss-20b',
+        messages,
+        temperature: 0.7,
+        max_tokens: 800,
+        stream: true
+      }),
+      signal: AbortSignal.timeout(35000)
+    });
+  }
 
   if (!groqRes.ok) {
     const errText = await groqRes.text().catch(() => '');
@@ -1445,7 +1461,18 @@ async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
 async function streamGeminiChat({ message, history = [], apiKey, sendEvent }) {
   const needsNews = /(?:news|headlines|current affairs|aaj ki khabar)/i.test(message);
   const appContext = await getAppContext(needsNews);
-  const systemPrompt = getAssistantSystemPrompt(appContext);
+  let systemPrompt = getAssistantSystemPrompt(appContext);
+
+  if (message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('Extracted Content:')) {
+    systemPrompt += `\n\nDOCUMENT / IMAGE SOLVER & PEDAGOGICAL DIRECTIVE:
+The student has attached study notes, syllabus, or an exam question extracted via OCR/document parser.
+You must analyze this with extreme academic precision, similar to ChatGPT and Meta AI:
+1. Direct Answer & Core Thesis: Provide the core takeaway or answer first in 2-3 crisp sentences.
+2. Step-by-Step Breakdown: Break down the logic, formulas, mathematical derivation, or concepts methodically.
+3. Exam Traps & Common Mistakes: Explicitly warn about tricky mistakes students often make on this topic.
+4. Active Recall & Formulas: Highlight key revision formulas or provide 2 quick self-test questions.`;
+  }
+
   const tokenizer = createStreamTokenizer(sendEvent, message);
 
   const contents = [];
@@ -1471,7 +1498,7 @@ async function streamGeminiChat({ message, history = [], apiKey, sendEvent }) {
       contents,
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 600
+        maxOutputTokens: 2048
       }
     }),
     signal: AbortSignal.timeout(35000)
@@ -1682,6 +1709,14 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
     return;
   }
 
+  if (raw.includes('[UPLOADED STUDY MATERIAL') || raw.includes('[ATTACHED STUDY FILE') || raw.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS')) {
+    sendEvent({
+      token: `📄 **Document Content Extracted:**\n\nTo run deep reasoning, step-by-step problem solving, and formula derivations on your uploaded document, make sure your free Groq or Gemini API key is configured in Settings (or download an on-device WebLLM model).`,
+      done: true
+    });
+    return;
+  }
+
   // Tactical Offline Subject & Study Coach Engine
   const coachReply = getOfflineCoachResponse(raw, lower, timeInfo);
   if (coachReply) {
@@ -1728,34 +1763,7 @@ app.post('/api/chat-stream', async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
-  // 1. Document Attachment Analysis & Cognitive Synthesis
-  if (raw.startsWith('[UPLOADED STUDY MATERIAL') || raw.startsWith('[ATTACHED STUDY FILE')) {
-    const nameMatch = raw.match(/\[UPLOADED STUDY MATERIAL \/ NOTES:\s*"([^"]+)"\]/);
-    const fileName = nameMatch ? nameMatch[1] : 'Study Document';
-    const contentStart = raw.indexOf(']') + 1;
-    const queryStart = raw.indexOf('[USER INSTRUCTION / QUESTION]:');
-    const fileContent = queryStart > -1 ? raw.substring(contentStart, queryStart).trim() : raw.substring(contentStart).trim();
-
-    const lines = fileContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const sampleHighlights = lines.slice(0, 8).map(l => `• ${l}`).join('\n');
-    const wordCount = fileContent.split(/\s+/).length;
-
-    sendEvent({
-      token: `📄 **Synapse Cognitive Synthesis: "${fileName}"**\n\n` +
-        `**Document Scope:** ${wordCount} words • ${lines.length} lines analyzed.\n\n` +
-        `### 🧠 Core Synthesis & Key Insights\n` +
-        `${sampleHighlights || '• Content extracted and analyzed successfully.'}\n\n` +
-        `### ⚡ Active Recall Retrieval Questions\n` +
-        `1. **Core Concept:** What is the primary thesis or formula in these notes?\n` +
-        `2. **Feynman Intuition:** How would you explain this mechanism in 3 simple sentences?\n` +
-        `3. **Exam Application:** What key problem could appear on a test from this material?\n\n` +
-        `💡 *Tap **📝 Save Note** below to store this summary directly into your offline Notes vault!*`,
-      done: true
-    });
-    return res.end();
-  }
-
-  // 2. Pure Math Calculation
+  // 1. Pure Math Calculation
   if (/^(?:calculate|solve|what\s+is\s+)?(\(?\s*\d+\s*[-+*/.]\s*[\d-+*/.()\s]+)$/i.test(lower)) {
     const exprMatch = lower.match(/^(?:calculate|solve|what\s+is\s+)?(.*)$/i);
     const expr = exprMatch ? exprMatch[1] : lower;

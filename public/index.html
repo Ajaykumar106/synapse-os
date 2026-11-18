@@ -533,16 +533,18 @@
           <div class="chat-input-wrapper">
             <!-- Active File Attachment Badge (Hidden by default) -->
             <div class="file-attachment-badge hidden" id="fileAttachmentBadge">
-              <span class="file-badge-icon">📄</span>
+              <img id="fileBadgeThumb" class="file-badge-thumb hidden" alt="Upload Preview">
+              <span class="file-badge-icon" id="fileBadgeIcon">📄</span>
               <span class="file-badge-name" id="fileBadgeName">document.txt</span>
               <span class="file-badge-size" id="fileBadgeSize">(12 KB)</span>
+              <span class="file-badge-status" id="fileBadgeStatus"></span>
               <button type="button" class="btn-remove-attachment" id="removeAttachmentBtn" title="Remove attachment">✕</button>
             </div>
 
             <form id="chatForm" class="chat-input-pill glass-card">
               <!-- Upload Attachment Button -->
-              <label for="chatFileInput" class="btn-attach-circle" title="Upload Study Notes, Syllabus, or Document for AI Analysis">
-                <input type="file" id="chatFileInput" accept=".txt,.pdf,.md,.csv,.json,.doc,.docx" style="display: none;">
+              <label for="chatFileInput" class="btn-attach-circle" title="Upload Question Photo, Notes PDF, or Syllabus for AI Analysis">
+                <input type="file" id="chatFileInput" accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.md,.csv,.json,.doc,.docx" style="display: none;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
                 </svg>
@@ -788,9 +790,9 @@
                   <input type="checkbox" id="strictModeToggle" checked>
                   <span class="strict-label-text">🔒 Strict Anti-Distraction Lock (Zero Social Media)</span>
                 </label>
-                <button type="button" class="btn-defeat-mini" id="timerDefeatUrgeBtn" title="Resisted social media urge">
-                  🛡️ Resisted Urge (+1)
-                </button>
+                <span class="strict-shield-badge" title="Timer freezes immediately on tab switch or minimize">
+                  🛡️ Anti-Cheat Active
+                </span>
               </div>
 
               <!-- Strict Active Banner (Visible during focus) -->
@@ -800,13 +802,15 @@
               </div>
 
               <div class="focus-category-picker">
-                <span class="picker-label">Current Focus Category:</span>
+                <span class="picker-label">🎯 Active Syllabus Subject / Topic:</span>
                 <div class="category-pills" id="focusCategoryPills">
-                  <button type="button" class="cat-pill active" data-cat="📚 Deep Study">📚 Deep Study</button>
-                  <button type="button" class="cat-pill" data-cat="⚡ Problem Solving">⚡ Practice</button>
-                  <button type="button" class="cat-pill" data-cat="🧠 Concept Revision">🧠 Revision</button>
-                  <button type="button" class="cat-pill" data-cat="💻 Coding & Dev">💻 Coding</button>
-                  <button type="button" class="cat-pill" data-cat="☕ Refresh Break">☕ Break</button>
+                  <button type="button" class="cat-pill active" data-cat="📚 Physics">📚 Physics</button>
+                  <button type="button" class="cat-pill" data-cat="⚡ Chemistry">⚡ Chemistry</button>
+                  <button type="button" class="cat-pill" data-cat="📐 Mathematics">📐 Mathematics</button>
+                  <button type="button" class="cat-pill" data-cat="🧬 Biology">🧬 Biology</button>
+                  <button type="button" class="cat-pill" data-cat="💻 Coding & CS">💻 Coding</button>
+                  <button type="button" class="cat-pill" data-cat="📖 Aptitude & English">📖 English</button>
+                  <button type="button" class="cat-pill cat-pill-custom" id="customSubjectBtn">➕ Custom Topic</button>
                 </div>
               </div>
 
@@ -874,12 +878,12 @@
               </div>
             </div>
 
-            <!-- "Where You Spend Your Time" Analytics -->
+            <!-- Verified Syllabus & Subject Work Tracker Analytics -->
             <div class="work-section-card glass-panel time-analytics-clean">
               <div class="card-head-row">
                 <div class="analytics-head-info">
-                  <h3>📊 Where You Spend Your Time</h3>
-                  <p class="section-subtitle">Track your focus hours and daily distribution</p>
+                  <h3>📚 Verified Syllabus & Deep Work Tracker</h3>
+                  <p class="section-subtitle">Real verified study hours logged per subject. Clock freezes automatically if you switch apps or minimize.</p>
                 </div>
               </div>
 
@@ -889,7 +893,7 @@
                   <span class="stat-icon">⏱️</span>
                   <div class="stat-info">
                     <span class="stat-num" id="totalFocusHours">0h 00m</span>
-                    <span class="stat-lbl">Total Focused Time</span>
+                    <span class="stat-lbl">Verified Study Hours</span>
                   </div>
                 </div>
                 <div class="stat-box glass-inset">
@@ -903,16 +907,16 @@
                   <span class="stat-icon">🏆</span>
                   <div class="stat-info">
                     <span class="stat-num" id="topFocusCategory">None yet</span>
-                    <span class="stat-lbl">Top Focus Category</span>
+                    <span class="stat-lbl">Top Subject Mastered</span>
                   </div>
                 </div>
               </div>
 
               <!-- Category Distribution Bars -->
               <div class="category-breakdown-section">
-                <h4>Category Breakdown (% of Focused Time)</h4>
+                <h4>Syllabus & Subject Distribution (% of Verified Time)</h4>
                 <div class="category-bars-list" id="categoryBarsList">
-                  <div class="empty-state">Complete a focus session or tap "+ Log Time" to see your stats!</div>
+                  <div class="empty-state">Complete a focus session or tap "+ Log Time" to see your subject stats!</div>
                 </div>
               </div>
 

@@ -31,7 +31,7 @@ let pomodoroInterval = null;
 let pomodoroDuration = 50 * 60;
 let pomodoroRemaining = 50 * 60;
 let isPomodoroRunning = false;
-let currentFocusCategory = '📚 Deep Study';
+let currentFocusCategory = '📚 Physics';
 
 // Calculator State
 let calcExpr = '';
@@ -142,14 +142,18 @@ const sendBtn = document.getElementById('sendBtn');
 const chatGoogleBtn = document.getElementById('chatGoogleBtn');
 const chatFileInput = document.getElementById('chatFileInput');
 const fileAttachmentBadge = document.getElementById('fileAttachmentBadge');
+const fileBadgeThumb = document.getElementById('fileBadgeThumb');
+const fileBadgeIcon = document.getElementById('fileBadgeIcon');
 const fileBadgeName = document.getElementById('fileBadgeName');
 const fileBadgeSize = document.getElementById('fileBadgeSize');
+const fileBadgeStatus = document.getElementById('fileBadgeStatus');
 const removeAttachmentBtn = document.getElementById('removeAttachmentBtn');
 let attachedFile = null;
-window.setAttachedFile = (name, size, text) => {
-  attachedFile = { name, size, text };
+window.setAttachedFile = (name, size, text, isImage = false, previewUrl = null) => {
+  attachedFile = { name, size, text, isImage, previewUrl };
   if (fileBadgeName) fileBadgeName.textContent = name;
   if (fileBadgeSize) fileBadgeSize.textContent = `(${(size / 1024).toFixed(1)} KB)`;
+  if (fileBadgeStatus) fileBadgeStatus.textContent = isImage ? '✅ Image Ready' : '✅ Ready';
   if (fileAttachmentBadge) fileAttachmentBadge.classList.remove('hidden');
 };
 const promptChipsClean = document.querySelectorAll('.prompt-chip-clean');
@@ -824,8 +828,28 @@ focusCategoryPills.forEach(pill => {
   pill.addEventListener('click', () => {
     focusCategoryPills.forEach(p => p.classList.remove('active'));
     pill.classList.add('active');
-    currentFocusCategory = pill.dataset.cat;
+    currentFocusCategory = pill.dataset.cat || pill.textContent.trim();
+    if (!isPomodoroRunning && pomodoroStatus) {
+      pomodoroStatus.textContent = `Ready for deep study on ${currentFocusCategory} (${Math.round(pomodoroDuration / 60)} Mins)`;
+    }
   });
+});
+
+const customSubjectBtn = document.getElementById('customSubjectBtn');
+customSubjectBtn?.addEventListener('click', (e) => {
+  e.preventDefault();
+  const custom = prompt('Enter Syllabus Topic or Subject Name (e.g. Organic Chem Ch 4, Kinematics, DSA):');
+  if (custom && custom.trim()) {
+    const formatted = '📖 ' + custom.trim();
+    customSubjectBtn.textContent = formatted;
+    customSubjectBtn.dataset.cat = formatted;
+    focusCategoryPills.forEach(p => p.classList.remove('active'));
+    customSubjectBtn.classList.add('active');
+    currentFocusCategory = formatted;
+    if (!isPomodoroRunning && pomodoroStatus) {
+      pomodoroStatus.textContent = `Ready for deep study on ${currentFocusCategory} (${Math.round(pomodoroDuration / 60)} Mins)`;
+    }
+  }
 });
 
 function setTimerDuration(mins) {
@@ -907,6 +931,7 @@ async function recordCompletedFocus(mins, catName) {
     console.error('Error logging focus time:', e);
   }
 }
+window.recordCompletedFocus = recordCompletedFocus;
 
 pomodoroStartBtn.addEventListener('click', () => {
   if (!isPomodoroRunning) {
@@ -968,11 +993,16 @@ pomodoroLogManualBtn?.addEventListener('click', () => {
 });
 
 const categoryColors = {
-  '💻 Coding & Dev': 'linear-gradient(90deg, #3b82f6, #1d4ed8)',
-  '📚 Study & Research': 'linear-gradient(90deg, #8b5cf6, #6d28d9)',
-  '📝 Writing & Notes': 'linear-gradient(90deg, #10b981, #059669)',
-  '🎯 Planning & Tasks': 'linear-gradient(90deg, #f59e0b, #d97706)',
-  '☕ Break & Recharge': 'linear-gradient(90deg, #f43f5e, #be123c)'
+  '📚 Physics': 'linear-gradient(90deg, #3b82f6, #1d4ed8)',
+  '⚡ Chemistry': 'linear-gradient(90deg, #10b981, #059669)',
+  '📐 Mathematics': 'linear-gradient(90deg, #8b5cf6, #6d28d9)',
+  '🧬 Biology': 'linear-gradient(90deg, #ec4899, #be185d)',
+  '💻 Coding & CS': 'linear-gradient(90deg, #06b6d4, #0891b2)',
+  '📖 Aptitude & English': 'linear-gradient(90deg, #f59e0b, #d97706)',
+  '📚 Deep Study': 'linear-gradient(90deg, #3b82f6, #1d4ed8)',
+  '⚡ Problem Solving': 'linear-gradient(90deg, #10b981, #059669)',
+  '🧠 Concept Revision': 'linear-gradient(90deg, #8b5cf6, #6d28d9)',
+  '💻 Coding & Dev': 'linear-gradient(90deg, #3b82f6, #1d4ed8)'
 };
 
 async function fetchTimeAnalytics() {
@@ -1426,18 +1456,58 @@ function formatMarkdown(text) {
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
 
-  // Headers
-  html = html.replace(/^### (.*$)/gim, '<h4 style="margin:8px 0 4px; color:var(--text-main); font-weight:700;">$1</h4>');
-  html = html.replace(/^## (.*$)/gim, '<h3 style="margin:10px 0 6px; color:var(--text-main); font-weight:800;">$1</h3>');
-  html = html.replace(/^# (.*$)/gim, '<h2 style="margin:12px 0 8px; color:var(--text-main); font-weight:800;">$1</h2>');
+  // Headers (ChatGPT & Meta AI style)
+  html = html.replace(/^### (.*$)/gim, '<h4 style="margin:12px 0 6px; color:var(--text-main); font-weight:700; font-size:14px; display:flex; align-items:center; gap:6px;">$1</h4>');
+  html = html.replace(/^## (.*$)/gim, '<h3 style="margin:14px 0 8px; color:var(--text-main); font-weight:800; font-size:15.5px;">$1</h3>');
+  html = html.replace(/^# (.*$)/gim, '<h2 style="margin:16px 0 10px; color:var(--text-main); font-weight:800; font-size:17px;">$1</h2>');
 
-  // Lists
-  html = html.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
-  html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul style="margin-left:18px; margin-bottom:8px;">$1</ul>');
+  // Markdown Tables
+  html = html.replace(/((?:\|[^\n]+\|\r?\n)+)/g, (match) => {
+    const rows = match.trim().split('\n').map(r => r.trim()).filter(Boolean);
+    if (rows.length < 2) return match;
+    let tableHtml = '<div style="overflow-x:auto; margin:8px 0;"><table style="width:100%; border-collapse:collapse; font-size:12px; background:rgba(0,0,0,0.2); border-radius:6px; overflow:hidden;">';
+    let isHeader = true;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (/^\|[-:\s|]+\|$/.test(row)) {
+        isHeader = false;
+        continue;
+      }
+      const cols = row.split('|').slice(1, -1).map(c => c.trim());
+      tableHtml += '<tr>';
+      cols.forEach(col => {
+        if (isHeader) {
+          tableHtml += `<th style="padding:6px 10px; background:rgba(59,130,246,0.15); border:1px solid rgba(255,255,255,0.08); text-align:left; font-weight:700;">${col}</th>`;
+        } else {
+          tableHtml += `<td style="padding:6px 10px; border:1px solid rgba(255,255,255,0.08);">${col}</td>`;
+        }
+      });
+      tableHtml += '</tr>';
+      if (i === 0) isHeader = false;
+    }
+    tableHtml += '</table></div>';
+    return tableHtml;
+  });
+
+  // Math equation formatting (inline & display LaTeX)
+  html = html.replace(/\\\[([\s\S]*?)\\\]/g, '<div style="background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; margin:6px 0; font-family:var(--font-mono); font-size:13px; text-align:center; color:#38bdf8;">$1</div>');
+  html = html.replace(/\\\(([\s\S]*?)\\\)/g, '<code style="background:rgba(0,0,0,0.15); padding:2px 6px; border-radius:4px; font-family:var(--font-mono); font-size:12px; color:#38bdf8;">$1</code>');
+  html = html.replace(/\$\$([\s\S]*?)\$\$/g, '<div style="background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; margin:6px 0; font-family:var(--font-mono); font-size:13px; text-align:center; color:#38bdf8;">$1</div>');
+
+  // Blockquotes
+  html = html.replace(/^>\s*(.+)$/gm, '<blockquote style="border-left:3px solid var(--primary); padding:6px 12px; margin:8px 0; background:rgba(59,130,246,0.06); border-radius:0 6px 6px 0; color:var(--text-secondary);">$1</blockquote>');
+
+  // Unordered list items
+  html = html.replace(/^\s*[-*•]\s+(.+)$/gm, '<li class="gpt-bullet">$1</li>');
+  html = html.replace(/((?:<li class="gpt-bullet">.*?<\/li>\s*)+)/g, '<ul style="margin-left:18px; margin-bottom:10px; line-height:1.6;">$1</ul>');
+
+  // Ordered list items
+  html = html.replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li class="gpt-ordered" value="$1">$2</li>');
+  html = html.replace(/((?:<li class="gpt-ordered"[^>]*>.*?<\/li>\s*)+)/g, '<ol style="margin-left:18px; margin-bottom:10px; line-height:1.6;">$1</ol>');
 
   html = html.split('\n\n').map(p => {
-    if (p.startsWith('<ul') || p.startsWith('<pre') || p.startsWith('<h') || p.startsWith('<div class="think-block"')) return p;
-    return `<p style="margin-bottom:6px;">${p.replace(/\n/g, '<br>')}</p>`;
+    if (p.startsWith('<ul') || p.startsWith('<ol') || p.startsWith('<pre') || p.startsWith('<h') || p.startsWith('<blockquote') || p.startsWith('<div class="think-block"') || p.startsWith('<div style="overflow-x:auto')) return p;
+    return `<p style="margin-bottom:8px; line-height:1.6;">${p.replace(/\n/g, '<br>')}</p>`;
   }).join('');
 
   return html;
@@ -1768,41 +1838,182 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// File Upload & Attachment Handling (Notes, Syllabus, Study Material)
-chatFileInput?.addEventListener('change', (e) => {
+// Dynamic Loaders for Document and Image Analysis Engines
+let isPdfJsLoading = false;
+async function loadPdfJs() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      resolve(window.pdfjsLib);
+    };
+    script.onerror = () => reject(new Error('Could not load PDF parsing library'));
+    document.head.appendChild(script);
+  });
+}
+
+async function extractTextFromPdf(file) {
+  const pdfjs = await loadPdfJs();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+  let fullText = '';
+  const maxPages = Math.min(pdf.numPages, 15);
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+  }
+  return { text: fullText.trim(), pages: pdf.numPages };
+}
+
+async function loadTesseract() {
+  if (window.Tesseract) return window.Tesseract;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    script.onload = () => resolve(window.Tesseract);
+    script.onerror = () => reject(new Error('Could not load OCR image scanner'));
+    document.head.appendChild(script);
+  });
+}
+
+async function extractTextFromImage(file) {
+  const tesseract = await loadTesseract();
+  const dataUrl = await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+  const res = await tesseract.recognize(dataUrl, 'eng');
+  return { text: res.data.text.trim(), dataUrl };
+}
+
+// File Upload & Attachment Handling (Question Photos, Notes, Syllabus, PDFs)
+chatFileInput?.addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert('File size exceeds 5MB limit. Please attach a smaller notes/document file.');
+  if (file.size > 8 * 1024 * 1024) {
+    alert('File size exceeds 8MB limit. Please attach a smaller image or document.');
     chatFileInput.value = '';
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    attachedFile = {
-      name: file.name,
-      size: file.size,
-      text: event.target.result
-    };
-    if (fileBadgeName) fileBadgeName.textContent = file.name;
-    if (fileBadgeSize) {
-      const kb = (file.size / 1024).toFixed(1);
-      fileBadgeSize.textContent = `(${kb} KB)`;
+  const kb = (file.size / 1024).toFixed(1);
+  if (fileBadgeName) fileBadgeName.textContent = file.name;
+  if (fileBadgeSize) fileBadgeSize.textContent = `(${kb} KB)`;
+  if (fileAttachmentBadge) fileAttachmentBadge.classList.remove('hidden');
+
+  const isImg = file.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(file.name);
+  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+
+  try {
+    if (isImg) {
+      if (fileBadgeStatus) {
+        fileBadgeStatus.textContent = '⏳ Scanning Image (OCR)...';
+        fileBadgeStatus.className = 'file-badge-status processing';
+      }
+      if (fileBadgeThumb) {
+        const previewReader = new FileReader();
+        previewReader.onload = (ev) => {
+          fileBadgeThumb.src = ev.target.result;
+          fileBadgeThumb.classList.remove('hidden');
+          if (fileBadgeIcon) fileBadgeIcon.classList.add('hidden');
+        };
+        previewReader.readAsDataURL(file);
+      }
+
+      const { text, dataUrl } = await extractTextFromImage(file);
+      attachedFile = {
+        name: file.name,
+        size: file.size,
+        text: text || '[Problem photo/diagram uploaded]',
+        isImage: true,
+        previewUrl: dataUrl
+      };
+      if (fileBadgeStatus) {
+        fileBadgeStatus.textContent = text ? '✅ Text Extracted' : '✅ Diagram Ready';
+        fileBadgeStatus.className = 'file-badge-status';
+      }
+    } else if (isPdf) {
+      if (fileBadgeIcon) {
+        fileBadgeIcon.textContent = '📕';
+        fileBadgeIcon.classList.remove('hidden');
+      }
+      if (fileBadgeThumb) fileBadgeThumb.classList.add('hidden');
+      if (fileBadgeStatus) {
+        fileBadgeStatus.textContent = '⏳ Reading PDF Pages...';
+        fileBadgeStatus.className = 'file-badge-status processing';
+      }
+
+      const { text, pages } = await extractTextFromPdf(file);
+      attachedFile = {
+        name: file.name,
+        size: file.size,
+        text: text,
+        isPdf: true,
+        pages
+      };
+      if (fileBadgeStatus) {
+        fileBadgeStatus.textContent = `✅ ${pages} Pages Extracted`;
+        fileBadgeStatus.className = 'file-badge-status';
+      }
+    } else {
+      // Text / Markdown / Code / CSV / JSON
+      if (fileBadgeIcon) {
+        fileBadgeIcon.textContent = '📄';
+        fileBadgeIcon.classList.remove('hidden');
+      }
+      if (fileBadgeThumb) fileBadgeThumb.classList.add('hidden');
+      if (fileBadgeStatus) {
+        fileBadgeStatus.textContent = '⏳ Reading Text...';
+        fileBadgeStatus.className = 'file-badge-status processing';
+      }
+
+      const text = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+
+      attachedFile = {
+        name: file.name,
+        size: file.size,
+        text: text,
+        isDoc: true
+      };
+      if (fileBadgeStatus) {
+        fileBadgeStatus.textContent = '✅ Ready';
+        fileBadgeStatus.className = 'file-badge-status';
+      }
     }
-    if (fileAttachmentBadge) fileAttachmentBadge.classList.remove('hidden');
     userInput.focus();
-  };
-  reader.onerror = () => {
-    alert('Failed to read file content.');
-  };
-  reader.readAsText(file);
+  } catch (err) {
+    console.error('File parsing error:', err);
+    if (fileBadgeStatus) {
+      fileBadgeStatus.textContent = '⚠️ Read Error';
+      fileBadgeStatus.className = 'file-badge-status processing';
+    }
+    alert(`Could not extract content from ${file.name}: ${err.message}`);
+  }
 });
 
 removeAttachmentBtn?.addEventListener('click', () => {
   attachedFile = null;
   if (fileAttachmentBadge) fileAttachmentBadge.classList.add('hidden');
+  if (fileBadgeThumb) {
+    fileBadgeThumb.src = '';
+    fileBadgeThumb.classList.add('hidden');
+  }
+  if (fileBadgeIcon) {
+    fileBadgeIcon.textContent = '📄';
+    fileBadgeIcon.classList.remove('hidden');
+  }
+  if (fileBadgeStatus) fileBadgeStatus.textContent = '';
   if (chatFileInput) chatFileInput.value = '';
 });
 
@@ -2021,13 +2232,36 @@ chatForm.addEventListener('submit', async (e) => {
 
   if (attachedFile) {
     const kb = (attachedFile.size / 1024).toFixed(1);
-    displayHtml = `<div class="user-attached-file-pill">📄 <strong>${attachedFile.name}</strong> <span>(${kb} KB)</span></div>` + (rawText ? `<div>${rawText}</div>` : `<div><em>Please analyze and summarize this uploaded study material.</em></div>`);
+    if (attachedFile.isImage) {
+      displayHtml = `
+        <div class="user-attached-thumb-wrap">
+          <img src="${attachedFile.previewUrl}" class="user-attached-img" alt="Uploaded Question">
+          <div>
+            <strong>📷 ${escapeHtml(attachedFile.name)}</strong>
+            <span style="font-size:11px; color:var(--text-muted); display:block;">(${kb} KB • OCR Extracted)</span>
+          </div>
+        </div>` + (rawText ? `<div>${escapeHtml(rawText)}</div>` : `<div><em>Please solve and explain this question step-by-step.</em></div>`);
 
-    promptText = `[UPLOADED STUDY MATERIAL / NOTES: "${attachedFile.name}"]\n${attachedFile.text}\n\n[USER INSTRUCTION / QUESTION]:\n${rawText || 'Summarize the core concepts, provide active recall questions, and extract key study points from this uploaded document.'}`;
+      promptText = `[DOCUMENT / STUDY MATERIAL ANALYSIS: "${attachedFile.name}"]\nType: Problem/Question Photo (OCR Extracted Text)\nExtracted Content:\n${attachedFile.text}\n\n[USER INSTRUCTION / QUESTION]:\n${rawText || 'Solve this step-by-step with clear formulas, scientific/mathematical logic, and key exam pitfalls to avoid.'}`;
+    } else {
+      const docType = attachedFile.isPdf ? `PDF Notes (${attachedFile.pages || 1} pages)` : 'Study Document';
+      displayHtml = `<div class="user-attached-file-pill">📄 <strong>${escapeHtml(attachedFile.name)}</strong> <span>(${kb} KB • ${docType})</span></div>` + (rawText ? `<div>${escapeHtml(rawText)}</div>` : `<div><em>Please analyze and summarize this uploaded study material.</em></div>`);
+
+      promptText = `[DOCUMENT / STUDY MATERIAL ANALYSIS: "${attachedFile.name}"]\nType: ${docType}\nExtracted Content:\n${attachedFile.text}\n\n[USER INSTRUCTION / QUESTION]:\n${rawText || 'Summarize the core syllabus concepts, derive key formulas, provide active recall questions, and highlight common exam traps.'}`;
+    }
 
     // Reset attachment state
     attachedFile = null;
     if (fileAttachmentBadge) fileAttachmentBadge.classList.add('hidden');
+    if (fileBadgeThumb) {
+      fileBadgeThumb.src = '';
+      fileBadgeThumb.classList.add('hidden');
+    }
+    if (fileBadgeIcon) {
+      fileBadgeIcon.textContent = '📄';
+      fileBadgeIcon.classList.remove('hidden');
+    }
+    if (fileBadgeStatus) fileBadgeStatus.textContent = '';
     if (chatFileInput) chatFileInput.value = '';
   } else {
     displayHtml = rawText;

@@ -293,6 +293,19 @@ async function runTests() {
     assert(text.toLowerCase().includes('mitochondria') || text.toLowerCase().includes('atp'), 'Response did not synthesize mitochondria knowledge');
   });
 
+  await test('7.5 Chat Stream: Document & image question analysis via Groq Qwen 27B', async () => {
+    const res = await fetch(`${BASE}/api/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: '[DOCUMENT / STUDY MATERIAL ANALYSIS: "Test_Kinematics.png"]\nType: Problem/Question Photo (OCR Extracted Text)\nExtracted Content:\nA car starts from rest with acceleration 3 m/s^2 for 5 seconds. Find final velocity.\n\n[USER INSTRUCTION / QUESTION]:\nSolve step-by-step with formulas.'
+      })
+    });
+    assert(res.ok, `HTTP ${res.status}`);
+    const text = await res.text();
+    assert(text.includes('15') || text.toLowerCase().includes('velocity'), 'Qwen 27B did not solve document question');
+  });
+
   console.log('\n=================================================');
   console.log(`📊 TEST SUMMARY: ${passed} PASSED | ${failed} FAILED`);
   console.log('=================================================\n');
