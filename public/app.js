@@ -2125,22 +2125,24 @@ async function handleNeuralModelGeneration(text, wrap, bubble) {
 
     bubble.innerHTML = '<em>Thinking and reasoning on-device...</em>';
 
-    const systemPrompt = `You are Synapse OS, an elite AI study mentor, cognitive coach, and discipline strategist.
-Your guidelines:
-1. Deliver structured, clear explanations with rich conceptual intuition (like Claude).
-2. For science, mathematics, reasoning, or complex queries, provide step-by-step rigorous logic ("Think Harder" blocks).
-3. Offer actionable, practical advice for daily routines, defeating social media addiction, and mastering deep focus.
-4. Keep tone sharp, encouraging, intellectual, and anti-procrastination. Use clean Markdown, bold headings, and bullet points.`;
+    const systemPrompt = `You are Synapse, the user's sharp, friendly AI study companion and all-rounder dost.
+1. Talk like a smart, warm friend/dost in punchy Hinglish or English matching the user.
+2. For quick queries, give direct 2-4 line answers with bold keywords.
+3. For math & physics numericals, state Formula -> Step-by-Step calculation -> Final answer with SI units -> Exam Pitfalls.
+4. For routines or concepts, provide clean bullet points. Never be robotic.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: text }
     ];
 
+    const isMathOrTechnical = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(text);
+    const dynamicTemp = isMathOrTechnical ? 0.35 : 0.65;
+
     const stream = await activeNeuralEngine.chat.completions.create({
       messages,
       stream: true,
-      temperature: 0.6,
+      temperature: dynamicTemp,
       max_tokens: 1200
     });
 
@@ -2296,15 +2298,17 @@ chatForm.addEventListener('submit', async (e) => {
     if (webLlmEngine) {
       try {
         bubble.innerHTML = '<em>🧠 Generating offline response via WebGPU...</em>';
+        const isMathOffline = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(promptText);
+        const dynamicOfflineTemp = isMathOffline ? 0.35 : 0.65;
         const chunks = await webLlmEngine.chat.completions.create({
           messages: [
-            { role: 'system', content: 'You are Synapse, a friendly Meta AI style study dost. Explain in punchy Hinglish or English with bold concepts.' },
+            { role: 'system', content: 'You are Synapse, a friendly ChatGPT/Meta AI style study dost. Explain in warm, punchy Hinglish or English with bold concepts. For numericals, show formula, step-by-step logic, and final units.' },
             ...chatSessionHistory.slice(-6).map(h => ({ role: h.role, content: h.content })),
             { role: 'user', content: promptText }
           ],
           stream: true,
-          temperature: 0.7,
-          max_tokens: 350
+          temperature: dynamicOfflineTemp,
+          max_tokens: 450
         });
 
         fullReply = '';
@@ -3860,9 +3864,15 @@ async function updateEngineStatusBadge() {
       dot = '🟢';
     }
   } else {
-    title = '📱 Offline AI';
-    detail = 'Offline study coach active with zero internet.';
-    dot = '🟠';
+    if (webLlmEngine) {
+      title = '🧠 WebGPU Offline AI (Active)';
+      detail = 'On-device neural brain active in 100% Airplane Mode.';
+      dot = '🟢';
+    } else {
+      title = '📱 Offline Mode';
+      detail = 'Built-in 0MB study coach active with zero internet.';
+      dot = '🟠';
+    }
   }
 
   if (engineDot) engineDot.textContent = dot;
@@ -3900,6 +3910,7 @@ function initAiEngineModal() {
 
   updateEngineStatusBadge();
   checkWebGpuSupport();
+  autoRestoreWebLlmIfCached();
 
   // WebLLM in-browser download
   document.getElementById('downloadWebLlmBtn')?.addEventListener('click', initWebLlmDownload);
@@ -4126,6 +4137,26 @@ async function checkWebGpuSupport() {
   }
 }
 
+async function autoRestoreWebLlmIfCached() {
+  if (localStorage.getItem('synapse_webllm_ready') === 'true' && 'gpu' in navigator) {
+    if (!gpuSupported) await initWebGPUDetection();
+    const savedModelId = localStorage.getItem('synapse_webllm_model') || (hasShaderF16 ? 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC' : 'Qwen2.5-0.5B-Instruct-q4f32_1-MLC');
+    try {
+      const webllm = await import('https://esm.run/@mlc-ai/web-llm');
+      webLlmEngine = await webllm.CreateMLCEngine(savedModelId);
+      console.log('⚡ Offline WebGPU engine auto-restored from local cache.');
+      const downloadBtn = document.getElementById('downloadWebLlmBtn');
+      if (downloadBtn) {
+        downloadBtn.textContent = '✅ Offline Brain Ready';
+        downloadBtn.style.background = '#10b981';
+      }
+      updateEngineStatusBadge();
+    } catch (e) {
+      console.warn('WebLLM auto-restore notice:', e);
+    }
+  }
+}
+
 async function initWebLlmDownload() {
   const downloadBtn = document.getElementById('downloadWebLlmBtn');
   const modelSelect = document.getElementById('webLlmModelSelect');
@@ -4139,37 +4170,61 @@ async function initWebLlmDownload() {
     return;
   }
 
-  const modelId = modelSelect?.value || 'SmolLM2-360M-Instruct-q4f16_1-MLC';
+  if (!gpuSupported) {
+    await initWebGPUDetection();
+  }
+
+  let selectedRaw = modelSelect?.value || 'SmolLM2-360M-Instruct-q4f16_1-MLC';
+  let modelId = selectedRaw;
+
+  // Normalize model ID and apply shader-f16 compatibility fallback for mobile devices
+  if (selectedRaw.includes('Qwen2-') || selectedRaw.includes('Qwen2.5-')) {
+    modelId = hasShaderF16 ? 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC' : 'Qwen2.5-0.5B-Instruct-q4f32_1-MLC';
+  } else if (selectedRaw.includes('Llama-3.2-')) {
+    modelId = hasShaderF16 ? 'Llama-3.2-1B-Instruct-q4f16_1-MLC' : 'Llama-3.2-1B-Instruct-q4f32_1-MLC';
+  } else if (selectedRaw.includes('SmolLM2-')) {
+    modelId = hasShaderF16 ? 'SmolLM2-360M-Instruct-q4f16_1-MLC' : 'SmolLM2-360M-Instruct-q4f32_1-MLC';
+  } else if (!hasShaderF16 && modelId.includes('q4f16_1')) {
+    modelId = modelId.replace('q4f16_1', 'q4f32_1');
+  }
+
   isWebLlmLoading = true;
-  downloadBtn.disabled = true;
-  downloadBtn.textContent = '⏳ Loading...';
+  if (downloadBtn) {
+    downloadBtn.disabled = true;
+    downloadBtn.textContent = '⏳ Loading...';
+  }
   progressBox?.classList.remove('hidden');
 
   try {
     const webllm = await import('https://esm.run/@mlc-ai/web-llm');
     webLlmEngine = await webllm.CreateMLCEngine(modelId, {
       initProgressCallback: (report) => {
-        const pct = Math.round(report.progress * 100);
+        const pct = Math.round((report.progress || 0) * 100);
         if (progressPercent) progressPercent.textContent = `${pct}%`;
         if (progressBar) progressBar.style.width = `${pct}%`;
-        if (progressText) progressText.textContent = report.text.slice(0, 36) + (report.text.length > 36 ? '...' : '');
+        if (progressText) progressText.textContent = (report.text || 'Loading...').slice(0, 42) + ((report.text || '').length > 42 ? '...' : '');
       }
     });
 
     localStorage.setItem('synapse_webllm_ready', 'true');
     localStorage.setItem('synapse_webllm_model', modelId);
-    downloadBtn.textContent = '✅ Offline Brain Ready';
-    downloadBtn.style.background = '#10b981';
+    if (downloadBtn) {
+      downloadBtn.textContent = '✅ Offline Brain Ready';
+      downloadBtn.style.background = '#10b981';
+      downloadBtn.disabled = false;
+    }
     if (progressText) progressText.textContent = 'Brain downloaded! You can now chat in 100% Airplane Mode.';
     launchConfettiBurst();
     alert('🎉 Success! Offline Neural Brain is downloaded and ready. You can now turn on Airplane Mode and chat with zero internet!');
     updateEngineStatusBadge();
   } catch (err) {
     console.warn('WebLLM init notice:', err);
-    downloadBtn.disabled = false;
-    downloadBtn.textContent = '📥 Download Brain';
+    if (downloadBtn) {
+      downloadBtn.disabled = false;
+      downloadBtn.textContent = '❌ Retry Download';
+    }
     if (progressText) {
-      progressText.textContent = 'Built-in 0MB Offline Brain is active! (Neural weight optional)';
+      progressText.textContent = `Download notice: ${err?.message || err}. (Built-in 0MB offline brain remains active!)`;
     }
   } finally {
     isWebLlmLoading = false;

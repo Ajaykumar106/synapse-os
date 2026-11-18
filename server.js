@@ -45,7 +45,14 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 
-// Never cache the service worker itself so PWAs auto-update on deploy
+// Never cache index.html or the service worker itself so PWAs auto-update immediately on deploy
+app.get(['/', '/index.html'], (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.get('/sw.js', (_req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -1199,12 +1206,13 @@ function executeActionTags(fullText, sendEvent, userMessage = '') {
     }
   }
 
-  // Safety net: check if userMessage explicitly asked to add a task
+  // Safety net: check if userMessage explicitly asked to add a task (both SVO and Hindi SOV order)
   if (!addedAnyTask && userMessage) {
-    const taskPromptMatch = userMessage.match(/(?:checklist|task(?:s)?)\s+(?:me\s+)?(?:add\s+karo|daalo|likho)\s+(.+?)(?:\s+(?:aur|and|with|\+)\s+|\s*$)/i) ||
+    const taskPromptMatch = userMessage.match(/(?:checklist|task(?:s)?)\s+(?:me\s+)?(?:add\s+karo|daalo|likho|rakho)\s+(.+?)(?:\s+(?:aur|and|with|\+)\s+|\s*$)/i) ||
+      userMessage.match(/^(.+?)\s+(?:ko\s+)?(?:checklist|tasks?)\s+me\s+(?:add\s+karo|add\s+kar\s+do|daalo|daal\s+do|likho|rakho)/i) ||
       userMessage.match(/(?:add\s+to\s+tasks?|add\s+to\s+checklist|add\s+task)\s+(.+?)(?:\s+(?:and|with|\+)\s+|\s*$)/i);
     if (taskPromptMatch && taskPromptMatch[1]) {
-      const taskText = taskPromptMatch[1].replace(/^(?:bhai|please)\s+/i, '').trim();
+      const taskText = taskPromptMatch[1].replace(/^(?:bhai|please)\s+/i, '').replace(/^(?:please|bhai)\s+/i, '').trim();
       if (taskText && taskText.length > 2) {
         tasks.push({
           id: Date.now().toString() + Math.random().toString().slice(2, 5),
@@ -1388,6 +1396,9 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
     { role: 'user', content: message }
   ];
 
+  const isMathOrTechnical = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(message);
+  const dynamicTemp = isMathOrTechnical ? 0.35 : 0.65;
+
   const groqModel = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
   let groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -1398,7 +1409,7 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
     body: JSON.stringify({
       model: groqModel,
       messages,
-      temperature: 0.7,
+      temperature: dynamicTemp,
       max_tokens: 850,
       stream: true
     }),
@@ -1417,7 +1428,7 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
       body: JSON.stringify({
         model: 'openai/gpt-oss-20b',
         messages,
-        temperature: 0.7,
+        temperature: dynamicTemp,
         max_tokens: 800,
         stream: true
       }),

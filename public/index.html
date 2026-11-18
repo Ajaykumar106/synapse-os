@@ -12,12 +12,12 @@
   <meta name="apple-mobile-web-app-title" content="Synapse">
   <link rel="apple-touch-icon" href="/icon-192.png?v=3.0.0">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.0.0">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.0.0">
-  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.0.0">
-  <link rel="manifest" href="/manifest.json?v=3.0.0">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.1.0">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.1.0">
+  <link rel="manifest" href="/manifest.json?v=3.1.0">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.0.0">
+  <link rel="stylesheet" href="/style.css?v=3.1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -293,7 +293,7 @@
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <select id="webLlmModelSelect" class="glass-select" style="flex: 1; min-width: 190px; font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);">
                 <option value="SmolLM2-360M-Instruct-q4f16_1-MLC" selected>⚡ SmolLM2 360M (~220 MB - Ultra Fast)</option>
-                <option value="Qwen2-0.5B-Instruct-q4f16_1-MLC">🧠 Qwen2 0.5B (~350 MB - Fast STEM)</option>
+                <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">🧠 Qwen2.5 0.5B (~350 MB - Fast STEM)</option>
                 <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">🚀 Llama 3.2 1B (~850 MB - High Quality)</option>
               </select>
               <button type="button" class="btn-primary-sm" id="downloadWebLlmBtn" style="white-space: nowrap; padding: 7px 14px; border-radius: 8px;">
@@ -318,7 +318,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--glass-inset); border-radius: 10px; border: 1px solid var(--glass-border);">
           <div>
             <strong style="font-size: 12.5px; display: block;">⚡ App Version & Updates</strong>
-            <span style="font-size: 11px; color: var(--text-muted);" id="pwaVersionLabel">Synapse OS v2.2.0 • Auto-Updating</span>
+            <span style="font-size: 11px; color: var(--text-muted);" id="pwaVersionLabel">Synapse OS v3.1.0 (Latest — Auto-Updated)</span>
           </div>
           <button type="button" class="btn-subtle btn-sm" id="forcePwaUpdateBtn" style="font-size: 11px; padding: 6px 12px; white-space: nowrap;">
             🔄 Check Update
@@ -1096,14 +1096,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=2.3.0"></script>
+  <script src="app.js?v=3.1.0"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.0.0)
+    // PWA Auto-Updating Engine (v3.1.0)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.0.0';
+        const CURRENT_VERSION = 'synapse-os-v3.1.0';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1114,7 +1114,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.0.0').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.1.0').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 
