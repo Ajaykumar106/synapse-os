@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synapse OS — Logo Options Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px 80px 20px;
+    }
+    .header {
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto 48px auto;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #60a5fa;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+    p {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+      max-width: 1140px;
+      margin: 0 auto 50px auto;
+    }
+    .option-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+    .option-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .tag {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tag-1 { background: rgba(0, 242, 254, 0.15); color: #00f2fe; border: 1px solid rgba(0, 242, 254, 0.3); }
+    .tag-2 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .tag-3 { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
+
+    .logo-img-wrap {
+      width: 170px;
+      height: 170px;
+      margin: 20px 0 24px 0;
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45));
+      transition: transform 0.3s ease;
+    }
+    .option-card:hover .logo-img-wrap {
+      transform: scale(1.05);
+    }
+    .logo-img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .opt-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .opt-sub {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .opt-desc {
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .opt-desc ul {
+      margin-left: 20px;
+      margin-top: 8px;
+    }
+    .opt-desc li {
+      margin-bottom: 6px;
+      font-size: 12.5px;
+    }
+
+    /* Mobile Launcher Simulation */
+    .mock-phone-strip {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #11141d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .mock-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #e2e8f0;
+    }
+    .app-icons-row {
+      display: flex;
+      justify-content: center;
+      gap: 36px;
+      flex-wrap: wrap;
+    }
+    .app-icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .app-icon-squircle {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .app-icon-squircle img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .app-icon-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span class="badge">🎨 Brand Identity Direction</span>
+    <h1>Synapse OS — Logo Selection</h1>
+    <p>Aapke liye 3 distinct, high-definition premium logo designs taiyar kiye gaye hain. Aapko jo sabse achha lage, batayein — hum use turant active app icon bana denge!</p>
+  </div>
+
+  <div class="grid">
+    <!-- Option 1 -->
+    <div class="option-card">
+      <span class="tag tag-1">Option 1</span>
+      <div class="logo-img-wrap">
+        <img src="/logo-option-1.svg" class="logo-img" alt="Option 1: Quantum Neural Core">
+      </div>
+      <h2 class="opt-title">Quantum Neural Core</h2>
+      <span class="opt-sub">Electric Cyan & Hyper Cobalt</span>
+      <div class="opt-desc">
+        <ul>
+          <li><strong>Theme:</strong> Futuristic 3D Brain Core with orbital synapse rings.</li>
+          <li><strong>Vibe:</strong> High-IQ, scientific, Apple Intelligence + OpenAI style.</li>
+          <li><strong>Best For:</strong> Clear visibility on both light & dark mobile wallpapers.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Option 2 -->
+    <div class="option-card">
+      <span class="tag tag-2">Option 2</span>
+      <div class="logo-img-wrap">
+        <img src="/logo-option-2.svg" class="logo-img" alt="Option 2: Strict Monk Shield">
+      </div>
+      <h2 class="opt-title">Strict Monk Shield</h2>
+      <span class="opt-sub">Deep Obsidian & Laser Amber Gold</span>
+      <div class="opt-desc">
+        <ul>
+          <li><strong>Theme:</strong> Anti-distraction shield with a sharp synaptic lightning bolt.</li>
+          <li><strong>Vibe:</strong> Strict daily discipline, zero distraction, monk mode.</li>
+          <li><strong>Best For:</strong> Serious students preparing for competitive exams (JEE/NEET/UPSC).</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Option 3 -->
+    <div class="option-card">
+      <span class="tag tag-3">Option 3</span>
+      <div class="logo-img-wrap">
+        <img src="/logo-option-3.svg" class="logo-img" alt="Option 3: Aurora Synapse Brain">
+      </div>
+      <h2 class="opt-title">Aurora Synapse Brain</h2>
+      <span class="opt-sub">Neon Cyber Violet & Radiant Magenta</span>
+      <div class="opt-desc">
+        <ul>
+          <li><strong>Theme:</strong> Biomorphic 3D brain hemispheres with glowing neural tracks.</li>
+          <li><strong>Vibe:</strong> Creative, modern, energetic, visually addictive.</li>
+          <li><strong>Best For:</strong> Modern gen-z aesthetic with high contrast popping on OLED screens.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Home Screen Simulation -->
+  <div class="mock-phone-strip">
+    <div class="mock-title">📱 Phone Home Screen par kaise dikhenge (Simulation):</div>
+    <div class="app-icons-row">
+      <div class="app-icon-item">
+        <div class="app-icon-squircle">
+          <img src="/logo-option-1.svg" alt="Option 1 Icon">
+        </div>
+        <span class="app-icon-label">Option 1</span>
+      </div>
+      <div class="app-icon-item">
+        <div class="app-icon-squircle">
+          <img src="/logo-option-2.svg" alt="Option 2 Icon">
+        </div>
+        <span class="app-icon-label">Option 2</span>
+      </div>
+      <div class="app-icon-item">
+        <div class="app-icon-squircle">
+          <img src="/logo-option-3.svg" alt="Option 3 Icon">
+        </div>
+        <span class="app-icon-label">Option 3</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
