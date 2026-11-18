@@ -48,6 +48,77 @@ const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const sidebar = document.getElementById('sidebar');
 
+// Universal Non-Blocking App Toast Notification Center
+function showToast(message, type = 'info', icon = '✨', duration = 3400) {
+  const container = document.getElementById('synapseToastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `synapse-toast glass-card toast-${type}`;
+  toast.innerHTML = `<span style="font-size: 18px; flex-shrink: 0;">${icon}</span><span style="flex: 1; line-height: 1.4;">${message}</span>`;
+  container.appendChild(toast);
+
+  try {
+    if (type === 'success' || type === 'trophy') playAlertChime();
+  } catch (e) {}
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-12px)';
+    toast.style.transition = 'all 0.25s ease';
+    setTimeout(() => toast.remove(), 260);
+  }, duration);
+}
+
+// Daily Mission Control HUD updater (Keeps Streak, Study Hours & Checklist live)
+function updateDailyMissionHud() {
+  const streakEl = document.getElementById('hudStreak');
+  const focusEl = document.getElementById('hudFocus');
+  const tasksEl = document.getElementById('hudTasks');
+
+  if (streakEl) {
+    const streak = disciplineStats.streak || 5;
+    streakEl.textContent = `${streak} Days`;
+  }
+  if (focusEl) {
+    const mins = disciplineStats.todayFocusMinutes || 0;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    focusEl.textContent = h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
+  if (tasksEl) {
+    const doneCount = tasks.filter(t => t.completed).length;
+    const total = tasks.length;
+    tasksEl.textContent = total > 0 ? `${doneCount}/${total} Done` : '0 Done';
+  }
+}
+
+// Sync AI-generated study routine directly into the user's timetable
+async function syncRoutineBlocksFromText(text) {
+  const regex = /(?:•|\*|-|\d+\.)\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)\s*[:–-]?\s*([^\n\r]+)/gi;
+  let m;
+  const newBlocks = [];
+  while ((m = regex.exec(text)) !== null) {
+    const timeStr = m[1].trim();
+    let titleStr = m[2].trim().replace(/^\*\*|\*\*$/g, '').replace(/^[–\-:]\s*/, '');
+    if (titleStr) {
+      newBlocks.push({
+        id: 'r_' + Date.now() + Math.random().toString().slice(2, 5),
+        time: timeStr,
+        title: titleStr,
+        category: 'Study',
+        completed: false
+      });
+    }
+  }
+
+  if (newBlocks.length > 0) {
+    routines = [...newBlocks];
+    saveRoutines();
+    launchConfettiBurst();
+    showToast(`🎉 Synced ${newBlocks.length} study blocks to your Daily Routine!`, 'success', '⚡');
+  }
+}
+
 // Routine & Discipline DOM
 const disciplineStreak = document.getElementById('disciplineStreak');
 const disciplineScore = document.getElementById('disciplineScore');
@@ -479,6 +550,7 @@ function renderDisciplineStats() {
     const mins = (disciplineStats.todayFocusMinutes || 0) % 60;
     routineFocusTime.textContent = `${hours}h ${mins.toString().padStart(2, '0')}m`;
   }
+  updateDailyMissionHud();
 }
 
 function renderRoutines() {
@@ -564,11 +636,12 @@ startCurrentBlockBtn?.addEventListener('click', () => {
 function handleDefeatUrge() {
   disciplineStats.distractionsResisted = (disciplineStats.distractionsResisted || 0) + 1;
   saveDisciplineStats();
+  updateDailyMissionHud();
   playAlertChime();
   const randomQuote = disciplineQuotes[Math.floor(Math.random() * disciplineQuotes.length)];
   if (disciplineQuoteBanner) disciplineQuoteBanner.textContent = `"${randomQuote}"`;
   if (strictQuoteText) strictQuoteText.textContent = `"${randomQuote}"`;
-  alert(`🔥 Victory Logged! You resisted the temptation to scroll social media. +1 to your discipline streak!`);
+  showToast('🔥 Victory Logged! +1 Distraction Resisted. Discipline streak intact!', 'success', '🛡️');
 }
 
 defeatUrgeBtn?.addEventListener('click', handleDefeatUrge);
@@ -701,6 +774,7 @@ function renderTasks() {
     `;
     tasksList.appendChild(row);
   });
+  updateDailyMissionHud();
 }
 
 window.toggleTask = async (id) => {
@@ -785,7 +859,7 @@ window.copyNoteText = (id) => {
   const item = notes.find(n => n.id === id);
   if (item) {
     navigator.clipboard.writeText(`${item.title}\n\n${item.content}`);
-    alert('Note copied to clipboard!');
+    showToast('Note copied to clipboard!', 'info', '📋');
   }
 };
 
@@ -875,7 +949,7 @@ setCustomPomoBtn?.addEventListener('click', () => {
     setTimerDuration(mins);
     customPomoMinutesInput.value = '';
   } else {
-    alert('Please enter a valid number of minutes (e.g. 15, 30, 45, 90).');
+    showToast('Please enter valid minutes (e.g. 15, 30, 45).', 'warning', '⚠️');
   }
 });
 
@@ -962,7 +1036,8 @@ pomodoroStartBtn.addEventListener('click', () => {
           '🎉 Study Session Complete!',
           `You locked in ${durationMins} minutes of deep focus on ${currentFocusCategory}!`
         );
-        alert(`⏱️ Deep Study Session Complete! Logged ${durationMins} minutes to ${currentFocusCategory}. Great discipline!`);
+        showToast(`🎉 Deep Study Complete! Logged ${durationMins}m to ${currentFocusCategory}. Verified focus XP gained!`, 'success', '🏆', 5000);
+        updateDailyMissionHud();
       }
     }, 1000);
   } else {
@@ -1856,7 +1931,7 @@ chatFileInput?.addEventListener('change', async (e) => {
   if (!file) return;
 
   if (file.size > 8 * 1024 * 1024) {
-    alert('File size exceeds 8MB limit. Please attach a smaller image or document.');
+    showToast('File exceeds 8MB limit. Please attach a smaller image or document.', 'warning', '⚠️');
     chatFileInput.value = '';
     return;
   }
@@ -1957,7 +2032,7 @@ chatFileInput?.addEventListener('change', async (e) => {
       fileBadgeStatus.textContent = '⚠️ Read Error';
       fileBadgeStatus.className = 'file-badge-status processing';
     }
-    alert(`Could not extract content from ${file.name}: ${err.message}`);
+    showToast(`Could not extract content from ${file.name}: ${err.message}`, 'error', '⚠️');
   }
 });
 
@@ -2033,7 +2108,7 @@ async function switchAIModel(selectedKey) {
 
   // Check hardware acceleration availability
   if (!navigator.gpu) {
-    alert('This device will use the high-speed Synapse Instant engine with 50+ offline study modules.');
+    showToast('Using high-speed Synapse Instant offline study modules.', 'info', '⚡');
     if (aiModelSelect) aiModelSelect.value = 'fast';
     return false;
   }
@@ -2280,21 +2355,78 @@ chatForm.addEventListener('submit', async (e) => {
             if (data.googleQuery) googleQuery = data.googleQuery;
             if (data.isReminder) playAlertChime();
             if (data.refreshReminders) fetchReminders();
-            if (data.refreshTasks) fetchTasks();
+            if (data.refreshTasks) {
+              fetchTasks();
+              updateDailyMissionHud();
+            }
             if (data.refreshNotes) fetchNotes();
             if (data.refreshRoutine) fetchRoutines();
             if (data.triggerUrgeDefeated) handleDefeatUrge();
             if (data.triggerFocus) {
               setTimerDuration(data.triggerFocus.duration);
-              switchTab('tab-focus');
               if (!isPomodoroRunning && pomodoroStartBtn) {
                 pomodoroStartBtn.click();
               }
+              showToast(`⏱️ ${data.triggerFocus.duration}m Focus Timer started! Anti-cheat lock active.`, 'info', '⏱️');
             }
             if (data.done) {
               chatSessionHistory.push({ role: 'user', content: promptText });
               chatSessionHistory.push({ role: 'assistant', content: fullReply });
               appendActionDock(wrap, googleQuery, fullReply);
+
+              // Generative UI: Live Interactive Timer Card
+              if (data.triggerFocus) {
+                const timerEmbed = document.createElement('div');
+                timerEmbed.className = 'chat-embedded-card timer-card-embed';
+                timerEmbed.innerHTML = `
+                  <div class="embed-header">
+                    <span class="pulsing-clock">⏱️</span> <strong>${data.triggerFocus.duration}m Focus Timer Active & Running!</strong>
+                  </div>
+                  <p class="embed-desc">Anti-distraction lock active. Keep studying here or view the big clock.</p>
+                  <div class="embed-action-row">
+                    <button type="button" class="btn-embed-action" onclick="switchTab('tab-focus')">Open Full Focus Clock ➔</button>
+                  </div>
+                `;
+                bubble.appendChild(timerEmbed);
+              }
+
+              // Generative UI: Interactive Task Confirmation Card
+              if (data.refreshTasks) {
+                const taskEmbed = document.createElement('div');
+                taskEmbed.className = 'chat-embedded-card task-card-embed';
+                taskEmbed.innerHTML = `
+                  <div class="embed-header">
+                    <span>✅</span> <strong>Checklist Updated!</strong>
+                  </div>
+                  <p class="embed-desc">Task is saved in your daily checklist.</p>
+                  <div class="embed-action-row">
+                    <button type="button" class="btn-embed-action" onclick="switchTab('tab-tasks')">View Checklist ➔</button>
+                  </div>
+                `;
+                bubble.appendChild(taskEmbed);
+                showToast('✅ Study task added to your checklist!', 'success', '✅');
+              }
+
+              // Generative UI: 1-Click Sync to Daily Flows if routine blocks detected
+              const routineMatches = fullReply.match(/(?:•|\*|-|\d+\.)\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)\s*[:–-]?\s*([^\n\r]+)/gi);
+              if (routineMatches && routineMatches.length >= 2) {
+                const routineEmbed = document.createElement('div');
+                routineEmbed.className = 'chat-embedded-card routine-card-embed';
+                routineEmbed.innerHTML = `
+                  <div class="embed-header">
+                    <span>⚡</span> <strong>Interactive Study Routine Detected (${routineMatches.length} Blocks)</strong>
+                  </div>
+                  <p class="embed-desc">Apply this entire schedule to your daily routine in one click!</p>
+                  <div class="embed-action-row">
+                    <button type="button" class="btn-embed-action btn-sync-routine-now">⚡ 1-Click Sync to Daily Flows</button>
+                  </div>
+                `;
+                routineEmbed.querySelector('.btn-sync-routine-now')?.addEventListener('click', () => {
+                  syncRoutineBlocksFromText(fullReply);
+                });
+                bubble.appendChild(routineEmbed);
+              }
+
               setTimeout(() => {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
               }, 50);
@@ -2743,7 +2875,7 @@ activateProBtn?.addEventListener('click', () => {
   localStorage.setItem('synapse_pro_unlocked', 'true');
   updateProUI();
   playAlertChime();
-  alert('🎉 Congratulations! Synapse Pro Lifetime is now activated.\n\nYou have permanent VIP access to all 5 luxury glass themes, unlimited customizable workflows, offline binaural focus audio, and the complete STEM Knowledge Vault!');
+  showToast('🎉 Synapse Pro Lifetime Activated! Enjoy unlimited workflows & luxury themes.', 'success', '👑', 5000);
   if (proModal) proModal.classList.add('hidden');
 });
 
@@ -2954,7 +3086,7 @@ function stopAmbientSound() {
 function startAmbientSound(type = currentSoundType) {
   initAudioContext();
   if (!audioCtx) {
-    alert('Web Audio API is not supported on this browser.');
+    showToast('Web Audio API is not supported on this browser.', 'warning', '⚠️');
     return;
   }
 
@@ -3424,10 +3556,10 @@ window.saveVaultCardToNotes = async function(encodedTitle, encodedSummary, encod
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: `📚 ${title}`, content })
     });
-    alert(`✓ "${title}" saved to your Notes & Scratchpad!`);
+    showToast(`✓ "${title}" saved to your Notes & Scratchpad!`, 'success', '📝');
     fetchNotes();
   } catch (e) {
-    alert(`Saved to Notes!`);
+    showToast(`Saved to Notes!`, 'success', '📝');
   }
 };
 
@@ -3576,7 +3708,7 @@ initInputMic();
 function initGeminiLiveVoice() {
   if (!SpeechRec) {
     openVoiceLiveBtn?.addEventListener('click', () => {
-      alert('Live voice mode requires Google Chrome, Microsoft Edge, or Safari on your phone/PC.');
+      showToast('Live voice requires Google Chrome, Microsoft Edge, or Safari.', 'warning', '🎙️');
     });
     return;
   }
@@ -4176,7 +4308,7 @@ async function initWebLlmDownload() {
   const progressPercent = document.getElementById('webLlmProgressPercent');
 
   if (!('gpu' in navigator)) {
-    alert('💡 WebGPU is not enabled on this mobile browser. Your app automatically uses the built-in 0MB Offline Study Brain in Airplane Mode!');
+    showToast('WebGPU not enabled on this mobile browser. Built-in 0MB offline brain is active!', 'info', '📱', 4000);
     return;
   }
 
@@ -4225,7 +4357,7 @@ async function initWebLlmDownload() {
     }
     if (progressText) progressText.textContent = 'Brain downloaded! You can now chat in 100% Airplane Mode.';
     launchConfettiBurst();
-    alert('🎉 Success! Offline Neural Brain is downloaded and ready. You can now turn on Airplane Mode and chat with zero internet!');
+    showToast('🎉 Success! Offline Neural Brain ready. You can now chat in 100% Airplane Mode!', 'success', '🧠', 5000);
     updateEngineStatusBadge();
   } catch (err) {
     console.warn('WebLLM init notice:', err);

@@ -12,12 +12,12 @@
   <meta name="apple-mobile-web-app-title" content="Synapse">
   <link rel="apple-touch-icon" href="/icon-192.png?v=3.0.0">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.0.0">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.1.0">
-  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.1.0">
-  <link rel="manifest" href="/manifest.json?v=3.1.0">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.0">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.0">
+  <link rel="manifest" href="/manifest.json?v=3.2.0">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.1.0">
+  <link rel="stylesheet" href="/style.css?v=3.2.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,6 +29,9 @@
     <div class="mesh-orb orb-2"></div>
     <div class="mesh-orb orb-3"></div>
   </div>
+
+  <!-- Universal Modern App Toast System (Replaces browser blocking alert() popups) -->
+  <div class="synapse-toast-container" id="synapseToastContainer"></div>
 
   <!-- Alarm Floating Toast -->
   <div class="alarm-toast hidden" id="alarmToast">
@@ -318,7 +321,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--glass-inset); border-radius: 10px; border: 1px solid var(--glass-border);">
           <div>
             <strong style="font-size: 12.5px; display: block;">⚡ App Version & Updates</strong>
-            <span style="font-size: 11px; color: var(--text-muted);" id="pwaVersionLabel">Synapse OS v3.1.0 (Latest — Auto-Updated)</span>
+            <span style="font-size: 11px; color: var(--text-muted);" id="pwaVersionLabel">Synapse OS v3.2.0 (Latest — Auto-Updated)</span>
           </div>
           <button type="button" class="btn-subtle btn-sm" id="forcePwaUpdateBtn" style="font-size: 11px; padding: 6px 12px; white-space: nowrap;">
             🔄 Check Update
@@ -495,6 +498,33 @@
       <div class="views-viewport">
         <!-- 0. OFFLINE AI STUDY & DISCIPLINE COACH (DEFAULT ACTIVE VIEW) -->
         <section class="view-panel active" id="tab-chat">
+          <!-- Daily Mission Control HUD (Instant Live Progress Glance) -->
+          <div class="daily-mission-hud" id="dailyMissionHud">
+            <div class="hud-item" onclick="switchTab('tab-routine')" title="View Daily Flows & Discipline Streak">
+              <span class="hud-icon">🔥</span>
+              <div class="hud-info">
+                <span class="hud-val" id="hudStreak">5 Days</span>
+                <span class="hud-lbl">Streak</span>
+              </div>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-item" onclick="switchTab('tab-focus')" title="Open Strict Focus Clock & Syllabus Tracker">
+              <span class="hud-icon">⏱️</span>
+              <div class="hud-info">
+                <span class="hud-val" id="hudFocus">0m</span>
+                <span class="hud-lbl">Today's Focus</span>
+              </div>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-item" onclick="switchTab('tab-tasks')" title="Open Tasks Checklist">
+              <span class="hud-icon">✅</span>
+              <div class="hud-info">
+                <span class="hud-val" id="hudTasks">0 Done</span>
+                <span class="hud-lbl">Tasks Done</span>
+              </div>
+            </div>
+          </div>
+
           <div class="chat-flow-scroll" id="messagesContainer">
             <!-- ChatGPT-style Clean Minimalist Hero -->
             <div class="chat-welcome-simple" id="chatHero">
@@ -1117,14 +1147,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.1.0"></script>
+  <script src="app.js?v=3.2.0"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.1.0)
+    // PWA Auto-Updating Engine (v3.2.0)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.1.0';
+        const CURRENT_VERSION = 'synapse-os-v3.2.0';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1135,7 +1165,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.1.0').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.2.0').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 
