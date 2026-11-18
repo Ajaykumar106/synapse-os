@@ -2475,12 +2475,13 @@ Would you like me to create a dedicated **Task**, schedule a **Study Timer**, or
 // 11. ANDROID CONNECTION MODAL
 // ========================================================
 async function loadNetworkInfo() {
+  if (!phoneUrlInput) return;
   try {
     const res = await fetch('/api/network-info');
     const d = await res.json();
-    phoneUrlInput.value = d.mobileUrl;
+    if (phoneUrlInput) phoneUrlInput.value = d.mobileUrl;
   } catch {
-    phoneUrlInput.value = window.location.href;
+    if (phoneUrlInput) phoneUrlInput.value = window.location.href;
   }
 }
 
@@ -3708,7 +3709,7 @@ function initAiEngineModal() {
 
   openBtn?.addEventListener('click', openModal);
   sidebarBtn?.addEventListener('click', () => {
-    closeSidebarDrawer();
+    toggleSidebar(false);
     openModal();
   });
   closeBtn?.addEventListener('click', closeModal);
@@ -3741,6 +3742,32 @@ function initAiEngineModal() {
 
   // WebLLM in-browser download
   document.getElementById('downloadWebLlmBtn')?.addEventListener('click', initWebLlmDownload);
+
+  // Force PWA Update & Clear Stale Cache
+  document.getElementById('forcePwaUpdateBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('forcePwaUpdateBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Updating...';
+    }
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.unregister();
+        }
+      }
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 400);
+    } catch {
+      window.location.reload(true);
+    }
+  });
 }
 
 initAiEngineModal();
@@ -3820,13 +3847,13 @@ function sendPhoneNotification(title, body) {
       navigator.serviceWorker.ready.then(reg => {
         reg.showNotification(title, {
           body,
-          icon: '/icons/icon-192.png',
-          badge: '/icons/icon-192.png',
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
           vibrate: [200, 100, 200]
         });
       });
     } else {
-      new Notification(title, { body, icon: '/icons/icon-192.png' });
+      new Notification(title, { body, icon: '/icon-192.png' });
     }
   } catch (e) {}
 }

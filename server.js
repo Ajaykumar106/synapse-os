@@ -44,6 +44,15 @@ app.use(cors({
   }
 }));
 app.use(express.json({ limit: '2mb' }));
+
+// Never cache the service worker itself so PWAs auto-update on deploy
+app.get('/sw.js', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(path.join(__dirname, 'public', 'sw.js'));
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Explicit route for privacy policy (also served by static, but explicit is cleaner)

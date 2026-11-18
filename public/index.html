@@ -17,7 +17,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.2.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -336,6 +336,17 @@
         <!-- Vercel Deployment Note -->
         <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 10px; padding: 10px 12px; font-size: 11px; line-height: 1.5; color: var(--text-main);">
           💡 <strong>Host tip for Vercel:</strong> Add <code style="background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 4px;">GEMINI_API_KEY</code> or <code style="background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 4px;">GROQ_API_KEY</code> in your Vercel Project Settings &rarr; Environment Variables so all mobile users get instant AI without entering any keys!
+        </div>
+
+        <!-- PWA Auto-Update & Cache Reset -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--glass-inset); border-radius: 10px; border: 1px solid var(--glass-border);">
+          <div>
+            <strong style="font-size: 12.5px; display: block;">⚡ App Version & Updates</strong>
+            <span style="font-size: 11px; color: var(--text-muted);" id="pwaVersionLabel">Synapse OS v2.2.0 • Auto-Updating</span>
+          </div>
+          <button type="button" class="btn-subtle btn-sm" id="forcePwaUpdateBtn" style="font-size: 11px; padding: 6px 12px; white-space: nowrap;">
+            🔄 Check Update
+          </button>
         </div>
 
         <div class="form-btn-group" style="margin-top: 4px;">
@@ -1106,12 +1117,44 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.0"></script>
+  <script src="app.js?v=2.2.0"></script>
   <script>
-    // Register Service Worker for PWA installability
+    // PWA Auto-Updating Engine (v2.2.0)
+    // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.register('/sw.js?v=2.2.0').then((reg) => {
+          // Immediately check for updates
+          reg.update().catch(() => {});
+
+          reg.addEventListener('updatefound', () => {
+            const installing = reg.installing;
+            if (installing) {
+              installing.addEventListener('statechange', () => {
+                if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[PWA] New version ready, activating...');
+                  installing.postMessage({ type: 'SKIP_WAITING' });
+                }
+              });
+            }
+          });
+        }).catch((err) => console.warn('PWA SW notice:', err));
+
+        // Auto reload once controller upgrades to latest version
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+
+        // Background update check on returning to app
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            navigator.serviceWorker.getRegistration().then((reg) => reg?.update().catch(() => {}));
+          }
+        });
       });
     }
   </script>

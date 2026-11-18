@@ -62,7 +62,7 @@ async function runTests() {
     const res = await fetch(`${BASE}/sw.js`);
     assert(res.ok, `HTTP ${res.status}`);
     const text = await res.text();
-    assert(text.includes('synapse-os-v1'), 'sw.js does not contain synapse-os-v1 cache key');
+    assert(text.includes('synapse-os-v2'), 'sw.js does not contain synapse-os-v2 cache key');
   });
 
   await test('1.5 Privacy Policy accessible & clear of technical jargon', async () => {
