@@ -27,7 +27,7 @@ try {
   }
 } catch (e) {}
 
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '3.2.1';
 
 const app = express();
 const PORT = process.env.PORT || 5100;
@@ -1140,7 +1140,7 @@ Would you like me to create a dedicated **Task**, schedule a **Study Timer**, or
 // ========================================================
 // AI INTELLIGENCE ENGINES: CLOUD (GROQ / GEMINI) & LOCAL (OLLAMA)
 // ========================================================
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://127.0.0.1:11434';
 // Ollama executable path — override via OLLAMA_EXE env var on different machines
