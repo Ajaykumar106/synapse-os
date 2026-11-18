@@ -1778,12 +1778,22 @@ clearChatBtn?.addEventListener('click', () => {
   }
 });
 
-// Prompt Chips (works with all static and dynamic chips)
+// Prompt Chips (works with all static, dynamic and quick action chips)
 document.addEventListener('click', (e) => {
   const chip = e.target.closest('.prompt-chip-clean') || e.target.closest('.minimal-prompt-chip');
   if (chip && chip.dataset.prompt) {
     userInput.value = chip.dataset.prompt;
     chatForm.dispatchEvent(new Event('submit'));
+    return;
+  }
+  const quickBtn = e.target.closest('.quick-chip-btn');
+  if (quickBtn && quickBtn.dataset.fill) {
+    const fill = quickBtn.dataset.fill;
+    userInput.value = fill;
+    userInput.focus();
+    if (!fill.endsWith(': ')) {
+      chatForm.dispatchEvent(new Event('submit'));
+    }
   }
 });
 

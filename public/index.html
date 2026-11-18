@@ -478,6 +478,11 @@
           <button type="button" class="btn-pro-pill hidden" id="openProModalBtn" title="Upgrade Pro" style="display: none;">
             👑 Upgrade Pro
           </button>
+          <!-- New Chat / Reset Button -->
+          <button type="button" class="btn-subtle" id="clearChatBtn" title="New Chat (Reset conversation)" style="font-size: 11.5px; padding: 4px 9px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--glass-border); background: var(--glass-inset);">
+            <span>➕</span>
+            <span style="font-weight: 600;">New</span>
+          </button>
           <!-- Clean Minimalist Status Pill -->
           <button type="button" class="btn-ai-engine-pill" id="openAiEngineBtn" title="AI Coach Status & Settings">
             <span class="engine-indicator-dot" id="engineDot">⚡</span>
@@ -539,6 +544,22 @@
               <span class="file-badge-size" id="fileBadgeSize">(12 KB)</span>
               <span class="file-badge-status" id="fileBadgeStatus"></span>
               <button type="button" class="btn-remove-attachment" id="removeAttachmentBtn" title="Remove attachment">✕</button>
+            </div>
+
+            <!-- Sleek Horizontal Quick Action Pills (One-tap for Timer, To-Do List, Plan & Answers) -->
+            <div class="chat-quick-actions" style="display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+              <button type="button" class="quick-chip-btn" data-fill="start 25m focus timer" style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <span>⏱️</span> 25m Timer
+              </button>
+              <button type="button" class="quick-chip-btn" data-fill="Checklist me add karo: " style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <span>✅</span> Add Task
+              </button>
+              <button type="button" class="quick-chip-btn" data-fill="Kal ke exam ka 4-ghante ka strict study plan bana do" style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <span>📅</span> Study Routine
+              </button>
+              <button type="button" class="quick-chip-btn" data-fill="Solve step-by-step: " style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                <span>💡</span> Ask Question
+              </button>
             </div>
 
             <form id="chatForm" class="chat-input-pill glass-card">
