@@ -1700,14 +1700,6 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
     return;
   }
 
-  if (/^(?:hi+|hlo+|hlw|hello+|hey+|yo|wassup|namaste|kaise\s+ho|bhai)\b/i.test(lower)) {
-    const isHinglish = /(?:kaise|kya|bhai|yaar|namaste)/i.test(lower);
-    const reply = isHinglish
-      ? `Hey bhai! 😄 Kaise ho? Batao, aaj kya tackle karein—study plan, koi tough topic, ya focus session shuru karein?`
-      : `Hey there! 😄 Great to connect. How can I help you today—study plan, tackling a tough topic, or locking in focus?`;
-    sendEvent({ token: reply, done: true });
-    return;
-  }
 
   if (raw.includes('[UPLOADED STUDY MATERIAL') || raw.includes('[ATTACHED STUDY FILE') || raw.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS')) {
     sendEvent({
@@ -1751,8 +1743,8 @@ app.post('/api/chat-stream', async (req, res) => {
   // Extract keys from headers or request body or server env
   const headerGroqKey = req.headers['x-groq-key'];
   const headerGeminiKey = req.headers['x-gemini-key'];
-  const groqApiKey = (headerGroqKey || bodyGroqKey || GROQ_API_KEY || '').trim();
-  const geminiApiKey = (headerGeminiKey || bodyGeminiKey || GEMINI_API_KEY || '').trim();
+  const groqApiKey = (headerGroqKey || bodyGroqKey || process.env.GROQ_API_KEY || GROQ_API_KEY || '').trim();
+  const geminiApiKey = (headerGeminiKey || bodyGeminiKey || process.env.GEMINI_API_KEY || GEMINI_API_KEY || '').trim();
 
   // Set SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');

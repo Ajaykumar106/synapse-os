@@ -1,7 +1,7 @@
-// Synapse OS — Auto-Updating Service Worker v2.4.0
+// Synapse OS — Auto-Updating Service Worker v3.0.0
 // Ensures PWA auto-updates seamlessly when online & works 100% offline in Airplane Mode
 
-const CACHE_NAME = 'synapse-os-v2.4.0';
+const CACHE_NAME = 'synapse-os-v3.0.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -104,22 +104,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 4. Static Images, Icons, and Fonts: Cache-First with Network Fallback
+  // 4. Static Images, Icons, and Fonts: Network-First to guarantee fresh branding/icons, with offline cache fallback
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((networkRes) => {
-        if (networkRes && networkRes.status === 200 && networkRes.type === 'basic') {
+    fetch(req)
+      .then((networkRes) => {
+        if (networkRes && networkRes.status === 200) {
           const clone = networkRes.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
         }
         return networkRes;
-      }).catch(() => {
-        // Fallback for icons if requested
-        if (url.pathname.includes('icon')) {
-          return caches.match('/icon.svg');
-        }
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(req).then((cached) => cached || caches.match('/icon.svg'));
+      })
   );
 });

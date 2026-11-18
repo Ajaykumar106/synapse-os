@@ -1604,59 +1604,8 @@ function escapeHtml(str) {
 }
 
 function appendActionDock(wrap, originalQuery, answerText) {
-  const cleanQuery = (originalQuery || '').replace(/[?"'#]/g, '').trim();
-  const lowerQuery = cleanQuery.toLowerCase();
-  const lowerAnswer = (answerText || '').toLowerCase();
-  const combined = lowerQuery + ' ' + lowerAnswer;
-
-  // Detect query context
-  const isUrgeRelated = /(?:social\s+media|instagram|reels|shorts|phone|distract\w*|procrastinat\w*|scroll|doomscroll|urge|temptation|dopamine|lazy|unmotivat\w*)/i.test(combined);
-  const isMathOrCalc = /^(?:calculate|solve|what\s+is\s+)?(\(?\s*\d+\s*[-+*/.]\s*[\d-+*/.()\s]+)$/i.test(cleanQuery) || /🔢 \*\*Calculation Result/i.test(answerText || '');
-  const isGreeting = /^(?:hi+|hello+|hey+|yo|wassup|namaste|kaise\s+ho|bhai)\b/i.test(lowerQuery);
-
-  // Extract a sensible topic name from query
-  let taskTitle = cleanQuery
-    .replace(/^(tell me about|what is|explain|solve|how to|kya hai|kaise karein|prepare|study|revise)\s+/i, '')
-    .trim();
-  if (taskTitle.length < 3 || taskTitle.length > 35) {
-    taskTitle = 'Study Session';
-  } else {
-    taskTitle = taskTitle.charAt(0).toUpperCase() + taskTitle.slice(1) + ' Revision';
-  }
-
-  // 1. Context-Aware Superpower Action Strip
-  let pillHtml = '';
-  if (isUrgeRelated) {
-    // Only show urge defense when user is dealing with distraction/social media
-    pillHtml = `
-      <button type="button" class="btn-os-action" onclick="triggerPillUrge(this)">
-        <span>🛡️</span> Resisted Urge (+1)
-      </button>
-      <button type="button" class="btn-os-action" onclick="triggerPillTimer(15)">
-        <span>⏱️</span> 15m Focus Reset Lock
-      </button>
-    `;
-  } else if (!isMathOrCalc && !isGreeting) {
-    // Show focused study timer and task checklist for academic topics (like mitochondria, physics, etc.)
-    const cleanSubject = taskTitle.replace(/ Revision$/i, '');
-    pillHtml = `
-      <button type="button" class="btn-os-action" onclick="triggerPillTimer(25)">
-        <span>⏱️</span> 25m Focus on ${escapeHtml(cleanSubject.slice(0, 18))}
-      </button>
-      <button type="button" class="btn-os-action" onclick="triggerPillTask(this, '${escapeHtml(taskTitle)}')">
-        <span>✅</span> Add to Tasks
-      </button>
-    `;
-  }
-
-  if (pillHtml) {
-    const actionStrip = document.createElement('div');
-    actionStrip.className = 'os-quick-actions-row';
-    actionStrip.innerHTML = pillHtml;
-    wrap.appendChild(actionStrip);
-  }
-
-  // 2. Meta AI Style Feedback & Utility Icons
+  // Meta AI / ChatGPT Style Utility Dock ONLY (Copy, Retry, Feedback, Voice, Bookmark)
+  // No intrusive or unsolicited action buttons under messages
   const dock = document.createElement('div');
   dock.className = 'msg-action-dock meta-style-dock';
 
@@ -3891,22 +3840,29 @@ async function updateEngineStatusBadge() {
     }
   } catch (e) {}
 
-  let title = '100% Offline AI';
-  let detail = 'Zero-Distraction Offline Study Coach active with zero internet.';
-  let dot = '🟢';
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  let title = isOnline ? '⚡ Groq Cloud AI' : '📱 Offline AI';
+  let detail = isOnline ? 'Fast cloud intelligence via Groq Qwen 27B' : 'Offline on-device mode active';
+  let dot = isOnline ? '🟢' : '🟠';
 
-  if (userGroq || serverEngineStatus.hasGroq) {
-    title = 'Cloud AI Coach';
-    detail = '⚡ Ultra-fast cloud intelligence active. Zero model downloads needed!';
-    dot = '🟢';
-  } else if (userGemini || serverEngineStatus.hasGemini) {
-    title = 'Cloud AI Coach';
-    detail = '🧠 Google Gemini cloud intelligence active. Zero model downloads needed!';
-    dot = '🟢';
-  } else if (serverEngineStatus.isOllamaRunning) {
-    title = '100% Offline AI';
-    detail = '💻 100% Offline on-device study coach running locally with zero internet.';
-    dot = '🟢';
+  if (isOnline) {
+    if (userGroq || serverEngineStatus.hasGroq) {
+      title = '⚡ Groq AI (Active)';
+      detail = 'Ultra-fast Meta / Qwen 27B cloud intelligence active.';
+      dot = '🟢';
+    } else if (userGemini || serverEngineStatus.hasGemini) {
+      title = '🧠 Gemini AI (Active)';
+      detail = 'Google Gemini cloud intelligence active.';
+      dot = '🟢';
+    } else {
+      title = '⚡ Cloud AI';
+      detail = 'Cloud assistant active.';
+      dot = '🟢';
+    }
+  } else {
+    title = '📱 Offline AI';
+    detail = 'Offline study coach active with zero internet.';
+    dot = '🟠';
   }
 
   if (engineDot) engineDot.textContent = dot;
@@ -3915,6 +3871,10 @@ async function updateEngineStatusBadge() {
   if (engineActiveName) engineActiveName.textContent = title;
   if (engineActiveDetail) engineActiveDetail.textContent = detail;
 }
+
+// Live network status listener
+window.addEventListener('online', updateEngineStatusBadge);
+window.addEventListener('offline', updateEngineStatusBadge);
 
 function initAiEngineModal() {
   const openBtn = document.getElementById('openAiEngineBtn');

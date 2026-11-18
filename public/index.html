@@ -10,14 +10,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Synapse">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png?v=3.0.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.0.0">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.0.0">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.0.0">
+  <link rel="manifest" href="/manifest.json?v=3.0.0">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="style.css?v=2.3.0">
+  <link rel="stylesheet" href="/style.css?v=3.0.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -480,8 +480,8 @@
           </button>
           <!-- Clean Minimalist Status Pill -->
           <button type="button" class="btn-ai-engine-pill" id="openAiEngineBtn" title="AI Coach Status & Settings">
-            <span class="engine-indicator-dot" id="engineDot">🟢</span>
-            <span id="engineBadgeText">100% Offline AI</span>
+            <span class="engine-indicator-dot" id="engineDot">⚡</span>
+            <span id="engineBadgeText">AI Coach</span>
           </button>
         </div>
       </header>
@@ -1098,11 +1098,23 @@
 
   <script src="app.js?v=2.3.0"></script>
   <script>
-    // PWA Auto-Updating Engine (v2.3.0)
+    // PWA Auto-Updating Engine (v3.0.0)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=2.3.0').then((reg) => {
+      window.addEventListener('load', async () => {
+        // Purge legacy caches on client if app version upgraded
+        const CURRENT_VERSION = 'synapse-os-v3.0.0';
+        if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            for (const key of keys) {
+              if (key !== CURRENT_VERSION) await caches.delete(key);
+            }
+          }
+          localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
+        }
+
+        navigator.serviceWorker.register('/sw.js?v=3.0.0').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 
