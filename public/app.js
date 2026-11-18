@@ -2317,11 +2317,11 @@ chatForm.addEventListener('submit', async (e) => {
       isGenerating = false;
       sendBtn.disabled = false;
     }
-  }, 14000);
+  }, 8000);
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const connectTimeoutId = setTimeout(() => controller.abort(), 8000);
 
     const res = await fetch('/api/chat-stream', {
       method: 'POST',
@@ -2336,112 +2336,126 @@ chatForm.addEventListener('submit', async (e) => {
       }),
       signal: controller.signal
     });
-    clearTimeout(timeoutId);
+    clearTimeout(connectTimeoutId);
 
     if (!res.ok) throw new Error('Offline or server unreachable');
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
+    let sseBuffer = '';
+    let streamFinished = false;
 
-    while (true) {
+    while (!streamFinished) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n\n');
+      sseBuffer += decoder.decode(value, { stream: true });
+      const events = sseBuffer.split('\n\n');
+      sseBuffer = events.pop() || '';
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const data = JSON.parse(line.substring(6));
-            if (data.token) {
-              fullReply += data.token;
-              bubble.innerHTML = formatMarkdown(fullReply);
-              messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-            if (data.googleQuery) googleQuery = data.googleQuery;
-            if (data.isReminder) playAlertChime();
-            if (data.refreshReminders) fetchReminders();
-            if (data.refreshTasks) {
-              fetchTasks();
-              updateDailyMissionHud();
-            }
-            if (data.refreshNotes) fetchNotes();
-            if (data.refreshRoutine) fetchRoutines();
-            if (data.triggerUrgeDefeated) handleDefeatUrge();
-            if (data.triggerFocus) {
-              setTimerDuration(data.triggerFocus.duration);
-              if (!isPomodoroRunning && pomodoroStartBtn) {
-                pomodoroStartBtn.click();
-              }
-              showToast(`⏱️ ${data.triggerFocus.duration}m Focus Timer started! Anti-cheat lock active.`, 'info', '⏱️');
-            }
-            if (data.done) {
-              chatSessionHistory.push({ role: 'user', content: promptText });
-              chatSessionHistory.push({ role: 'assistant', content: fullReply });
-              appendActionDock(wrap, googleQuery, fullReply);
+      for (const event of events) {
+        const trimmed = event.trim();
+        if (!trimmed) continue;
 
-              // Generative UI: Live Interactive Timer Card
-              if (data.triggerFocus) {
-                const timerEmbed = document.createElement('div');
-                timerEmbed.className = 'chat-embedded-card timer-card-embed';
-                timerEmbed.innerHTML = `
-                  <div class="embed-header">
-                    <span class="pulsing-clock">⏱️</span> <strong>${data.triggerFocus.duration}m Focus Timer Active & Running!</strong>
-                  </div>
-                  <p class="embed-desc">Anti-distraction lock active. Keep studying here or view the big clock.</p>
-                  <div class="embed-action-row">
-                    <button type="button" class="btn-embed-action" onclick="switchTab('tab-focus')">Open Full Focus Clock ➔</button>
-                  </div>
-                `;
-                bubble.appendChild(timerEmbed);
-              }
-
-              // Generative UI: Interactive Task Confirmation Card
-              if (data.refreshTasks) {
-                const taskEmbed = document.createElement('div');
-                taskEmbed.className = 'chat-embedded-card task-card-embed';
-                taskEmbed.innerHTML = `
-                  <div class="embed-header">
-                    <span>✅</span> <strong>Checklist Updated!</strong>
-                  </div>
-                  <p class="embed-desc">Task is saved in your daily checklist.</p>
-                  <div class="embed-action-row">
-                    <button type="button" class="btn-embed-action" onclick="switchTab('tab-tasks')">View Checklist ➔</button>
-                  </div>
-                `;
-                bubble.appendChild(taskEmbed);
-                showToast('✅ Study task added to your checklist!', 'success', '✅');
-              }
-
-              // Generative UI: 1-Click Sync to Daily Flows if routine blocks detected
-              const routineMatches = fullReply.match(/(?:•|\*|-|\d+\.)\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)\s*[:–-]?\s*([^\n\r]+)/gi);
-              if (routineMatches && routineMatches.length >= 2) {
-                const routineEmbed = document.createElement('div');
-                routineEmbed.className = 'chat-embedded-card routine-card-embed';
-                routineEmbed.innerHTML = `
-                  <div class="embed-header">
-                    <span>⚡</span> <strong>Interactive Study Routine Detected (${routineMatches.length} Blocks)</strong>
-                  </div>
-                  <p class="embed-desc">Apply this entire schedule to your daily routine in one click!</p>
-                  <div class="embed-action-row">
-                    <button type="button" class="btn-embed-action btn-sync-routine-now">⚡ 1-Click Sync to Daily Flows</button>
-                  </div>
-                `;
-                routineEmbed.querySelector('.btn-sync-routine-now')?.addEventListener('click', () => {
-                  syncRoutineBlocksFromText(fullReply);
-                });
-                bubble.appendChild(routineEmbed);
-              }
-
-              setTimeout(() => {
+        for (const line of trimmed.split('\n')) {
+          const cleanLine = line.trim();
+          if (cleanLine.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(cleanLine.substring(6));
+              if (data.token) {
+                fullReply += data.token;
+                bubble.innerHTML = formatMarkdown(fullReply);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-              }, 50);
-            }
-          } catch {}
+              }
+              if (data.googleQuery) googleQuery = data.googleQuery;
+              if (data.isReminder) playAlertChime();
+              if (data.refreshReminders) fetchReminders();
+              if (data.refreshTasks) {
+                fetchTasks();
+                updateDailyMissionHud();
+              }
+              if (data.refreshNotes) fetchNotes();
+              if (data.refreshRoutine) fetchRoutines();
+              if (data.triggerUrgeDefeated) handleDefeatUrge();
+              if (data.triggerFocus) {
+                setTimerDuration(data.triggerFocus.duration);
+                if (!isPomodoroRunning && pomodoroStartBtn) {
+                  pomodoroStartBtn.click();
+                }
+                showToast(`⏱️ ${data.triggerFocus.duration}m Focus Timer started! Anti-cheat lock active.`, 'info', '⏱️');
+              }
+              if (data.done) {
+                streamFinished = true;
+                chatSessionHistory.push({ role: 'user', content: promptText });
+                chatSessionHistory.push({ role: 'assistant', content: fullReply });
+                try { appendActionDock(wrap, googleQuery, fullReply); } catch (e) {}
+
+                // Generative UI: Live Interactive Timer Card
+                if (data.triggerFocus) {
+                  const timerEmbed = document.createElement('div');
+                  timerEmbed.className = 'chat-embedded-card timer-card-embed';
+                  timerEmbed.innerHTML = `
+                    <div class="embed-header">
+                      <span class="pulsing-clock">⏱️</span> <strong>${data.triggerFocus.duration}m Focus Timer Active & Running!</strong>
+                    </div>
+                    <p class="embed-desc">Anti-distraction lock active. Keep studying here or view the big clock.</p>
+                    <div class="embed-action-row">
+                      <button type="button" class="btn-embed-action" onclick="switchTab('tab-focus')">Open Full Focus Clock ➔</button>
+                    </div>
+                  `;
+                  bubble.appendChild(timerEmbed);
+                }
+
+                // Generative UI: Interactive Task Confirmation Card
+                if (data.refreshTasks) {
+                  const taskEmbed = document.createElement('div');
+                  taskEmbed.className = 'chat-embedded-card task-card-embed';
+                  taskEmbed.innerHTML = `
+                    <div class="embed-header">
+                      <span>✅</span> <strong>Checklist Updated!</strong>
+                    </div>
+                    <p class="embed-desc">Task is saved in your daily checklist.</p>
+                    <div class="embed-action-row">
+                      <button type="button" class="btn-embed-action" onclick="switchTab('tab-tasks')">View Checklist ➔</button>
+                    </div>
+                  `;
+                  bubble.appendChild(taskEmbed);
+                  showToast('✅ Study task added to your checklist!', 'success', '✅');
+                }
+
+                // Generative UI: 1-Click Sync to Daily Flows if routine blocks detected
+                const routineMatches = fullReply.match(/(?:•|\*|-|\d+\.)\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)\s*[:–-]?\s*([^\n\r]+)/gi);
+                if (routineMatches && routineMatches.length >= 2) {
+                  const routineEmbed = document.createElement('div');
+                  routineEmbed.className = 'chat-embedded-card routine-card-embed';
+                  routineEmbed.innerHTML = `
+                    <div class="embed-header">
+                      <span>⚡</span> <strong>Interactive Study Routine Detected (${routineMatches.length} Blocks)</strong>
+                    </div>
+                    <p class="embed-desc">Apply this entire schedule to your daily routine in one click!</p>
+                    <div class="embed-action-row">
+                      <button type="button" class="btn-embed-action btn-sync-routine-now">⚡ 1-Click Sync to Daily Flows</button>
+                    </div>
+                  `;
+                  routineEmbed.querySelector('.btn-sync-routine-now')?.addEventListener('click', () => {
+                    syncRoutineBlocksFromText(fullReply);
+                  });
+                  bubble.appendChild(routineEmbed);
+                }
+
+                setTimeout(() => {
+                  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 50);
+                break;
+              }
+            } catch (e) {}
+          }
         }
+        if (streamFinished) break;
       }
     }
+
+    try { reader.cancel(); } catch (e) {}
 
     if (!fullReply.trim()) {
       throw new Error('Empty stream response from server');
@@ -2450,7 +2464,7 @@ chatForm.addEventListener('submit', async (e) => {
     if (!chatSessionHistory.some(h => h.role === 'assistant' && h.content === fullReply)) {
       chatSessionHistory.push({ role: 'user', content: promptText });
       chatSessionHistory.push({ role: 'assistant', content: fullReply });
-      appendActionDock(wrap, googleQuery, fullReply);
+      try { appendActionDock(wrap, googleQuery, fullReply); } catch (e) {}
     }
   } catch (err) {
     // 100% Client-Side Offline AI Brain (runs directly on Android in Airplane mode / no server)
@@ -2543,10 +2557,9 @@ function getClientOfflineCoachReply(text) {
     const duration = parseInt(timerMatch[1] || timerMatch[2], 10) || 25;
     setTimeout(() => {
       setTimerDuration(duration);
-      switchTab('tab-focus');
       if (!isPomodoroRunning && pomodoroStartBtn) pomodoroStartBtn.click();
-    }, 600);
-    return `⏱️ **Strict Study Session Initiated!**\n\nStarting a **${duration}-minute** deep study session for you right now.\n\n• **Mode:** Strict Anti-Distraction\n• **Goal:** 100% absorption, zero phone scrolling.\n\n*Switching to your Focus Timer now...* 🔒`;
+    }, 400);
+    return `⏱️ **Strict Study Session Initiated!**\n\nStarting a **${duration}-minute** deep focus session for you right now.\n\n• **Mode:** Strict Anti-Distraction\n• **Goal:** 100% absorption, zero phone scrolling.\n\nTimer is running in the background. Keep studying right here or ask any question! 🔒`;
   }
 
   // Add Task Checklist Item

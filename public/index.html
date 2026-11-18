@@ -10,14 +10,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Synapse">
-  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.2">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.2">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.2">
-  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.2">
-  <link rel="manifest" href="/manifest.json?v=3.2.2">
+  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.3">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.3">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.3">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.3">
+  <link rel="manifest" href="/manifest.json?v=3.2.3">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.2.2">
+  <link rel="stylesheet" href="/style.css?v=3.2.3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -576,22 +576,6 @@
               <button type="button" class="btn-remove-attachment" id="removeAttachmentBtn" title="Remove attachment">✕</button>
             </div>
 
-            <!-- Sleek Horizontal Quick Action Pills (One-tap for Timer, To-Do List, Plan & Answers) -->
-            <div class="chat-quick-actions" style="display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
-              <button type="button" class="quick-chip-btn" data-fill="start 25m focus timer" style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                <span>⏱️</span> 25m Timer
-              </button>
-              <button type="button" class="quick-chip-btn" data-fill="Checklist me add karo: " style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                <span>✅</span> Add Task
-              </button>
-              <button type="button" class="quick-chip-btn" data-fill="Kal ke exam ka 4-ghante ka strict study plan bana do" style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                <span>📅</span> Study Routine
-              </button>
-              <button type="button" class="quick-chip-btn" data-fill="Solve step-by-step: " style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border); white-space: nowrap; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                <span>💡</span> Ask Question
-              </button>
-            </div>
-
             <form id="chatForm" class="chat-input-pill glass-card">
               <!-- Upload Attachment Button -->
               <label for="chatFileInput" class="btn-attach-circle" title="Upload Question Photo, Notes PDF, or Syllabus for AI Analysis">
@@ -1147,14 +1131,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.2.2"></script>
+  <script src="app.js?v=3.2.3"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.2.2)
+    // PWA Auto-Updating Engine (v3.2.3)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.2.2';
+        const CURRENT_VERSION = 'synapse-os-v3.2.3';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1165,7 +1149,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.2.2').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.2.3').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 
