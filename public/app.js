@@ -3688,20 +3688,9 @@ function initAiEngineModal() {
   const modal = document.getElementById('aiEngineModal');
   const closeBtn = document.getElementById('closeAiEngineModal');
   const cancelBtn = document.getElementById('cancelAiEngineModalBtn');
-  const saveBtn = document.getElementById('saveAiEngineBtn');
-
-  const geminiInput = document.getElementById('geminiApiKeyInput');
-  const groqInput = document.getElementById('groqApiKeyInput');
-  const toggleGeminiVis = document.getElementById('toggleGeminiKeyVis');
-  const toggleGroqVis = document.getElementById('toggleGroqKeyVis');
-
-  if (geminiInput) geminiInput.value = localStorage.getItem('synapse_gemini_key') || '';
-  if (groqInput) groqInput.value = localStorage.getItem('synapse_groq_key') || '';
 
   const openModal = () => {
     updateEngineStatusBadge();
-    if (geminiInput) geminiInput.value = localStorage.getItem('synapse_gemini_key') || '';
-    if (groqInput) groqInput.value = localStorage.getItem('synapse_groq_key') || '';
     modal?.classList.remove('hidden');
   };
 
@@ -3714,28 +3703,6 @@ function initAiEngineModal() {
   });
   closeBtn?.addEventListener('click', closeModal);
   cancelBtn?.addEventListener('click', closeModal);
-
-  toggleGeminiVis?.addEventListener('click', () => {
-    if (geminiInput) geminiInput.type = geminiInput.type === 'password' ? 'text' : 'password';
-  });
-  toggleGroqVis?.addEventListener('click', () => {
-    if (groqInput) groqInput.type = groqInput.type === 'password' ? 'text' : 'password';
-  });
-
-  saveBtn?.addEventListener('click', () => {
-    const gemVal = (geminiInput?.value || '').trim();
-    const groqVal = (groqInput?.value || '').trim();
-
-    if (gemVal) localStorage.setItem('synapse_gemini_key', gemVal);
-    else localStorage.removeItem('synapse_gemini_key');
-
-    if (groqVal) localStorage.setItem('synapse_groq_key', groqVal);
-    else localStorage.removeItem('synapse_groq_key');
-
-    updateEngineStatusBadge();
-    closeModal();
-    alert('✅ AI Engine settings saved! Your app will now use this cloud engine for instant Meta AI/Gemini responses.');
-  });
 
   updateEngineStatusBadge();
   checkWebGpuSupport();
@@ -3878,25 +3845,43 @@ function releaseWakeLock() {
   } catch (e) {}
 }
 
-let distractionCount = 0;
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && isPomodoroRunning) {
-    distractionCount++;
+// Strict Anti-Distraction & Split-Screen Defense: Freezes timer immediately on focus loss
+function handleFocusLoss() {
+  if (isPomodoroRunning && strictModeToggle?.checked) {
+    // 1. Immediately pause timer countdown to prevent cheating
+    clearInterval(pomodoroInterval);
+    isPomodoroRunning = false;
+    releaseWakeLock();
+    if (pomodoroStartBtn) pomodoroStartBtn.textContent = '▶ Resume Focus';
+
+    // 2. Sound warning alert tone
     playAlertChime();
     sendPhoneNotification(
-      '⚠️ Strict Focus Lock Broken!',
-      'Stay off social media! Your study session is running. Don\'t break your streak.'
+      '🚨 Study Timer Frozen!',
+      'You left the study session. The timer has been paused to protect your discipline.'
     );
-  } else if (!document.hidden && isPomodoroRunning && distractionCount > 0) {
+
+    // 3. Show strict alert modal
     document.getElementById('distractionAlertModal')?.classList.remove('hidden');
   }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    handleFocusLoss();
+  }
+});
+
+window.addEventListener('blur', () => {
+  handleFocusLoss();
 });
 
 document.getElementById('returnToFocusBtn')?.addEventListener('click', () => {
   document.getElementById('distractionAlertModal')?.classList.add('hidden');
-  distractionCount = 0;
-  handleDefeatUrge();
-  launchConfettiBurst();
+  // Safely resume timer from paused state (No false streak awards or confetti)
+  if (!isPomodoroRunning && pomodoroStartBtn) {
+    pomodoroStartBtn.click();
+  }
 });
 
 // ========================================================
@@ -3956,11 +3941,11 @@ async function initWebLlmDownload() {
   const progressPercent = document.getElementById('webLlmProgressPercent');
 
   if (!('gpu' in navigator)) {
-    alert('⚠️ WebGPU is not supported on this browser version. Your app will automatically use the built-in fast client study engine when offline!');
+    alert('💡 WebGPU is not enabled on this mobile browser. Your app automatically uses the built-in 0MB Offline Study Brain in Airplane Mode!');
     return;
   }
 
-  const modelId = modelSelect?.value || 'Qwen2-0.5B-Instruct-q4f16_1';
+  const modelId = modelSelect?.value || 'SmolLM2-360M-Instruct-q4f16_1-MLC';
   isWebLlmLoading = true;
   downloadBtn.disabled = true;
   downloadBtn.textContent = '⏳ Loading...';
@@ -3983,13 +3968,15 @@ async function initWebLlmDownload() {
     downloadBtn.style.background = '#10b981';
     if (progressText) progressText.textContent = 'Brain downloaded! You can now chat in 100% Airplane Mode.';
     launchConfettiBurst();
-    alert('🎉 Success! Offline Phone Brain is downloaded and ready. You can now turn on Airplane Mode and chat with zero internet!');
+    alert('🎉 Success! Offline Neural Brain is downloaded and ready. You can now turn on Airplane Mode and chat with zero internet!');
     updateEngineStatusBadge();
   } catch (err) {
-    console.error('WebLLM init error:', err);
+    console.warn('WebLLM init notice:', err);
     downloadBtn.disabled = false;
-    downloadBtn.textContent = '❌ Retry Download';
-    if (progressText) progressText.textContent = 'Download notice: ' + err.message;
+    downloadBtn.textContent = '📥 Download Brain';
+    if (progressText) {
+      progressText.textContent = 'Built-in 0MB Offline Brain is active! (Neural weight optional)';
+    }
   } finally {
     isWebLlmLoading = false;
   }

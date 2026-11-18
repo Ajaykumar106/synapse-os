@@ -1850,10 +1850,16 @@ button {
 .modal-card {
   max-width: 440px;
   width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  border-radius: 20px;
+  position: relative;
 }
 
 .modal-header {
@@ -2653,6 +2659,10 @@ button {
 
 .pro-modal-card {
   max-width: 500px;
+  max-height: 88vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .pro-badge-head {
@@ -2774,6 +2784,14 @@ button {
   flex-direction: column;
   gap: 8px;
   align-items: center;
+  position: sticky;
+  bottom: -24px;
+  margin: 16px -24px -24px -24px;
+  padding: 14px 24px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 .btn-pro-activate {

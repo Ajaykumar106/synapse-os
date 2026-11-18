@@ -17,7 +17,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="style.css?v=2.2.0">
+  <link rel="stylesheet" href="style.css?v=2.3.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -229,19 +229,19 @@
 
   <!-- AI Engine Architecture & Provider Settings Modal -->
   <div class="modal-backdrop hidden" id="aiEngineModal">
-    <div class="modal-card glass-card" style="max-width: 520px;">
+    <div class="modal-card glass-card" style="max-width: 500px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 20px;">⚡</span>
           <div>
             <h3 style="margin: 0; font-size: 16px;">AI Brain Engine</h3>
-            <span style="font-size: 11px; color: var(--text-muted);">Cloud Ultra-Fast (Mobile) or 100% Offline (PC)</span>
+            <span style="font-size: 11px; color: var(--text-muted);">Cloud Ultra-Fast (Online) & 100% Offline (Phone/PC)</span>
           </div>
         </div>
         <button class="modal-close-btn" id="closeAiEngineModal" title="Close">✕</button>
       </div>
 
-      <div class="ai-engine-body" style="padding: 16px 0; display: flex; flex-direction: column; gap: 16px;">
+      <div class="ai-engine-body" style="padding: 14px 0; display: flex; flex-direction: column; gap: 14px;">
         <!-- Engine Status Banner -->
         <div class="engine-status-box" id="engineStatusBox" style="background: var(--glass-inset); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.5;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
@@ -251,62 +251,53 @@
           <span id="engineActiveDetail" style="color: var(--text-muted); font-size: 11.5px;">Connecting to intelligent streaming pipeline...</span>
         </div>
 
-        <!-- Option 1: Cloud AI (Recommended for Mobile / Vercel) -->
-        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <!-- Section 1: Cloud AI (Online Ultra-Fast) -->
+        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; background: rgba(16, 185, 129, 0.04);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
-              🚀 Cloud AI (Zero-Download for Mobile)
+              🚀 Cloud Neural AI (Online)
             </strong>
-            <span style="font-size: 10px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 12px;">Recommended</span>
+            <span style="font-size: 10px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 12px;">Active & Auto-Connected</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.5;">
-            Zero model downloads required on your phone! Runs at 300+ tokens/sec like WhatsApp Meta AI.
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+            Runs at <strong>300+ tokens/sec</strong> powered by Meta AI Llama / Qwen. No configuration or API keys needed — works automatically out-of-the-box!
           </p>
-
-          <label style="font-size: 11.5px; font-weight: 600; display: block; margin-bottom: 4px;">
-            Google Gemini API Key (100% Free):
-          </label>
-          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-            <input type="password" id="geminiApiKeyInput" class="glass-input" placeholder="AIzaSy... (saved on device)" style="flex: 1; font-size: 12px;">
-            <button type="button" class="btn-subtle btn-sm" id="toggleGeminiKeyVis">👁️</button>
-          </div>
-          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #3b82f6; text-decoration: none; display: inline-block; margin-bottom: 12px;">
-            👉 Get free Google Gemini API key (takes 10 seconds)
-          </a>
-
-          <label style="font-size: 11.5px; font-weight: 600; display: block; margin-bottom: 4px;">
-            Groq API Key (Meta Llama 3.3 70B - Free & Blazing Fast):
-          </label>
-          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-            <input type="password" id="groqApiKeyInput" class="glass-input" placeholder="gsk_... (saved on device)" style="flex: 1; font-size: 12px;">
-            <button type="button" class="btn-subtle btn-sm" id="toggleGroqKeyVis">👁️</button>
-          </div>
-          <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #3b82f6; text-decoration: none; display: inline-block;">
-            👉 Get free Groq Meta Llama key (takes 10 seconds)
-          </a>
         </div>
 
-        <!-- Option 2: In-Browser Phone AI (100% Offline via WebGPU) -->
+        <!-- Section 2: Built-in Fast Offline Study Engine (0 MB Download) -->
         <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; background: rgba(59, 130, 246, 0.04);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
-              📱 In-Browser Phone AI (100% Offline via WebGPU)
+              📱 Built-in Offline Brain (0 MB Download)
+            </strong>
+            <span style="font-size: 10px; font-weight: 700; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 8px; border-radius: 12px;">100% Active</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+            Turn on <strong>Airplane Mode</strong> anytime. Synapse instantly responds with structured study breakdowns, focus timers, task automation, and formula explanations with <strong>zero internet and zero download</strong>!
+          </p>
+        </div>
+
+        <!-- Section 3: Optional On-Device Neural Download (WebGPU) -->
+        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+              🧠 Advanced WebGPU Neural Brain (Optional)
             </strong>
             <span id="webgpuSupportBadge" style="font-size: 10px; font-weight: 700; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 8px; border-radius: 12px;">Checking WebGPU...</span>
           </div>
           <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
-            Download an on-device brain once. After downloading, you can chat in <strong>Airplane Mode with zero internet, zero servers, and zero Ollama</strong>!
+            Want deep generative text in Airplane Mode? Download compact neural weights directly to your browser's WebGPU memory.
           </p>
 
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <select id="webLlmModelSelect" class="glass-select" style="flex: 1; min-width: 200px; font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);">
-                <option value="SmolLM2-360M-Instruct-q4f16_1">⚡ SmolLM2 360M (~220 MB - Ultra Lightweight)</option>
-                <option value="Qwen2-0.5B-Instruct-q4f16_1" selected>🧠 Qwen2 0.5B (~350 MB - Fast STEM & Bilingual)</option>
-                <option value="Llama-3.2-1B-Instruct-q4f16_1">🚀 Llama 3.2 1B (~850 MB - Highest Quality)</option>
+              <select id="webLlmModelSelect" class="glass-select" style="flex: 1; min-width: 190px; font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);">
+                <option value="SmolLM2-360M-Instruct-q4f16_1-MLC" selected>⚡ SmolLM2 360M (~220 MB - Ultra Fast)</option>
+                <option value="Qwen2-0.5B-Instruct-q4f16_1-MLC">🧠 Qwen2 0.5B (~350 MB - Fast STEM)</option>
+                <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">🚀 Llama 3.2 1B (~850 MB - High Quality)</option>
               </select>
               <button type="button" class="btn-primary-sm" id="downloadWebLlmBtn" style="white-space: nowrap; padding: 7px 14px; border-radius: 8px;">
-                📥 Download to Phone
+                📥 Download Brain
               </button>
             </div>
 
@@ -323,21 +314,6 @@
           </div>
         </div>
 
-        <!-- Option 3: Local On-Device AI -->
-        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px;">
-          <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-            💻 Local On-Device AI (For PC / Laptop)
-          </strong>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">
-            Uses Ollama (<code style="font-size: 11px;">gemma2:2b</code>) running locally on your computer with 100% zero internet connection.
-          </p>
-        </div>
-
-        <!-- Vercel Deployment Note -->
-        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 10px; padding: 10px 12px; font-size: 11px; line-height: 1.5; color: var(--text-main);">
-          💡 <strong>Host tip for Vercel:</strong> Add <code style="background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 4px;">GEMINI_API_KEY</code> or <code style="background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 4px;">GROQ_API_KEY</code> in your Vercel Project Settings &rarr; Environment Variables so all mobile users get instant AI without entering any keys!
-        </div>
-
         <!-- PWA Auto-Update & Cache Reset -->
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--glass-inset); border-radius: 10px; border: 1px solid var(--glass-border);">
           <div>
@@ -350,27 +326,26 @@
         </div>
 
         <div class="form-btn-group" style="margin-top: 4px;">
-          <button type="button" class="btn-subtle" id="cancelAiEngineModalBtn">Close</button>
-          <button type="button" class="btn-primary" id="saveAiEngineBtn">Save Settings</button>
+          <button type="button" class="btn-primary" id="cancelAiEngineModalBtn" style="width: 100%;">Done ✓</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Strict Anti-Distraction Alert Modal (Fired when user leaves tab during focus timer) -->
+  <!-- Strict Anti-Distraction Alert Modal (Fired when user leaves tab/window during focus timer) -->
   <div class="modal-backdrop hidden" id="distractionAlertModal" style="z-index: 99999;">
     <div class="modal-card glass-card" style="max-width: 440px; text-align: center; border: 2px solid #ef4444; box-shadow: 0 10px 40px rgba(239, 68, 68, 0.35);">
       <div style="font-size: 48px; margin-bottom: 10px;">🚨</div>
-      <h3 style="color: #ef4444; margin: 0 0 8px 0; font-size: 18px;">Stay Off Social Media!</h3>
+      <h3 style="color: #ef4444; margin: 0 0 8px 0; font-size: 18px;">Focus Broken — Timer Paused!</h3>
       <p style="font-size: 13.5px; line-height: 1.6; color: var(--text-main); margin: 0 0 16px 0;">
-        You navigated away from your study room while your <strong>Strict Focus Lock</strong> was running. Don't trade your future success for cheap dopamine!
+        You navigated away from your study room or opened split-screen. Your <strong>Study Timer has been frozen</strong> to prevent fake streak progress. Multitasking or scrolling social media will not earn study hours.
       </p>
       <div style="background: rgba(239, 68, 68, 0.08); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--text-muted);">
         🔥 <em>"Discipline is choosing between what you want NOW and what you want MOST."</em>
       </div>
       <div style="display: flex; gap: 8px; justify-content: center;">
-        <button type="button" class="btn-primary" id="returnToFocusBtn" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px 20px; font-weight: 700;">
-          🛡️ I Resisted the Urge (+1 Win)
+        <button type="button" class="btn-primary" id="returnToFocusBtn" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; padding: 10px 24px; font-weight: 700;">
+          ▶ Resume Study Session
         </button>
       </div>
     </div>
@@ -1117,13 +1092,13 @@
     </main>
   </div>
 
-  <script src="app.js?v=2.2.0"></script>
+  <script src="app.js?v=2.3.0"></script>
   <script>
-    // PWA Auto-Updating Engine (v2.2.0)
+    // PWA Auto-Updating Engine (v2.3.0)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=2.2.0').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=2.3.0').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 
