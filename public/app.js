@@ -18,9 +18,9 @@ let isGenerating = false;
 // Routine & Discipline State
 let routines = [];
 let disciplineStats = {
-  streak: 5,
-  score: 92,
-  distractionsResisted: 8,
+  streak: 0,
+  score: 85,
+  distractionsResisted: 0,
   todayFocusMinutes: 0
 };
 let isStrictMode = true;
@@ -76,8 +76,10 @@ function updateDailyMissionHud() {
   const tasksEl = document.getElementById('hudTasks');
 
   if (streakEl) {
-    const streak = disciplineStats.streak || 5;
+    const streak = disciplineStats.streak || 0;
+    const todayMins = disciplineStats.todayFocusMinutes || 0;
     streakEl.textContent = `${streak} Days`;
+    streakEl.title = todayMins >= 60 ? 'Daily 1h study goal achieved! Streak active.' : `Study ${Math.max(0, 60 - todayMins)}m more today to lock streak!`;
   }
   if (focusEl) {
     const mins = disciplineStats.todayFocusMinutes || 0;
@@ -549,9 +551,9 @@ function updateDisciplineScore() {
 }
 
 function renderDisciplineStats() {
-  if (disciplineStreak) disciplineStreak.textContent = `${disciplineStats.streak || 5} Days`;
-  if (disciplineScore) disciplineScore.textContent = `${disciplineStats.score || 92}%`;
-  if (distractionsResisted) distractionsResisted.textContent = `${disciplineStats.distractionsResisted || 8} Wins`;
+  if (disciplineStreak) disciplineStreak.textContent = `${disciplineStats.streak || 0} Days`;
+  if (disciplineScore) disciplineScore.textContent = `${disciplineStats.score || 85}%`;
+  if (distractionsResisted) distractionsResisted.textContent = `${disciplineStats.distractionsResisted || 0} Wins`;
   if (routineFocusTime) {
     const hours = Math.floor((disciplineStats.todayFocusMinutes || 0) / 60);
     const mins = (disciplineStats.todayFocusMinutes || 0) % 60;
@@ -2478,13 +2480,6 @@ chatForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (isGenerating) return;
 
-  const quota = getDailyDoubtsStatus();
-  if (!quota.isPro && quota.count >= quota.max) {
-    if (proModal) proModal.classList.remove('hidden');
-    showToast('👑 Today’s 10 Free Doubts reached! Upgrade to Synapse Pro for Unlimited Doubts.', 'warning', '👑', 5000);
-    return;
-  }
-
   const rawText = userInput.value.trim();
   if (!rawText && !attachedFile) return;
 
@@ -3981,49 +3976,14 @@ vaultAskCoachBtn?.addEventListener('click', () => {
 });
 
 // ========================================================
-// 16. SYSTEM INITIALIZATION & NEURAL BOOT SEQUENCE
+// 16. SYSTEM INITIALIZATION (INSTANT ZERO-DELAY LAUNCH)
 // ========================================================
 function runBootSequence() {
   const splash = document.getElementById('appBootSplash');
-  if (!splash) return;
-
-  const bar = document.getElementById('bootProgressBar');
-  const status = document.getElementById('bootStatusText');
-
-  let dismissed = false;
-  const dismissSplash = () => {
-    if (dismissed) return;
-    dismissed = true;
-    splash.classList.add('fade-out');
-    setTimeout(() => {
-      splash.style.display = 'none';
-      if (splash.parentNode) splash.parentNode.removeChild(splash);
-    }, 550);
-  };
-
-  // Tap or click anywhere skips immediately
-  splash.addEventListener('click', dismissSplash);
-  splash.addEventListener('touchstart', dismissSplash, { passive: true });
-
-  // Progressive high-tech boot sequence (~1.2s total)
-  setTimeout(() => {
-    if (bar) bar.style.width = '35%';
-    if (status) status.textContent = '⚡ Setting up your personal AI Study Partner...';
-  }, 220);
-
-  setTimeout(() => {
-    if (bar) bar.style.width = '70%';
-    if (status) status.textContent = '📚 Loading 50+ Revision Formulas & Timetables...';
-  }, 550);
-
-  setTimeout(() => {
-    if (bar) bar.style.width = '100%';
-    if (status) status.textContent = '✨ All systems ready • Welcome Champ!';
-  }, 900);
-
-  setTimeout(() => {
-    dismissSplash();
-  }, 1250);
+  if (splash) {
+    splash.style.display = 'none';
+    if (splash.parentNode) splash.parentNode.removeChild(splash);
+  }
 }
 
 runBootSequence();
@@ -4153,13 +4113,12 @@ function initStudentOnboarding() {
       renderTasks();
     }
 
-    // Launch first personalized welcoming study doubt chat session!
+    // Ready for the student's study session (clean input, no auto-spam)
     createNewChatThread();
-    showToast(`🎉 Welcome ${enteredName}! Class ${selectedClass} plan ready.`, 'success', '🚀', 4000);
-
-    if (userInput && chatForm) {
-      userInput.value = `Arre bhai mera naam ${enteredName} hai, main ${selectedClass} me hoon aur mujhe ${selectedSubject} (${selectedPain}) me sabse zyada help chahiye. Aaj ka 1st chapter plan aur 3 step doubt strategy batao!`;
-      chatForm.dispatchEvent(new Event('submit'));
+    showToast(`🎉 Welcome ${enteredName}! Class ${selectedClass} setup ready.`, 'success', '🚀', 4000);
+    if (userInput) {
+      userInput.value = '';
+      userInput.placeholder = `Pucho ${selectedSubject} ka koi bhi doubt...`;
     }
   });
 
@@ -4888,31 +4847,43 @@ document.getElementById('returnToFocusBtn')?.addEventListener('click', () => {
 });
 
 // ========================================================
-// 4. DAILY STREAK PROGRESSION ENGINE
+// 4. DAILY STREAK PROGRESSION ENGINE (1-HOUR MINIMUM REQUIRED)
 // ========================================================
 function checkDailyStreakGoal(completedMinutes) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const lastActive = disciplineStats.lastActiveDate || '';
 
-  if (lastActive !== todayStr) {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    if (lastActive === yesterday) {
-      disciplineStats.streak = (disciplineStats.streak || 0) + 1;
-    } else if (!lastActive) {
-      disciplineStats.streak = 1;
-    }
-    disciplineStats.lastActiveDate = todayStr;
-    saveDisciplineStats();
-    renderDisciplineStats();
+  // Accumulate today's focus minutes
+  const prevToday = parseInt(localStorage.getItem('synapse_focus_today_' + todayStr) || '0', 10);
+  const newToday = prevToday + (completedMinutes || 0);
+  localStorage.setItem('synapse_focus_today_' + todayStr, newToday.toString());
+  disciplineStats.todayFocusMinutes = newToday;
 
-    setTimeout(() => {
+  // Real Streak Rule: Streak only awarded/maintained when studying for at least 60 minutes (1 hour) per day!
+  if (newToday >= 60) {
+    if (lastActive !== todayStr) {
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      if (lastActive === yesterday) {
+        disciplineStats.streak = (disciplineStats.streak || 0) + 1;
+      } else {
+        disciplineStats.streak = 1;
+      }
+      disciplineStats.lastActiveDate = todayStr;
+
       launchConfettiBurst();
       sendPhoneNotification(
-        '🔥 Daily Streak Extended!',
-        `Incredible work! You are now on a ${disciplineStats.streak}-Day study streak!`
+        '🔥 1-Hour Study Goal Crushed!',
+        `Incredible work! You studied 60+ minutes today. Study streak extended to ${disciplineStats.streak} Days!`
       );
-    }, 500);
+      showToast(`🔥 1-Hour Daily Study Goal Achieved! Streak: ${disciplineStats.streak} Days`, 'success', '🏆', 5000);
+    }
+  } else {
+    const remaining = 60 - newToday;
+    showToast(`⏱️ ${completedMinutes}m session logged! Study ${remaining}m more today to unlock daily streak!`, 'info', '🎯', 4000);
   }
+
+  saveDisciplineStats();
+  renderDisciplineStats();
 }
 
 // ========================================================

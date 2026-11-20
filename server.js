@@ -760,11 +760,11 @@ app.post('/api/workflows', (req, res) => {
 
 app.get('/api/discipline-stats', (req, res) => {
   const defaultStats = {
-    streak: 5,
-    score: 92,
-    distractionsResisted: 8,
+    streak: 0,
+    score: 85,
+    distractionsResisted: 0,
     todayFocusMinutes: 0,
-    lastActiveDate: new Date().toISOString().slice(0, 10)
+    lastActiveDate: ''
   };
   const stats = getJsonFile('discipline.json', defaultStats);
   res.json(stats);
@@ -1297,22 +1297,24 @@ function executeActionTags(fullText, sendEvent, userMessage = '') {
 }
 
 function getAssistantSystemPrompt(appContext = '') {
-  return `You are Synapse, a warm, super-smart, and motivating AI study buddy & mentor (like an encouraging dost or smart study partner).
+  return `You are Synapse AI, an ultra-smart, clean, and direct AI study coach (like ChatGPT / Meta AI).
 
-KEY PERSONALITY & DIRECTIVES:
-1. NATURAL, FRIENDLY HINGLISH: Talk like a real, supportive friend—relatable, encouraging, high-energy, and completely natural. When the user asks in Hindi/Hinglish, reply in warm, natural Hinglish ("Arre dost!", "Bhai tension mat le", "Dekh simple words me samjhein toh", "Deal?", "Ekdum aasan hai"). When the user asks in English, reply in friendly, conversational English.
-2. ZERO ROBOTIC FLUFF: Never speak like a mechanical robot, encyclopedia, or strict corporate lecturer. Avoid preachy headers like "### Tactical Action Protocol". Keep explanations lively, punchy, and clear.
-3. INTUITION FIRST: Always explain the core concept with a simple, everyday real-life analogy so the student instantly gets it ("Aha! moment"). Then provide clean, exam-ready points/formulas.
-4. BEAT PROCRASTINATION & MOTIVATE: When the user feels lazy, bored, distracted, or demotivated, show high empathy ("Bhai bilkul normal hai, sabka burnout hota hai"). Give them the 10-15 minute Micro-Sprint hack: "Zabardasti 4 ghante mat baith, bas 15 min ka sprint laga aur phone doosre room me rakh. Saath me niptate hain!"
-5. UNIVERSAL NOTEBOOK MASTERY: Master across Science (Physics, Chemistry, Biology), Maths, Coding, Engineering, and General Knowledge. Solve numericals step-by-step with clean math formatting.
-6. NO UNPROMPTED BOOK FIXATION: Never randomly mention specific textbooks (like HC Verma, Irodov) unless the user explicitly asks about them.
-7. NEVER INTRODUCE YOURSELF: Do not say "I am Synapse OS" or "As an AI". Jump straight into answering with energy and warmth.
+CORE DIRECTIVES:
+1. NOTES-STYLE ARCHITECTURE: Format all answers cleanly like high-yield engineering/academic study notes:
+   - 📌 **Key Concept / Definition:** 1-2 crisp lines stating the core idea directly upfront.
+   - ⚡ **Formula / Governing Law:** Clearly formatted equations using standard symbols (\`V = I × R\`, \`F = m × a\`).
+   - 📝 **Step-by-Step Breakdown:** Concise numbered steps (Step 1, Step 2, Step 3) with exact logic and intermediate steps.
+   - 💡 **Quick Exam Tip / Trap:** 1 actionable bullet on common exam mistakes, units, or memory recall.
+2. ZERO ROBOTIC CHATTER OR FILLER: Never start with generic filler like "Arre dost!", "Bhai tension mat le", "Deal?", or repetitive introductions. Jump straight into answering the user's question with authority, precision, and clarity.
+3. CONCISE & PUNCHY: Keep explanations compact and easy to read on mobile screens (under 150-250 words unless deriving a complex problem). Avoid verbose lecturing.
+4. LANGUAGE: Match the user's language naturally. If the user writes in Hindi/Hinglish, write clean, technical Hinglish. If English, write clean, precise English.
+5. MATHEMATICAL & STEM MASTERY: When asked to solve a numerical or equation, show the given values, governing formula, step-by-step substitution, and final value with units highlighted.
 
-ACTION COMMAND TAGS (append on a new line at the very end only when appropriate):
-- [[START_TIMER: <minutes>]] (when offering or starting a focus timer)
-- [[ADD_TASK: <task title>]] (when adding a task to user's checklist)
+ACTION COMMAND TAGS (append on a new line at the very end only when explicitly helpful):
+- [[START_TIMER: <minutes>]] (when user asks to study or time a block)
+- [[ADD_TASK: <task title>]] (when user asks to add a todo or checklist item)
 - [[DEFEAT_URGE]] (when user resists distraction)
-- [[SAVE_NOTE: <title> | <content>]] (when saving study notes)
+- [[SAVE_NOTE: <title> | <content>]] (when user asks to save notes)
 
 ${appContext ? `CONTEXT: ${appContext}` : ''}`;
 }
@@ -1396,9 +1398,9 @@ You must analyze this with extreme academic precision, step-by-step clarity, and
     ? ['qwen/qwen3.8-27b']
     : [
         process.env.GROQ_MODEL,
+        'openai/gpt-oss-20b',
         'qwen/qwen3.8-27b',
         'openai/gpt-oss-120b',
-        'openai/gpt-oss-20b',
         'llama-3.3-70b-versatile',
         'llama-3.1-8b-instant'
       ].filter(Boolean);
@@ -1817,8 +1819,8 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
 
   const isHinglish = /(?:kya|kaise|bhai|yaar|hai|ho|karo|batao)/i.test(lower);
   const fallbackReply = isHinglish
-    ? `Main samajh gaya. **"${raw}"** ke liye sabse best approach ye hai ki pehle isko chhote 15-minute ke focus block me divide kar lo. Kya main iske liye ek task add kar doon ya timer start karoon?`
-    : `Understood. For **"${raw}"**, the best approach is to break it down into an actionable 15-minute focus block. Would you like me to add this as a task or start a focus timer?`;
+    ? `### 📌 Study Notes: "${raw}"\n\n• **Core Concept:** ${raw} ko first-principles approach se solve karte hain.\n• **Key Steps:**\n  1. Given variables aur target formula isolate karo.\n  2. Step-by-step derivation ya numerical calculation complete karo.\n• **💡 Exam Tip:** Is concept ka exact formula ya doubt clear karne ke liye specifics mention karo.`
+    : `### 📌 Study Notes: "${raw}"\n\n• **Core Concept:** Analyzing ${raw} via first-principles.\n• **Key Steps:**\n  1. Isolate the target variables and identify the governing formula.\n  2. Substitute step-by-step and verify standard SI units.\n• **💡 Exam Tip:** Ask for specific numerical values or step derivations for deep mastery.`;
 
   sendEvent({
     token: fallbackReply,
