@@ -1394,12 +1394,14 @@ You must analyze this with extreme academic precision, step-by-step clarity, and
     { type: 'image_url', image_url: { url: image } }
   ] : message;
 
+  const cleanHistory = history.slice(-4).map(h => ({
+    role: h.role === 'assistant' ? 'assistant' : 'user',
+    content: typeof h.content === 'string' && h.content.length > 800 ? h.content.slice(0, 800) + '...' : h.content
+  }));
+
   const messages = [
     { role: 'system', content: systemPrompt },
-    ...history.slice(-8).map(h => ({
-      role: h.role === 'assistant' ? 'assistant' : 'user',
-      content: h.content
-    })),
+    ...cleanHistory,
     { role: 'user', content: userContent }
   ];
 
@@ -1430,7 +1432,7 @@ You must analyze this with extreme academic precision, step-by-step clarity, and
           model,
           messages,
           temperature: dynamicTemp,
-          max_tokens: 2500,
+          max_tokens: 1800,
           stream: true
         }),
         signal: AbortSignal.timeout(30000)
@@ -1442,7 +1444,7 @@ You must analyze this with extreme academic precision, step-by-step clarity, and
       } else {
         const errText = await res.text().catch(() => '');
         lastError = new Error(`Groq model ${model} error (${res.status}): ${errText}`);
-        if (res.status === 404 || res.status === 400 || res.status === 429 || res.status >= 500) {
+        if (res.status === 404 || res.status === 400 || res.status === 413 || res.status === 429 || res.status >= 500) {
           continue;
         } else {
           break;
