@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.json?v=3.2.6">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.3.0">
+  <link rel="stylesheet" href="/style.css?v=3.3.2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -553,59 +553,11 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs: Offline AI Coach is FIRST -->
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="tab-chat">
-          <span class="nav-icon">🧠</span>
-          <span class="nav-text">Offline AI Coach</span>
-          <span class="badge-status-dot"></span>
-        </button>
-        <button class="nav-item" data-tab="tab-routine">
-          <span class="nav-icon">⚡</span>
-          <span class="nav-text">Synapse Flows & Routine</span>
-        </button>
-        <button class="nav-item" data-tab="tab-focus">
-          <span class="nav-icon">⏱️</span>
-          <span class="nav-text">Strict Study & Audio</span>
-        </button>
-        <button class="nav-item" data-tab="tab-vault">
-          <span class="nav-icon">📚</span>
-          <span class="nav-text">Knowledge Vault</span>
-          <span class="badge-count" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">50+</span>
-        </button>
-        <button class="nav-item" data-tab="tab-tasks">
-          <span class="nav-icon">✅</span>
-          <span class="nav-text">Tasks Checklist</span>
-          <span class="badge-count hidden" id="tasksCountBadge">0</span>
-        </button>
-        <button class="nav-item" data-tab="tab-notes">
-          <span class="nav-icon">📝</span>
-          <span class="nav-text">Notes & Scratchpad</span>
-        </button>
-        <button class="nav-item" data-tab="tab-calc">
-          <span class="nav-icon">🔢</span>
-          <span class="nav-text">Keypad Calculator</span>
-        </button>
-        <button class="nav-item" data-tab="tab-reminders">
-          <span class="nav-icon">⏰</span>
-          <span class="nav-text">Reminders & Alarms</span>
-          <span class="badge-count hidden" id="remindersCountBadge">0</span>
-        </button>
-      </nav>
-
-      <!-- Sidebar Bottom -->
+      <!-- Sidebar Bottom Utilities -->
       <div class="sidebar-bottom">
         <div class="clock-display-card glass-inset">
           <span class="clock-lbl">System Time</span>
           <span class="clock-txt" id="sidebarClock">--:--:--</span>
-        </div>
-        <div class="sidebar-pro-banner" id="sidebarProBanner">
-          <span class="pro-sparkle">👑</span>
-          <div class="pro-banner-txt">
-            <strong>Synapse Pro Lifetime</strong>
-            <span>Unlimited Flows • $1.99</span>
-          </div>
-          <button type="button" class="btn-pro-sm" id="sidebarProBtn">Unlock</button>
         </div>
         <div class="sidebar-action-row" style="flex-direction: column; gap: 6px;">
           <button class="btn-subtle btn-sm" id="sidebarTourBtn" style="width: 100%; justify-content: center;">🎓 Student Setup & Tour</button>
@@ -615,7 +567,7 @@
         <div class="sidebar-legal-row">
           <a href="/privacy.html" target="_blank" rel="noopener noreferrer" class="privacy-link">Privacy Policy</a>
           <span class="privacy-link-sep">·</span>
-          <span class="privacy-link">v3.2.7</span>
+          <span class="privacy-link">v3.3.1</span>
         </div>
       </div>
     </aside>
@@ -682,34 +634,30 @@
                 </p>
               </div>
 
-              <!-- Clean Student Action Chips -->
+              <!-- Sleek Compact Action Chips -->
               <div class="hero-chips-minimal" id="heroPromptChips">
                 <button type="button" class="minimal-prompt-chip" data-action="photo" id="heroPhotoChip">
                   <span class="chip-emoji">📸</span>
                   <div class="chip-text-wrap">
-                    <strong>Photo se Doubt Pucho</strong>
-                    <small>Question / Book ki pic bhejo</small>
+                    <strong>Photo se Doubt</strong>
                   </div>
                 </button>
                 <button type="button" class="minimal-prompt-chip" data-action="math" data-prompt="Mujhe Maths ka step-by-step doubt solve karna hai. Pehle formula aur fir 2 easy examples do.">
                   <span class="chip-emoji">📐</span>
                   <div class="chip-text-wrap">
-                    <strong>Maths Doubt Solver</strong>
-                    <small>Step-by-step easy method</small>
+                    <strong>Maths Solver</strong>
                   </div>
                 </button>
                 <button type="button" class="minimal-prompt-chip" data-action="timer" id="heroTimerChip">
                   <span class="chip-emoji">⏱️</span>
                   <div class="chip-text-wrap">
-                    <strong>25-Min Study Mode</strong>
-                    <small>Distraction-free focus</small>
+                    <strong>25m Study Timer</strong>
                   </div>
                 </button>
                 <button type="button" class="minimal-prompt-chip" data-action="routine" data-prompt="Kal ke exam ke liye ek realistic 4-ghante ka self-study timetable bana do">
                   <span class="chip-emoji">📅</span>
                   <div class="chip-text-wrap">
-                    <strong>4-Hour Study Routine</strong>
-                    <small>Timetable & target tracker</small>
+                    <strong>4h Study Routine</strong>
                   </div>
                 </button>
               </div>
@@ -762,8 +710,26 @@
           </div>
         </section>
 
-        <!-- 1. ROUTINE & DISCIPLINE VIEW -->
+        <!-- 1. ROUTINE & DISCIPLINE VIEW (WITH STREAK & STUDY FLOWS) -->
         <section class="view-panel" id="tab-routine">
+          <!-- Daily Study Streak & Goal Progress Card (In Flows) -->
+          <div class="hub-mission-card glass-panel" style="width: 100%; padding: 16px 20px; border-radius: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(16, 185, 129, 0.08)); border: 1px solid rgba(59, 130, 246, 0.25); margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 22px;">🔥</span>
+                <strong style="font-size: 15px; color: var(--text-main);" id="hubStreakBadge">0-Day Study Streak</strong>
+              </div>
+              <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 700;" id="hubGoalProgressText">0 / 60 Mins Goal (0%)</span>
+            </div>
+            <div style="width: 100%; height: 7px; background: rgba(0,0,0,0.22); border-radius: 6px; overflow: hidden;">
+              <div id="hubProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11.5px; color: var(--text-muted);">
+              <span>Daily 1-Hour Focus Target</span>
+              <span id="hubRemainingGoalText">Study 60m to lock streak</span>
+            </div>
+          </div>
+
           <!-- Discipline Stats Banner -->
           <div class="work-section-card glass-panel discipline-hero-card">
             <div class="card-head-row">
@@ -988,18 +954,7 @@
                 <p id="strictQuoteText">"Discipline is choosing between what you want now and what you want most."</p>
               </div>
 
-              <div class="focus-category-picker">
-                <span class="picker-label">🎯 Active Syllabus Subject / Topic:</span>
-                <div class="category-pills" id="focusCategoryPills">
-                  <button type="button" class="cat-pill active" data-cat="📚 Physics">📚 Physics</button>
-                  <button type="button" class="cat-pill" data-cat="⚡ Chemistry">⚡ Chemistry</button>
-                  <button type="button" class="cat-pill" data-cat="📐 Mathematics">📐 Mathematics</button>
-                  <button type="button" class="cat-pill" data-cat="🧬 Biology">🧬 Biology</button>
-                  <button type="button" class="cat-pill" data-cat="💻 Coding & CS">💻 Coding</button>
-                  <button type="button" class="cat-pill" data-cat="📖 Aptitude & English">📖 English</button>
-                  <button type="button" class="cat-pill cat-pill-custom" id="customSubjectBtn">➕ Custom Topic</button>
-                </div>
-              </div>
+
 
               <!-- Big Glass Timer Clock -->
               <div class="pomo-clock-wrap">
@@ -1271,9 +1226,9 @@
           <span class="m-icon">⏱️</span>
           <span class="m-lbl">Focus</span>
         </button>
-        <button class="m-tab" data-tab="tab-vault">
-          <span class="m-icon">📚</span>
-          <span class="m-lbl">Vault</span>
+        <button class="m-tab" data-tab="tab-notes">
+          <span class="m-icon">📝</span>
+          <span class="m-lbl">Notes</span>
         </button>
         <button class="m-tab" data-tab="tab-tasks">
           <span class="m-icon">✅</span>
@@ -1283,14 +1238,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.3.0"></script>
+  <script src="app.js?v=3.3.2"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.3.0)
+    // PWA Auto-Updating Engine (v3.3.2)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.3.0';
+        const CURRENT_VERSION = 'synapse-os-v3.3.2';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1301,7 +1256,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.3.0').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.3.2').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 

@@ -1326,22 +1326,23 @@ button {
 
 .hero-chips-minimal {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   width: 100%;
+  max-width: 460px;
 }
 
 .minimal-prompt-chip {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 12px;
   border-radius: 12px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  color: var(--text-secondary);
-  font-size: 12.5px;
-  font-weight: 500;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -4771,17 +4772,17 @@ button {
 
 .hero-chips-minimal {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   width: 100%;
-  max-width: 560px;
+  max-width: 460px;
 }
 
 .minimal-prompt-chip {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 12px;
   background: var(--surface);
   border: 1px solid var(--glass-border);
   border-radius: 12px;

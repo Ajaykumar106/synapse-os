@@ -81,6 +81,25 @@ function updateDailyMissionHud() {
     streakEl.textContent = `${streak} Days`;
     streakEl.title = todayMins >= 60 ? 'Daily 1h study goal achieved! Streak active.' : `Study ${Math.max(0, 60 - todayMins)}m more today to lock streak!`;
   }
+
+  // Live Streak & Daily Study Target in Flows tab
+  const hubStreakBadge = document.getElementById('hubStreakBadge');
+  const hubGoalProgressText = document.getElementById('hubGoalProgressText');
+  const hubProgressBar = document.getElementById('hubProgressBar');
+  const hubRemainingGoalText = document.getElementById('hubRemainingGoalText');
+
+  const curStreak = disciplineStats.streak || 0;
+  const curMins = disciplineStats.todayFocusMinutes || 0;
+  const pct = Math.min(100, Math.round((curMins / 60) * 100));
+
+  if (hubStreakBadge) hubStreakBadge.textContent = `${curStreak}-Day Study Streak`;
+  if (hubGoalProgressText) hubGoalProgressText.textContent = `${curMins} / 60 Mins Goal (${pct}%)`;
+  if (hubProgressBar) hubProgressBar.style.width = `${pct}%`;
+  if (hubRemainingGoalText) {
+    hubRemainingGoalText.textContent = curMins >= 60
+      ? '🏆 1-Hour Study Goal Achieved! Streak Locked.'
+      : `Study ${60 - curMins}m more today to lock streak`;
+  }
   if (focusEl) {
     const mins = disciplineStats.todayFocusMinutes || 0;
     const h = Math.floor(mins / 60);
@@ -850,19 +869,30 @@ function renderNotes(filterQuery = '') {
     card.className = 'note-card glass-inset';
     const dateStr = new Date(n.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <strong class="note-title">${n.title}</strong>
-        <div style="display:flex; gap:4px;">
-          <button class="btn-subtle btn-sm" onclick="copyNoteText('${n.id}')" title="Copy Note">📋</button>
-          <button class="btn-subtle btn-sm" style="color:var(--danger);" onclick="deleteNote('${n.id}')" title="Delete Note">✕</button>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+        <strong class="note-title" style="font-size: 14.5px; color: var(--text-main);">${escapeHtml(n.title)}</strong>
+        <div style="display:flex; gap:4px; flex-shrink: 0;">
+          <button class="btn-subtle btn-sm" onclick="askAiAboutNote('${n.id}')" title="Ask AI Coach about this note" style="font-size: 11px; padding: 2px 7px; color: var(--primary);">🧠 Ask AI</button>
+          <button class="btn-subtle btn-sm" onclick="copyNoteText('${n.id}')" title="Copy Note" style="font-size: 12px; padding: 2px 6px;">📋</button>
+          <button class="btn-subtle btn-sm" style="color:var(--danger); font-size: 12px; padding: 2px 6px;" onclick="deleteNote('${n.id}')" title="Delete Note">✕</button>
         </div>
       </div>
-      <div class="note-snippet">${n.content}</div>
-      <div style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono); margin-top:6px;">${dateStr}</div>
+      <div class="note-snippet" style="max-height: 200px; overflow-y: auto; font-size: 12.5px; line-height: 1.55; color: var(--text-secondary);">${formatMarkdown(n.content)}</div>
+      <div style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono); margin-top:8px;">${dateStr}</div>
     `;
     notesGrid.appendChild(card);
   });
 }
+
+window.askAiAboutNote = (id) => {
+  const item = notes.find(n => n.id === id);
+  if (!item) return;
+  switchTab('tab-chat');
+  if (userInput && chatForm) {
+    userInput.value = `Mujhe is study note ko deeply explain karo aur ispar exam standard summary do: "${item.title}"\n\nContent:\n${item.content}`;
+    chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  }
+};
 
 window.copyNoteText = (id) => {
   const item = notes.find(n => n.id === id);
