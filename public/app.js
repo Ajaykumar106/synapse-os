@@ -1576,14 +1576,38 @@ function formatMarkdown(text) {
   // Math equation formatting (inline & display LaTeX)
   const cleanLatexSymbols = (str) => {
     return str
+      .replace(/\\boxed\{([^}]+)\}/g, '$1')
+      .replace(/\\mathbf\{([^}]+)\}/g, '$1')
+      .replace(/\\boldsymbol\{([^}]+)\}/g, '$1')
+      .replace(/\\text\{([^}]+)\}/g, '$1')
+      .replace(/\\mathrm\{([^}]+)\}/g, '$1')
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
+      .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
       .replace(/\\times/g, '×')
+      .replace(/\\cdot/g, '·')
       .replace(/\\div/g, '÷')
       .replace(/\\pm/g, '±')
       .replace(/\\approx/g, '≈')
       .replace(/\\le/g, '≤')
       .replace(/\\ge/g, '≥')
       .replace(/\\ne/g, '≠')
-      .replace(/\\cdot/g, '·')
+      .replace(/\\rightarrow/g, '→')
+      .replace(/\\to/g, '→')
+      .replace(/\\Rightarrow/g, '⇒')
+      .replace(/\\Longleftrightarrow/g, '⟺')
+      .replace(/\\Delta/g, 'Δ')
+      .replace(/\\sum/g, 'Σ')
+      .replace(/\\int/g, '∫')
+      .replace(/\\partial/g, '∂')
+      .replace(/\\infty/g, '∞')
+      .replace(/\\alpha/g, 'α')
+      .replace(/\\beta/g, 'β')
+      .replace(/\\gamma/g, 'γ')
+      .replace(/\\theta/g, 'θ')
+      .replace(/\\lambda/g, 'λ')
+      .replace(/\\mu/g, 'μ')
+      .replace(/\\omega/g, 'ω')
+      .replace(/\\Omega/g, 'Ω')
       .replace(/\\degree/g, '°');
   };
 
@@ -2551,16 +2575,16 @@ chatForm.addEventListener('submit', async (e) => {
   let fullReply = '';
   let googleQuery = rawText || 'study notes';
 
-  const safetyUnlock = setTimeout(() => {
+  let safetyUnlock = setTimeout(() => {
     if (isGenerating) {
       isGenerating = false;
       sendBtn.disabled = false;
     }
-  }, 8000);
+  }, 45000);
 
   try {
     const controller = new AbortController();
-    const connectTimeoutId = setTimeout(() => controller.abort(), 8000);
+    const connectTimeoutId = setTimeout(() => controller.abort(), 40000);
 
     const res = await fetch('/api/chat-stream', {
       method: 'POST',
@@ -2603,6 +2627,10 @@ chatForm.addEventListener('submit', async (e) => {
             try {
               const data = JSON.parse(cleanLine.substring(6));
               if (data.token) {
+                if (safetyUnlock) {
+                  clearTimeout(safetyUnlock);
+                  safetyUnlock = null;
+                }
                 fullReply += data.token;
                 bubble.innerHTML = formatMarkdown(fullReply);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -2714,16 +2742,16 @@ chatForm.addEventListener('submit', async (e) => {
       try {
         bubble.innerHTML = '<em>🧠 Generating offline response via WebGPU...</em>';
         const isMathOffline = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(promptText);
-        const dynamicOfflineTemp = isMathOffline ? 0.35 : 0.65;
+        const dynamicOfflineTemp = isMathOffline ? 0.2 : 0.4;
         const chunks = await webLlmEngine.chat.completions.create({
           messages: [
-            { role: 'system', content: 'You are Synapse, a friendly ChatGPT/Meta AI style study dost. Explain in warm, punchy Hinglish or English with bold concepts. For numericals, show formula, step-by-step logic, and final units.' },
+            { role: 'system', content: 'You are Synapse AI, an elite study coach. Output complete, structured academic study notes with definitions, formulas, and step-by-step solved numericals.' },
             ...chatSessionHistory.slice(-6).map(h => ({ role: h.role, content: h.content })),
             { role: 'user', content: promptText }
           ],
           stream: true,
           temperature: dynamicOfflineTemp,
-          max_tokens: 450
+          max_tokens: 1500
         });
 
         fullReply = '';
