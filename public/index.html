@@ -247,89 +247,59 @@
     </div>
   </div>
 
-  <!-- AI Engine Architecture & Provider Settings Modal -->
+  <!-- AI Engine Architecture & Provider Settings Modal (Student-Friendly & Clean) -->
   <div class="modal-backdrop hidden" id="aiEngineModal">
-    <div class="modal-card glass-card" style="max-width: 500px;">
+    <div class="modal-card glass-card" style="max-width: 480px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 20px;">⚡</span>
+          <span style="font-size: 20px;">🧠</span>
           <div>
-            <h3 style="margin: 0; font-size: 16px;">AI Brain Engine</h3>
-            <span style="font-size: 11px; color: var(--text-muted);">Cloud Ultra-Fast (Online) & 100% Offline (Phone/PC)</span>
+            <h3 style="margin: 0; font-size: 16px;">AI Study Brain Status</h3>
+            <span style="font-size: 11px; color: var(--text-muted);">Online & 100% Offline (Phone & PC)</span>
           </div>
         </div>
         <button class="modal-close-btn" id="closeAiEngineModal" title="Close">✕</button>
       </div>
 
-      <div class="ai-engine-body" style="padding: 14px 0; display: flex; flex-direction: column; gap: 14px;">
-        <!-- Engine Status Banner -->
+      <div class="ai-engine-body" style="padding: 14px 0; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Status Card -->
         <div class="engine-status-box" id="engineStatusBox" style="background: var(--glass-inset); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.5;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <span id="engineActiveDot">🟢</span>
-            <strong id="engineActiveName">Detecting active brain...</strong>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="engineActiveDot">🟢</span>
+              <strong id="engineActiveName">Synapse AI Active</strong>
+            </div>
+            <span style="font-size: 10px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 12px;">Connected</span>
           </div>
-          <span id="engineActiveDetail" style="color: var(--text-muted); font-size: 11.5px;">Connecting to intelligent streaming pipeline...</span>
+          <span id="engineActiveDetail" style="color: var(--text-muted); font-size: 11.5px;">Super-fast study help & photo doubts active. Zero wait times.</span>
         </div>
 
-        <!-- Section 1: Cloud AI (Online Ultra-Fast) -->
-        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; background: rgba(16, 185, 129, 0.04);">
+        <!-- Offline AI Card (Clean & Simple) -->
+        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; background: rgba(0, 242, 254, 0.03);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
-              🚀 Cloud Neural AI (Online)
+              ✈️ Offline Brain (Airplane Mode)
             </strong>
-            <span style="font-size: 10px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 12px;">Active & Auto-Connected</span>
+            <span id="webgpuSupportBadge" style="font-size: 10px; font-weight: 700; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 8px; border-radius: 12px;">Supported</span>
           </div>
           <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
-            Runs at <strong>300+ tokens/sec</strong>. Works automatically for free, or add your personal Groq API key for high-speed Meta Llama 3.3 70B:
-          </p>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="password" id="groqApiKeyInput" placeholder="Paste Groq Key (gsk_...)" class="glass-input" style="flex: 1; font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);">
-            <button type="button" class="btn-primary-sm" id="saveGroqKeyBtn" style="padding: 7px 14px; font-size: 12px; border-radius: 8px; white-space: nowrap; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; font-weight: 700; border: none; cursor: pointer;">Save Key</button>
-          </div>
-          <div id="groqKeyStatus" style="font-size: 11px; margin-top: 5px; color: #10b981; display: none;"></div>
-        </div>
-
-        <!-- Section 2: Built-in Fast Offline Study Engine (0 MB Download) -->
-        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; background: rgba(59, 130, 246, 0.04);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
-              📱 Built-in Offline Brain (0 MB Download)
-            </strong>
-            <span style="font-size: 10px; font-weight: 700; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 8px; border-radius: 12px;">100% Active</span>
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">
-            Turn on <strong>Airplane Mode</strong> anytime. Synapse instantly responds with structured study breakdowns, focus timers, task automation, and formula explanations with <strong>zero internet and zero download</strong>!
-          </p>
-        </div>
-
-        <!-- Section 3: Optional On-Device Neural Download (WebGPU) -->
-        <div class="engine-section" style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <strong style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
-              🧠 Advanced WebGPU Neural Brain (Optional)
-            </strong>
-            <span id="webgpuSupportBadge" style="font-size: 10px; font-weight: 700; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 8px; border-radius: 12px;">Checking WebGPU...</span>
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
-            Want deep generative text in Airplane Mode? Download compact neural weights directly to your browser's WebGPU memory.
+            Phone me internet na ho tab bhi offline study guidance aur doubts solve honge. Full offline AI chatting ke liye ek baar download kar lo (220 MB):
           </p>
 
           <div style="display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <select id="webLlmModelSelect" class="glass-select" style="flex: 1; min-width: 190px; font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);">
-                <option value="SmolLM2-360M-Instruct-q4f16_1-MLC" selected>⚡ SmolLM2 360M (~220 MB - Ultra Fast)</option>
-                <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">🧠 Qwen2.5 0.5B (~350 MB - Fast STEM)</option>
-                <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">🚀 Llama 3.2 1B (~850 MB - High Quality)</option>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <select id="webLlmModelSelect" class="glass-select" style="display: none;">
+                <option value="SmolLM2-360M-Instruct-q4f16_1-MLC" selected>Offline Study Brain (220 MB)</option>
               </select>
-              <button type="button" class="btn-primary-sm" id="downloadWebLlmBtn" style="white-space: nowrap; padding: 7px 14px; border-radius: 8px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; font-weight: 700; border: none; cursor: pointer;">
-                📥 Download Brain
+              <button type="button" class="btn-primary-sm" id="downloadWebLlmBtn" style="width: 100%; padding: 10px 14px; border-radius: 10px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                📥 Download Offline AI Brain (220 MB)
               </button>
             </div>
 
             <!-- Download Progress Bar (Hidden by default) -->
             <div class="webllm-progress-box hidden" id="webLlmProgressBox" style="margin-top: 6px;">
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                <span id="webLlmProgressText">Initializing download...</span>
+                <span id="webLlmProgressText">Downloading brain weights...</span>
                 <span id="webLlmProgressPercent">0%</span>
               </div>
               <div style="height: 6px; border-radius: 3px; background: var(--glass-border); overflow: hidden;">
@@ -339,20 +309,25 @@
           </div>
         </div>
 
-        <!-- PWA Auto-Update & Cache Reset -->
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--glass-inset); border-radius: 10px; border: 1px solid var(--glass-border);">
-          <div>
-            <strong style="font-size: 12.5px; display: block;">⚡ App Version & Updates</strong>
-            <span style="font-size: 11px; color: var(--text-muted);" id="pwaVersionLabel">Synapse OS v3.2.0 (Latest — Auto-Updated)</span>
+        <!-- Optional Collapsible Settings (Hidden by default) -->
+        <details style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+          <summary style="cursor: pointer; padding: 6px 4px; font-weight: 600; color: var(--text-muted); user-select: none;">⚙️ Custom API Key (Optional)</summary>
+          <div style="margin-top: 8px; padding: 10px; border-radius: 10px; background: var(--glass-inset); border: 1px solid var(--glass-border);">
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 6px;">App already has built-in free AI. Enter your own Groq key only if you want custom rate limits:</span>
+            <div style="display: flex; gap: 8px;">
+              <input type="password" id="groqApiKeyInput" placeholder="Paste Groq Key (gsk_...)" class="glass-input" style="flex: 1; font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);">
+              <button type="button" class="btn-primary-sm" id="saveGroqKeyBtn" style="padding: 7px 14px; font-size: 12px; border-radius: 8px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; font-weight: 700; border: none; cursor: pointer;">Save</button>
+            </div>
+            <div id="groqKeyStatus" style="font-size: 11px; margin-top: 5px; color: #10b981; display: none;"></div>
           </div>
-          <button type="button" class="btn-subtle btn-sm" id="forcePwaUpdateBtn" style="font-size: 11px; padding: 6px 12px; white-space: nowrap;">
-            🔄 Check Update
-          </button>
-        </div>
+        </details>
 
         <div class="form-btn-group" style="margin-top: 4px;">
           <button type="button" class="btn-primary" id="cancelAiEngineModalBtn" style="width: 100%;">Done ✓</button>
         </div>
+      </div>
+    </div>
+  </div>
       </div>
     </div>
   </div>
@@ -485,6 +460,28 @@
         </div>
       </div>
 
+      <!-- ChatGPT-Style: Start New Chat Action -->
+      <div class="sidebar-chat-action">
+        <button type="button" class="btn-new-chat-sidebar" id="sidebarNewChatBtn" title="Start a fresh conversation">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New Chat</span>
+        </button>
+      </div>
+
+      <!-- ChatGPT-Style: Recent Conversations List -->
+      <div class="sidebar-recent-chats-wrap">
+        <div class="recent-chats-header">
+          <span class="recent-chats-title">Recent Chats</span>
+          <button type="button" class="btn-clear-chats-mini" id="clearAllChatsBtn" title="Clear all saved chats">Clear</button>
+        </div>
+        <div class="recent-chats-list" id="recentChatsList">
+          <div class="chat-thread-empty">No saved chats yet</div>
+        </div>
+      </div>
+
       <!-- Navigation Tabs: Offline AI Coach is FIRST -->
       <nav class="sidebar-nav">
         <button class="nav-item active" data-tab="tab-chat">
@@ -546,7 +543,7 @@
         <div class="sidebar-legal-row">
           <a href="/privacy.html" target="_blank" rel="noopener noreferrer" class="privacy-link">Privacy Policy</a>
           <span class="privacy-link-sep">·</span>
-          <span class="privacy-link">v3.2.6</span>
+          <span class="privacy-link">v3.2.7</span>
         </div>
       </div>
     </aside>
@@ -1197,14 +1194,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.2.6"></script>
+  <script src="app.js?v=3.2.7"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.2.6)
+    // PWA Auto-Updating Engine (v3.2.7)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.2.6';
+        const CURRENT_VERSION = 'synapse-os-v3.2.7';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1215,7 +1212,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.2.6').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.2.7').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 

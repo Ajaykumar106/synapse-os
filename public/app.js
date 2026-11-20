@@ -1572,9 +1572,33 @@ function formatMarkdown(text) {
   });
 
   // Math equation formatting (inline & display LaTeX)
-  html = html.replace(/\\\[([\s\S]*?)\\\]/g, '<div style="background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; margin:6px 0; font-family:var(--font-mono); font-size:13px; text-align:center; color:#38bdf8;">$1</div>');
-  html = html.replace(/\\\(([\s\S]*?)\\\)/g, '<code style="background:rgba(0,0,0,0.15); padding:2px 6px; border-radius:4px; font-family:var(--font-mono); font-size:12px; color:#38bdf8;">$1</code>');
-  html = html.replace(/\$\$([\s\S]*?)\$\$/g, '<div style="background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; margin:6px 0; font-family:var(--font-mono); font-size:13px; text-align:center; color:#38bdf8;">$1</div>');
+  const cleanLatexSymbols = (str) => {
+    return str
+      .replace(/\\times/g, '×')
+      .replace(/\\div/g, '÷')
+      .replace(/\\pm/g, '±')
+      .replace(/\\approx/g, '≈')
+      .replace(/\\le/g, '≤')
+      .replace(/\\ge/g, '≥')
+      .replace(/\\ne/g, '≠')
+      .replace(/\\cdot/g, '·')
+      .replace(/\\degree/g, '°');
+  };
+
+  html = html.replace(/\\\[([\s\S]*?)\\\]/g, (m, eq) => {
+    return `<div style="background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; margin:6px 0; font-family:var(--font-mono); font-size:13px; text-align:center; color:#38bdf8;">${cleanLatexSymbols(eq)}</div>`;
+  });
+  html = html.replace(/\$\$([\s\S]*?)\$\$/g, (m, eq) => {
+    return `<div style="background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; margin:6px 0; font-family:var(--font-mono); font-size:13px; text-align:center; color:#38bdf8;">${cleanLatexSymbols(eq)}</div>`;
+  });
+  html = html.replace(/\\\(([\s\S]*?)\\\)/g, (m, eq) => {
+    return `<code style="background:rgba(0,0,0,0.15); padding:2px 6px; border-radius:4px; font-family:var(--font-mono); font-size:12px; color:#38bdf8;">${cleanLatexSymbols(eq)}</code>`;
+  });
+  // Inline single $ equation (e.g. $I \times R$)
+  html = html.replace(/\$([^\$\n]+?)\$/g, (match, eq) => {
+    if (/^\d+(\.\d+)?$/.test(eq.trim())) return match; // Keep currency like $10
+    return `<code style="background:rgba(0,0,0,0.15); padding:2px 6px; border-radius:4px; font-family:var(--font-mono); font-size:12px; color:#38bdf8;">${cleanLatexSymbols(eq)}</code>`;
+  });
 
   // Blockquotes
   html = html.replace(/^>\s*(.+)$/gm, '<blockquote style="border-left:3px solid var(--primary); padding:6px 12px; margin:8px 0; background:rgba(59,130,246,0.06); border-radius:0 6px 6px 0; color:var(--text-secondary);">$1</blockquote>');
@@ -1595,7 +1619,180 @@ function formatMarkdown(text) {
   return html;
 }
 
-let chatSessionHistory = [];
+// ========================================================
+// CHATGPT-STYLE MULTI-SESSION CHAT THREADS
+// ========================================================
+let chatThreads = [];
+try {
+  chatThreads = JSON.parse(localStorage.getItem('synapse_chat_threads') || '[]');
+  if (!Array.isArray(chatThreads)) chatThreads = [];
+} catch (e) {
+  chatThreads = [];
+}
+
+let activeThreadId = localStorage.getItem('synapse_active_thread_id') || null;
+let chatSessionHistory = []; // Short memory array for LLM context (last 8 msgs)
+
+const recentChatsList = document.getElementById('recentChatsList');
+const sidebarNewChatBtn = document.getElementById('sidebarNewChatBtn');
+const clearAllChatsBtn = document.getElementById('clearAllChatsBtn');
+
+function saveChatThreads() {
+  if (chatThreads.length > 30) {
+    chatThreads = chatThreads.slice(0, 30);
+  }
+  try {
+    localStorage.setItem('synapse_chat_threads', JSON.stringify(chatThreads));
+  } catch (e) {
+    if (chatThreads.length > 10) {
+      chatThreads = chatThreads.slice(0, 10);
+      localStorage.setItem('synapse_chat_threads', JSON.stringify(chatThreads));
+    }
+  }
+}
+
+function getOrCreateActiveThread() {
+  if (activeThreadId) {
+    const found = chatThreads.find(t => t.id === activeThreadId);
+    if (found) return found;
+  }
+  const newThread = {
+    id: 'th_' + Date.now(),
+    title: 'New Chat',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    messages: []
+  };
+  chatThreads.unshift(newThread);
+  activeThreadId = newThread.id;
+  localStorage.setItem('synapse_active_thread_id', activeThreadId);
+  saveChatThreads();
+  renderRecentChatsList();
+  return newThread;
+}
+
+function renderRecentChatsList() {
+  if (!recentChatsList) return;
+  const displayThreads = chatThreads.filter(t => (t.messages && t.messages.length > 0) || t.id === activeThreadId);
+  if (displayThreads.length === 0) {
+    recentChatsList.innerHTML = `<div class="chat-thread-empty">No saved chats yet</div>`;
+    return;
+  }
+
+  recentChatsList.innerHTML = displayThreads.map(t => {
+    const isActive = t.id === activeThreadId;
+    const cleanTitle = escapeHtml(t.title || 'Study Chat');
+    return `
+      <div class="chat-thread-item ${isActive ? 'active' : ''}" data-id="${t.id}" onclick="loadChatThread('${t.id}')">
+        <span class="chat-thread-icon">💬</span>
+        <span class="chat-thread-title" title="${cleanTitle}">${cleanTitle}</span>
+        <button type="button" class="btn-thread-delete" onclick="deleteChatThread('${t.id}', event)" title="Delete chat">✕</button>
+      </div>
+    `;
+  }).join('');
+}
+
+window.loadChatThread = (threadId) => {
+  const thread = chatThreads.find(t => t.id === threadId);
+  if (!thread) return;
+
+  activeThreadId = thread.id;
+  localStorage.setItem('synapse_active_thread_id', activeThreadId);
+
+  messagesContainer.innerHTML = '';
+  chatSessionHistory = [];
+
+  if (!thread.messages || thread.messages.length === 0) {
+    if (chatHero) {
+      messagesContainer.appendChild(chatHero);
+      chatHero.style.display = 'flex';
+    }
+  } else {
+    if (chatHero) chatHero.style.display = 'none';
+
+    thread.messages.forEach(msg => {
+      if (msg.role === 'user') {
+        appendUserMessage(msg.html || msg.content);
+        chatSessionHistory.push({ role: 'user', content: msg.content });
+      } else {
+        const { wrap, bubble } = createAssistantEntry();
+        bubble.innerHTML = formatMarkdown(msg.content);
+        try { appendActionDock(wrap, msg.query || '', msg.content); } catch (e) {}
+        chatSessionHistory.push({ role: 'assistant', content: msg.content });
+      }
+    });
+  }
+
+  switchTab('tab-chat');
+  if (window.innerWidth < 800) {
+    toggleSidebar(false);
+  }
+
+  renderRecentChatsList();
+  setTimeout(() => {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }, 40);
+};
+
+window.createNewChatThread = () => {
+  const newThread = {
+    id: 'th_' + Date.now(),
+    title: 'New Chat',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    messages: []
+  };
+  chatThreads.unshift(newThread);
+  activeThreadId = newThread.id;
+  localStorage.setItem('synapse_active_thread_id', activeThreadId);
+  saveChatThreads();
+
+  messagesContainer.innerHTML = '';
+  chatSessionHistory = [];
+  if (chatHero) {
+    messagesContainer.appendChild(chatHero);
+    chatHero.style.display = 'flex';
+  }
+
+  switchTab('tab-chat');
+  if (window.innerWidth < 800) {
+    toggleSidebar(false);
+  }
+
+  renderRecentChatsList();
+  userInput?.focus();
+};
+
+window.deleteChatThread = (threadId, event) => {
+  if (event) event.stopPropagation();
+  chatThreads = chatThreads.filter(t => t.id !== threadId);
+  saveChatThreads();
+
+  if (activeThreadId === threadId) {
+    if (chatThreads.length > 0) {
+      loadChatThread(chatThreads[0].id);
+    } else {
+      createNewChatThread();
+    }
+  } else {
+    renderRecentChatsList();
+  }
+};
+
+window.recordAssistantResponse = (replyText, query) => {
+  const currentThread = getOrCreateActiveThread();
+  if (!currentThread.messages.some(m => m.role === 'assistant' && m.content === replyText)) {
+    currentThread.messages.push({
+      role: 'assistant',
+      content: replyText,
+      query: query || '',
+      timestamp: Date.now()
+    });
+    currentThread.updatedAt = Date.now();
+    saveChatThreads();
+    renderRecentChatsList();
+  }
+};
 
 const CHAT_ICONS = {
   copy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`,
@@ -1851,13 +2048,22 @@ chatHeroRoutineBtn?.addEventListener('click', () => {
   switchTab('tab-routine');
 });
 
-clearChatBtn?.addEventListener('click', () => {
-  messagesContainer.innerHTML = '';
-  chatSessionHistory = [];
-  if (chatHero) {
-    messagesContainer.appendChild(chatHero);
-    chatHero.style.display = 'flex';
+clearAllChatsBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (confirm('Delete all saved conversations?')) {
+    chatThreads = [];
+    localStorage.removeItem('synapse_chat_threads');
+    createNewChatThread();
+    showToast('All chat history cleared', 'info', '🗑️');
   }
+});
+
+sidebarNewChatBtn?.addEventListener('click', () => {
+  createNewChatThread();
+});
+
+clearChatBtn?.addEventListener('click', () => {
+  createNewChatThread();
 });
 
 // Prompt Chips (works with all static, dynamic and quick action chips)
@@ -2256,12 +2462,14 @@ async function handleNeuralModelGeneration(text, wrap, bubble) {
     }
 
     appendActionDock(wrap, text, fullReply);
+    try { recordAssistantResponse(fullReply, text); } catch (e) {}
   } catch (err) {
     bubble.innerHTML = '<em>Consulting Synapse Instant study coach...</em>';
     const fastReply = getClientOfflineCoachReply(text);
     setTimeout(() => {
       bubble.innerHTML = formatMarkdown(fastReply);
       appendActionDock(wrap, text, fastReply);
+      try { recordAssistantResponse(fastReply, text); } catch (e) {}
     }, 500);
   }
 }
@@ -2323,6 +2531,21 @@ chatForm.addEventListener('submit', async (e) => {
   }
 
   incrementDailyDoubts();
+
+  const currentThread = getOrCreateActiveThread();
+  if (currentThread.title === 'New Chat') {
+    const rawSubject = (rawText || (attachedImgData ? 'Question Photo' : 'Study Doubt')).replace(/[#*`_\[\]]/g, '').trim();
+    currentThread.title = rawSubject.slice(0, 28) || 'Study Question';
+  }
+  currentThread.messages.push({
+    role: 'user',
+    content: promptText,
+    html: displayHtml,
+    timestamp: Date.now()
+  });
+  currentThread.updatedAt = Date.now();
+  saveChatThreads();
+  renderRecentChatsList();
 
   userInput.value = '';
   appendUserMessage(displayHtml);
@@ -2411,6 +2634,7 @@ chatForm.addEventListener('submit', async (e) => {
                 chatSessionHistory.push({ role: 'user', content: promptText });
                 chatSessionHistory.push({ role: 'assistant', content: fullReply });
                 try { appendActionDock(wrap, googleQuery, fullReply); } catch (e) {}
+                try { recordAssistantResponse(fullReply, googleQuery); } catch (e) {}
 
                 // Generative UI: Live Interactive Timer Card
                 if (data.triggerFocus) {
@@ -2487,6 +2711,7 @@ chatForm.addEventListener('submit', async (e) => {
       chatSessionHistory.push({ role: 'user', content: promptText });
       chatSessionHistory.push({ role: 'assistant', content: fullReply });
       try { appendActionDock(wrap, googleQuery, fullReply); } catch (e) {}
+      try { recordAssistantResponse(fullReply, googleQuery); } catch (e) {}
     }
   } catch (err) {
     // 100% Client-Side Offline AI Brain (runs directly on Android in Airplane mode / no server)
@@ -2525,6 +2750,7 @@ chatForm.addEventListener('submit', async (e) => {
     chatSessionHistory.push({ role: 'user', content: promptText });
     chatSessionHistory.push({ role: 'assistant', content: fullReply });
     appendActionDock(wrap, googleQuery, fullReply);
+    try { recordAssistantResponse(fullReply, googleQuery); } catch (e) {}
     setTimeout(() => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }, 50);
@@ -3855,6 +4081,21 @@ renderVaultCards();
 
 // Initial Boot (AI Coach is FIRST by default)
 switchTab('tab-chat');
+
+// Initialize ChatGPT-Style Chat Sessions & History
+try {
+  renderRecentChatsList();
+  if (activeThreadId && chatThreads.some(t => t.id === activeThreadId)) {
+    loadChatThread(activeThreadId);
+  } else if (chatThreads.length > 0 && chatThreads[0].messages && chatThreads[0].messages.length > 0) {
+    loadChatThread(chatThreads[0].id);
+  } else {
+    createNewChatThread();
+  }
+} catch (e) {
+  console.warn('Chat threads init notice:', e);
+}
+
 fetchRoutines();
 fetchDisciplineStats();
 fetchTasks();
