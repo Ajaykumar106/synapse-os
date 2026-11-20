@@ -4008,17 +4008,17 @@ function runBootSequence() {
   // Progressive high-tech boot sequence (~1.2s total)
   setTimeout(() => {
     if (bar) bar.style.width = '35%';
-    if (status) status.textContent = '⚡ NEURAL KERNEL 3.2.5 CALIBRATING...';
+    if (status) status.textContent = '⚡ Setting up your personal AI Study Partner...';
   }, 220);
 
   setTimeout(() => {
     if (bar) bar.style.width = '70%';
-    if (status) status.textContent = '🧠 SYNCING OFFLINE FOCUS & VAULT ENGINES...';
+    if (status) status.textContent = '📚 Loading 50+ Revision Formulas & Timetables...';
   }, 550);
 
   setTimeout(() => {
     if (bar) bar.style.width = '100%';
-    if (status) status.textContent = '✨ ALL SYSTEMS OPERATIONAL • WELCOME DOST';
+    if (status) status.textContent = '✨ All systems ready • Welcome Champ!';
   }, 900);
 
   setTimeout(() => {
@@ -4030,50 +4030,182 @@ runBootSequence();
 
 function initStudentOnboarding() {
   const modal = document.getElementById('studentWelcomeModal');
-  const startBtn = document.getElementById('startOnboardingBtn');
-  if (!modal || !startBtn) return;
+  const closeBtn = document.getElementById('closeOnboardingModal');
+  const sidebarTourBtn = document.getElementById('sidebarTourBtn');
+  const stepBadge = document.getElementById('onboardStepBadge');
 
-  const hasOnboarded = localStorage.getItem('synapse_student_onboarded');
-  if (!hasOnboarded) {
-    setTimeout(() => {
-      modal.classList.remove('hidden');
-    }, 1300);
-  }
+  const step1 = document.getElementById('onboardStep1');
+  const step2 = document.getElementById('onboardStep2');
+  const step3 = document.getElementById('onboardStep3');
 
-  // Chip selection
-  document.querySelectorAll('#onboardingClassChips .onboard-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#onboardingClassChips .onboard-chip').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+  const nameInput = document.getElementById('onboardStudentNameInput');
+  const toStep2Btn = document.getElementById('onboardToStep2');
+  const backTo1Btn = document.getElementById('onboardBackTo1');
+  const toStep3Btn = document.getElementById('onboardToStep3');
+  const backTo2Btn = document.getElementById('onboardBackTo2');
+  const finishBtn = document.getElementById('onboardFinishBtn');
+
+  const heroGreeting = document.getElementById('heroStudentGreeting');
+
+  if (!modal) return;
+
+  const updateGreetingTitle = () => {
+    const savedName = localStorage.getItem('synapse_student_name');
+    if (savedName && heroGreeting) {
+      heroGreeting.textContent = `Hey ${savedName}, kya padhna hai aaj? 🚀`;
+    }
+  };
+  updateGreetingTitle();
+
+  const showStep = (num) => {
+    if (stepBadge) stepBadge.textContent = `Step ${num} of 3`;
+    if (step1) step1.style.display = num === 1 ? 'block' : 'none';
+    if (step2) step2.style.display = num === 2 ? 'block' : 'none';
+    if (step3) step3.style.display = num === 3 ? 'block' : 'none';
+  };
+
+  const openOnboarding = () => {
+    const savedName = localStorage.getItem('synapse_student_name') || '';
+    if (nameInput) nameInput.value = savedName;
+    showStep(1);
+    modal.classList.remove('hidden');
+  };
+
+  const closeOnboarding = () => {
+    modal.classList.add('hidden');
+  };
+
+  closeBtn?.addEventListener('click', closeOnboarding);
+  sidebarTourBtn?.addEventListener('click', () => {
+    toggleSidebar(false);
+    openOnboarding();
+  });
+
+  // Step 1 Selection Grid (Class)
+  document.querySelectorAll('#onboardClassGrid .onboard-card-select').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#onboardClassGrid .onboard-card-select').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
     });
   });
 
-  document.querySelectorAll('#onboardingPainChips .onboard-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#onboardingPainChips .onboard-chip').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+  // Step 2 Selection Grid (Subject)
+  document.querySelectorAll('#onboardSubjectGrid .onboard-card-select').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#onboardSubjectGrid .onboard-card-select').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
     });
   });
 
-  startBtn.addEventListener('click', () => {
-    const selectedClass = document.querySelector('#onboardingClassChips .onboard-chip.active')?.dataset.class || 'Class 10 Boards';
-    const selectedPain = document.querySelector('#onboardingPainChips .onboard-chip.active')?.dataset.pain || 'Phone Distraction';
+  // Step 3 Selection Grid (Goal)
+  document.querySelectorAll('#onboardGoalGrid .onboard-card-select').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#onboardGoalGrid .onboard-card-select').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+    });
+  });
+
+  // Navigation handlers
+  toStep2Btn?.addEventListener('click', () => showStep(2));
+  backTo1Btn?.addEventListener('click', () => showStep(1));
+  toStep3Btn?.addEventListener('click', () => showStep(3));
+  backTo2Btn?.addEventListener('click', () => showStep(2));
+
+  // Finish Setup Handler (100% Real, Actionable & Working!)
+  finishBtn?.addEventListener('click', async () => {
+    const enteredName = (nameInput?.value || '').trim() || 'Champ';
+    const selectedClass = document.querySelector('#onboardClassGrid .onboard-card-select.active')?.dataset.class || 'Class 10th Boards';
+    const selectedSubject = document.querySelector('#onboardSubjectGrid .onboard-card-select.active')?.dataset.subject || 'Mathematics';
+    const selectedPain = document.querySelector('#onboardSubjectGrid .onboard-card-select.active')?.dataset.pain || 'Numericals & Formulas';
+    const selectedHours = document.querySelector('#onboardGoalGrid .onboard-card-select.active')?.dataset.hours || '4 Hours / Day';
 
     localStorage.setItem('synapse_student_onboarded', 'true');
+    localStorage.setItem('synapse_student_name', enteredName);
     localStorage.setItem('synapse_student_class', selectedClass);
-    localStorage.setItem('synapse_student_pain', selectedPain);
+    localStorage.setItem('synapse_student_subject', selectedSubject);
+    localStorage.setItem('synapse_student_hours', selectedHours);
 
-    modal.classList.add('hidden');
+    updateGreetingTitle();
+    closeOnboarding();
     launchConfettiBurst();
 
+    // Automatically inject 3 real personalized study tasks into Tasks Checklist!
+    const personalizedTasks = [
+      { text: `📐 ${selectedSubject}: Chapter 1 Step-by-Step Revision`, category: 'Study' },
+      { text: `⏱️ ${selectedHours} Goal: Complete 1 Strict Focus Pomodoro Session`, category: 'Discipline' },
+      { text: `📚 Review ${selectedSubject} formulas in Knowledge Vault`, category: 'Revision' }
+    ];
+
+    try {
+      for (const t of personalizedTasks) {
+        await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(t)
+        });
+      }
+      fetchTasks();
+    } catch {
+      personalizedTasks.forEach((t, i) => {
+        tasks.push({ id: (Date.now() + i).toString(), text: t.text, completed: false, category: t.category });
+      });
+      localStorage.setItem('synapse_tasks', JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    // Launch first personalized welcoming study doubt chat session!
+    createNewChatThread();
+    showToast(`🎉 Welcome ${enteredName}! Class ${selectedClass} plan ready.`, 'success', '🚀', 4000);
+
     if (userInput && chatForm) {
-      userInput.value = `Bhai main ${selectedClass} me hoon aur mujhe ${selectedPain} me sabse zyada help chahiye. Aaj se kaise shuru karein?`;
+      userInput.value = `Arre bhai mera naam ${enteredName} hai, main ${selectedClass} me hoon aur mujhe ${selectedSubject} (${selectedPain}) me sabse zyada help chahiye. Aaj ka 1st chapter plan aur 3 step doubt strategy batao!`;
+      chatForm.dispatchEvent(new Event('submit'));
+    }
+  });
+
+  // Auto show on first load
+  const hasOnboarded = localStorage.getItem('synapse_student_onboarded');
+  if (!hasOnboarded) {
+    setTimeout(openOnboarding, 1300);
+  }
+}
+
+function initHeroPromptChips() {
+  const container = document.getElementById('heroPromptChips');
+  if (!container) return;
+
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.minimal-prompt-chip');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const prompt = btn.dataset.prompt;
+
+    if (action === 'photo') {
+      const fileInput = document.getElementById('chatFileInput');
+      if (fileInput) fileInput.click();
+      return;
+    }
+
+    if (action === 'timer') {
+      setTimerDuration(25);
+      switchTab('tab-focus');
+      if (!isPomodoroRunning && pomodoroStartBtn) {
+        pomodoroStartBtn.click();
+      }
+      showToast('⏱️ 25-Minute Strict Focus Timer Started! Phone locked.', 'success', '🎯');
+      return;
+    }
+
+    if (prompt && userInput && chatForm) {
+      userInput.value = prompt;
       chatForm.dispatchEvent(new Event('submit'));
     }
   });
 }
 
 initStudentOnboarding();
+initHeroPromptChips();
 
 updateProUI();
 renderWorkflowPills();

@@ -352,69 +352,161 @@
   </div>
 
   <!-- Class 10 / First-Time Student Onboarding Modal -->
+  <!-- Interactive 3-Step Student Onboarding & Setup Wizard -->
   <div class="modal-backdrop hidden" id="studentWelcomeModal" style="z-index: 999998;">
-    <div class="modal-card glass-card" style="max-width: 480px; padding: 22px 20px;">
-      <div style="text-align: center; margin-bottom: 16px;">
-        <div style="font-size: 36px; margin-bottom: 6px;">👋</div>
-        <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-main);">
-          Arre Champ, Welcome to <span style="background: linear-gradient(135deg, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Synapse OS</span>!
-        </h2>
-        <p style="font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5;">
-          Tera personal AI Study Partner & Focus OS — Board exams ki tension khatam aur phone distraction lock karne ke liye.
-        </p>
+    <div class="modal-card glass-card student-onboard-card">
+      <!-- Top Navigation & Step Indicator -->
+      <div class="onboard-top-nav">
+        <div class="onboard-step-badge" id="onboardStepBadge">Step 1 of 3</div>
+        <button type="button" class="btn-onboard-close" id="closeOnboardingModal" title="Close setup">✕</button>
       </div>
 
-      <!-- Quick 10-Second Customization -->
-      <div style="background: var(--glass-inset); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 8px;">
-          🎯 1. Tu kiski preparation kar raha hai?
-        </label>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="onboardingClassChips">
-          <button type="button" class="onboard-chip active" data-class="Class 10 Boards">Class 10 Boards</button>
-          <button type="button" class="onboard-chip" data-class="Class 9">Class 9</button>
-          <button type="button" class="onboard-chip" data-class="Class 11 / 12">Class 11 / 12</button>
-          <button type="button" class="onboard-chip" data-class="JEE / NEET Foundation">JEE / NEET</button>
+      <!-- Step 1: Student Name & Class Selection -->
+      <div class="onboard-step-pane" id="onboardStep1">
+        <div class="onboard-hero-center">
+          <div class="onboard-avatar-glow">🎓</div>
+          <h2>Welcome to <span class="text-cyan">Synapse OS</span>!</h2>
+          <p>Tera personal AI study partner. Pehle apna naam aur class batao:</p>
         </div>
 
-        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin: 12px 0 8px 0;">
-          ⚡ 2. Sabse zyada pareshani kis cheez se hoti hai?
-        </label>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="onboardingPainChips">
-          <button type="button" class="onboard-chip active" data-pain="Phone / Reels ka distraction">📱 Phone Distraction</button>
-          <button type="button" class="onboard-chip" data-pain="Maths / Science me numerical doubts">📐 Maths & Science Doubts</button>
-          <button type="button" class="onboard-chip" data-pain="Padhai ka routine aur backlog">📅 Routine & Backlogs</button>
+        <div class="onboard-field-group">
+          <label class="onboard-label">👤 Aapka Naam:</label>
+          <input type="text" id="onboardStudentNameInput" class="onboard-text-input" placeholder="Apna naam likho (e.g. Rahul, Priya)..." maxlength="30">
+        </div>
+
+        <div class="onboard-field-group">
+          <label class="onboard-label">🎯 Kis class / exam ki preparation kar rahe ho?</label>
+          <div class="onboard-grid-options" id="onboardClassGrid">
+            <button type="button" class="onboard-card-select active" data-class="Class 10th Boards">
+              <span class="sel-icon">🎓</span>
+              <div class="sel-info">
+                <strong>Class 10th Boards</strong>
+                <small>Maths, Science & Board Revision</small>
+              </div>
+            </button>
+            <button type="button" class="onboard-card-select" data-class="Class 9th Foundation">
+              <span class="sel-icon">📚</span>
+              <div class="sel-info">
+                <strong>Class 9th Foundation</strong>
+                <small>Concepts & Strong Basics</small>
+              </div>
+            </button>
+            <button type="button" class="onboard-card-select" data-class="Class 11th - 12th">
+              <span class="sel-icon">🚀</span>
+              <div class="sel-info">
+                <strong>Class 11th - 12th</strong>
+                <small>Physics, Chemistry, Maths & Bio</small>
+              </div>
+            </button>
+            <button type="button" class="onboard-card-select" data-class="JEE / NEET / CUET">
+              <span class="sel-icon">🎯</span>
+              <div class="sel-info">
+                <strong>JEE / NEET / CUET</strong>
+                <small>Numericals & Speed Practice</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="onboard-btn-footer">
+          <button type="button" class="btn-primary-onboard" id="onboardToStep2">
+            Aage Badhein: Subject Chunein →
+          </button>
         </div>
       </div>
 
-      <!-- Kisse Kya Hota Hai (Visual 15-second Guide) -->
-      <div style="margin-bottom: 18px;">
-        <div style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">
-          💡 Ye App Kaise Kaam Karti Hai (Short Guide):
+      <!-- Step 2: Target Subject & Weak Area -->
+      <div class="onboard-step-pane" id="onboardStep2" style="display: none;">
+        <div class="onboard-hero-center">
+          <div class="onboard-avatar-glow">🎯</div>
+          <h2>Kis subject me sabse zyada marks lane hain?</h2>
+          <p>Synapse is subject ke step-by-step doubts aur revision formulas hamesha ready rakhega:</p>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 7px; font-size: 12px; line-height: 1.4;">
-          <div style="display: flex; align-items: flex-start; gap: 8px;">
-            <span>🧠</span>
-            <div><strong>AI Study Coach:</strong> Kisi bhi concept ya formula ka doubt aasan bhasha me pucho.</div>
-          </div>
-          <div style="display: flex; align-items: flex-start; gap: 8px;">
-            <span>⏱️</span>
-            <div><strong>Strict Focus Timer:</strong> Padhai ke waqt phone lock. Split screen pe timer freeze ho jayega.</div>
-          </div>
-          <div style="display: flex; align-items: flex-start; gap: 8px;">
-            <span>📚</span>
-            <div><strong>Study Vault:</strong> 50+ revision formulas aur quick memory sheets hamesha ready.</div>
-          </div>
-          <div style="display: flex; align-items: flex-start; gap: 8px;">
-            <span>✅</span>
-            <div><strong>Tasks & Streak:</strong> Roz ke 3 important targets poore karo aur streak banao!</div>
-          </div>
+
+        <div class="onboard-grid-options" id="onboardSubjectGrid">
+          <button type="button" class="onboard-card-select active" data-subject="Mathematics" data-pain="Trigonometry & Algebra Numericals">
+            <span class="sel-icon">📐</span>
+            <div class="sel-info">
+              <strong>Mathematics</strong>
+              <small>Step-by-step formulas, algebra & theorems</small>
+            </div>
+          </button>
+          <button type="button" class="onboard-card-select" data-subject="Science & Physics" data-pain="Physics Laws & Chemistry Reactions">
+            <span class="sel-icon">⚡</span>
+            <div class="sel-info">
+              <strong>Science & Physics</strong>
+              <small>Laws, numerical formulas & reactions</small>
+            </div>
+          </button>
+          <button type="button" class="onboard-card-select" data-subject="English, SST & Theory" data-pain="Long Answers & History Memorization">
+            <span class="sel-icon">📖</span>
+            <div class="sel-info">
+              <strong>English, SST & Theory</strong>
+              <small>Chapter summaries & memory tricks</small>
+            </div>
+          </button>
+          <button type="button" class="onboard-card-select" data-subject="Daily Study Routine" data-pain="Phone Distraction & Backlog">
+            <span class="sel-icon">🛡️</span>
+            <div class="sel-info">
+              <strong>Anti-Distraction & Timetable</strong>
+              <small>Phone lock, daily timetable & streak</small>
+            </div>
+          </button>
+        </div>
+
+        <div class="onboard-btn-footer split">
+          <button type="button" class="btn-secondary-onboard" id="onboardBackTo1">← Back</button>
+          <button type="button" class="btn-primary-onboard" id="onboardToStep3">Next: Daily Goal →</button>
         </div>
       </div>
 
-      <!-- Action Button -->
-      <button type="button" class="btn-primary" id="startOnboardingBtn" style="width: 100%; padding: 11px; font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35);">
-        🚀 Chalo Shuru Karte Hain!
-      </button>
+      <!-- Step 3: Daily Target & Instant Setup -->
+      <div class="onboard-step-pane" id="onboardStep3" style="display: none;">
+        <div class="onboard-hero-center">
+          <div class="onboard-avatar-glow">⏱️</div>
+          <h2>Roz kitna ghante padhna chahte ho?</h2>
+          <p>Aapke liye daily task checklist aur focus routine turant taiyar ho jayegi:</p>
+        </div>
+
+        <div class="onboard-grid-options" id="onboardGoalGrid">
+          <button type="button" class="onboard-card-select" data-hours="2 Hours / Day" data-desc="Consistent & Relaxed">
+            <span class="sel-icon">🌱</span>
+            <div class="sel-info">
+              <strong>2 Ghante / Din</strong>
+              <small>Daily consistency & basic revision</small>
+            </div>
+          </button>
+          <button type="button" class="onboard-card-select active" data-hours="4 Hours / Day" data-desc="Topper Routine (Recommended)">
+            <span class="sel-icon">⭐</span>
+            <div class="sel-info">
+              <strong>4 Ghante / Din (Topper Mode)</strong>
+              <small>Deep study + numericals + formula recall</small>
+            </div>
+          </button>
+          <button type="button" class="onboard-card-select" data-hours="6+ Hours / Day" data-desc="Intense Exam Mastery">
+            <span class="sel-icon">🔥</span>
+            <div class="sel-info">
+              <strong>6+ Ghante / Din (Board Topper)</strong>
+              <small>High intensity & full syllabus mastery</small>
+            </div>
+          </button>
+        </div>
+
+        <!-- Quick 4 Features Pill Summary -->
+        <div class="onboard-features-mini">
+          <div class="mini-feat-pill"><span>🧠</span> AI Doubt Solver</div>
+          <div class="mini-feat-pill"><span>⏱️</span> Strict Focus Timer</div>
+          <div class="mini-feat-pill"><span>📚</span> 50+ Revision Vault</div>
+          <div class="mini-feat-pill"><span>✈️</span> 100% Offline Mode</div>
+        </div>
+
+        <div class="onboard-btn-footer split">
+          <button type="button" class="btn-secondary-onboard" id="onboardBackTo2">← Back</button>
+          <button type="button" class="btn-primary-onboard" id="onboardFinishBtn">
+            🚀 Chalo Padhai Shuru Karte Hain!
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -427,17 +519,17 @@
     <div class="boot-content">
       <div class="boot-logo-container">
         <div class="boot-logo-aura"></div>
-        <img src="/icon.svg?v=3.2.6" class="boot-logo-img" alt="Synapse Neural Core">
+        <img src="/logo-emblem.svg?v=3.2.7" class="boot-logo-img" alt="Synapse Neural Core">
         <div class="boot-quantum-ring"></div>
       </div>
       <div class="boot-brand">
         <h1 class="boot-title">SYNAPSE <span>OS</span></h1>
-        <div class="boot-tag">NEURAL FOCUS ENGINE</div>
+        <div class="boot-tag">AI STUDY COACH & FOCUS OS</div>
       </div>
       <div class="boot-progress-wrap">
         <div class="boot-progress-bar" id="bootProgressBar"></div>
       </div>
-      <div class="boot-status" id="bootStatusText">INITIALIZING NEURAL CORE...</div>
+      <div class="boot-status" id="bootStatusText">Setting up your AI Study Partner...</div>
       <div class="boot-skip-hint">Tap anywhere to enter</div>
     </div>
   </div>
@@ -537,6 +629,7 @@
           <button type="button" class="btn-pro-sm" id="sidebarProBtn">Unlock</button>
         </div>
         <div class="sidebar-action-row" style="flex-direction: column; gap: 6px;">
+          <button class="btn-subtle btn-sm" id="sidebarTourBtn" style="width: 100%; justify-content: center;">🎓 Student Setup & Tour</button>
           <button class="btn-subtle btn-sm" id="sidebarAiEngineBtn" style="width: 100%; justify-content: center;">⚡ AI Engine Settings</button>
           <button class="btn-subtle btn-sm" id="themeToggleBtn" style="width: 100%; justify-content: center;">☀️ Light Mode</button>
         </div>
@@ -599,29 +692,50 @@
         <!-- 0. OFFLINE AI STUDY & DISCIPLINE COACH (DEFAULT ACTIVE VIEW) -->
         <section class="view-panel active" id="tab-chat">
           <div class="chat-flow-scroll" id="messagesContainer">
-            <!-- ChatGPT-style Clean Minimalist Hero -->
+            <!-- Clean Modern Student AI Study Coach Hero -->
             <div class="chat-welcome-simple" id="chatHero">
               <div class="gpt-hero-brand">
-                <div class="gpt-brand-logo" style="background: transparent; box-shadow: none; width: auto; height: auto;">
-                  <img src="/icon.svg?v=3.2.6" width="56" height="56" alt="Synapse OS" class="hero-brand-icon-animated">
+                <div class="hero-brand-emblem-wrap">
+                  <div class="hero-emblem-aura"></div>
+                  <img src="/logo-emblem.svg?v=3.2.7" width="72" height="72" alt="Synapse AI Coach" class="hero-brand-emblem-img">
                 </div>
-                <h2>What can I help with today?</h2>
-                <p>On-device neural intelligence. Ask questions, plan routines, manage tasks, or run your timer.</p>
+                <h2 class="hero-student-title">
+                  <span id="heroStudentGreeting">Kya padhna hai aaj dost? 🚀</span>
+                </h2>
+                <p class="hero-student-sub">
+                  Maths, Physics, Chemistry ya koi bhi tough doubt? Niche diye action tap karo ya camera se photo khich kar bhejo:
+                </p>
               </div>
 
-              <!-- Minimal Quick Suggestion Chips -->
-              <div class="hero-chips-minimal">
-                <button type="button" class="minimal-prompt-chip" data-prompt="Kal ke exam ka 4-ghante ka strict study plan bana do">
-                  <span>📅</span> Kal ke exam ka study plan
+              <!-- High-Yield Interactive Student Action Chips -->
+              <div class="hero-chips-minimal" id="heroPromptChips">
+                <button type="button" class="minimal-prompt-chip" data-action="math" data-prompt="Mujhe Maths ka step-by-step doubt solve karna hai. Pehle formula aur fir 2 easy examples do.">
+                  <span class="chip-emoji">📐</span>
+                  <div class="chip-text-wrap">
+                    <strong>Maths Doubt Solver</strong>
+                    <small>Step-by-step easy method</small>
+                  </div>
                 </button>
-                <button type="button" class="minimal-prompt-chip" data-prompt="Start 25m focus timer">
-                  <span>⏱️</span> 25m focus timer shuru karo
+                <button type="button" class="minimal-prompt-chip" data-action="photo" id="heroPhotoChip">
+                  <span class="chip-emoji">📸</span>
+                  <div class="chip-text-wrap">
+                    <strong>Photo se Doubt Pucho</strong>
+                    <small>Question / Book ki pic bhejo</small>
+                  </div>
                 </button>
-                <button type="button" class="minimal-prompt-chip" data-prompt="Mere aaj ke tasks kya hain?">
-                  <span>✅</span> Mere aaj ke tasks check karo
+                <button type="button" class="minimal-prompt-chip" data-action="timer" id="heroTimerChip">
+                  <span class="chip-emoji">⏱️</span>
+                  <div class="chip-text-wrap">
+                    <strong>25-Min Strict Study Mode</strong>
+                    <small>Phone distraction lock</small>
+                  </div>
                 </button>
-                <button type="button" class="minimal-prompt-chip" data-prompt="Padhai karte waqt phone chalane ki aadat kaise rokein?">
-                  <span>🛡️</span> Phone distraction kaise rokein?
+                <button type="button" class="minimal-prompt-chip" data-action="routine" data-prompt="Kal ke exam ke liye ek realistic 4-ghante ka self-study timetable bana do">
+                  <span class="chip-emoji">📅</span>
+                  <div class="chip-text-wrap">
+                    <strong>4-Hour Study Routine</strong>
+                    <small>Timetable & target tracker</small>
+                  </div>
                 </button>
               </div>
             </div>
