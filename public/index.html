@@ -361,6 +361,73 @@
     </div>
   </div>
 
+  <!-- Class 10 / First-Time Student Onboarding Modal -->
+  <div class="modal-backdrop hidden" id="studentWelcomeModal" style="z-index: 999998;">
+    <div class="modal-card glass-card" style="max-width: 480px; padding: 22px 20px;">
+      <div style="text-align: center; margin-bottom: 16px;">
+        <div style="font-size: 36px; margin-bottom: 6px;">👋</div>
+        <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-main);">
+          Arre Champ, Welcome to <span style="background: linear-gradient(135deg, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Synapse OS</span>!
+        </h2>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+          Tera personal AI Study Partner & Focus OS — Board exams ki tension khatam aur phone distraction lock karne ke liye.
+        </p>
+      </div>
+
+      <!-- Quick 10-Second Customization -->
+      <div style="background: var(--glass-inset); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 8px;">
+          🎯 1. Tu kiski preparation kar raha hai?
+        </label>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="onboardingClassChips">
+          <button type="button" class="onboard-chip active" data-class="Class 10 Boards">Class 10 Boards</button>
+          <button type="button" class="onboard-chip" data-class="Class 9">Class 9</button>
+          <button type="button" class="onboard-chip" data-class="Class 11 / 12">Class 11 / 12</button>
+          <button type="button" class="onboard-chip" data-class="JEE / NEET Foundation">JEE / NEET</button>
+        </div>
+
+        <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin: 12px 0 8px 0;">
+          ⚡ 2. Sabse zyada pareshani kis cheez se hoti hai?
+        </label>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="onboardingPainChips">
+          <button type="button" class="onboard-chip active" data-pain="Phone / Reels ka distraction">📱 Phone Distraction</button>
+          <button type="button" class="onboard-chip" data-pain="Maths / Science me numerical doubts">📐 Maths & Science Doubts</button>
+          <button type="button" class="onboard-chip" data-pain="Padhai ka routine aur backlog">📅 Routine & Backlogs</button>
+        </div>
+      </div>
+
+      <!-- Kisse Kya Hota Hai (Visual 15-second Guide) -->
+      <div style="margin-bottom: 18px;">
+        <div style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">
+          💡 Ye App Kaise Kaam Karti Hai (Short Guide):
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 7px; font-size: 12px; line-height: 1.4;">
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <span>🧠</span>
+            <div><strong>AI Study Coach:</strong> Kisi bhi concept ya formula ka doubt aasan bhasha me pucho.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <span>⏱️</span>
+            <div><strong>Strict Focus Timer:</strong> Padhai ke waqt phone lock. Split screen pe timer freeze ho jayega.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <span>📚</span>
+            <div><strong>Study Vault:</strong> 50+ revision formulas aur quick memory sheets hamesha ready.</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <span>✅</span>
+            <div><strong>Tasks & Streak:</strong> Roz ke 3 important targets poore karo aur streak banao!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button type="button" class="btn-primary" id="startOnboardingBtn" style="width: 100%; padding: 11px; font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35);">
+        🚀 Chalo Shuru Karte Hain!
+      </button>
+    </div>
+  </div>
+
   <!-- Celebratory Confetti Canvas (For Streak Wins & Goal Completion) -->
   <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999999;"></canvas>
 

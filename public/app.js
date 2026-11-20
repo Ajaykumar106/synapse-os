@@ -3712,6 +3712,53 @@ function runBootSequence() {
 
 runBootSequence();
 
+function initStudentOnboarding() {
+  const modal = document.getElementById('studentWelcomeModal');
+  const startBtn = document.getElementById('startOnboardingBtn');
+  if (!modal || !startBtn) return;
+
+  const hasOnboarded = localStorage.getItem('synapse_student_onboarded');
+  if (!hasOnboarded) {
+    setTimeout(() => {
+      modal.classList.remove('hidden');
+    }, 1300);
+  }
+
+  // Chip selection
+  document.querySelectorAll('#onboardingClassChips .onboard-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#onboardingClassChips .onboard-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('#onboardingPainChips .onboard-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#onboardingPainChips .onboard-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  startBtn.addEventListener('click', () => {
+    const selectedClass = document.querySelector('#onboardingClassChips .onboard-chip.active')?.dataset.class || 'Class 10 Boards';
+    const selectedPain = document.querySelector('#onboardingPainChips .onboard-chip.active')?.dataset.pain || 'Phone Distraction';
+
+    localStorage.setItem('synapse_student_onboarded', 'true');
+    localStorage.setItem('synapse_student_class', selectedClass);
+    localStorage.setItem('synapse_student_pain', selectedPain);
+
+    modal.classList.add('hidden');
+    launchConfettiBurst();
+
+    if (userInput && chatForm) {
+      userInput.value = `Bhai main ${selectedClass} me hoon aur mujhe ${selectedPain} me sabse zyada help chahiye. Aaj se kaise shuru karein?`;
+      chatForm.dispatchEvent(new Event('submit'));
+    }
+  });
+}
+
+initStudentOnboarding();
+
 updateProUI();
 renderWorkflowPills();
 renderVaultCards();
