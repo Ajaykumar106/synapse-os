@@ -782,6 +782,7 @@ app.get(['/api/engine-status', '/engine-status'], async (_req, res) => {
   res.json({
     hasGroq: Boolean(process.env.GROQ_API_KEY || process.env.GROQ_KEY || GROQ_API_KEY),
     hasGemini: Boolean(process.env.GEMINI_API_KEY || process.env.GEMINI_KEY || GEMINI_API_KEY),
+    hasFreeCloud: true,
     isOllamaRunning: ollamaRunning,
     isVercel: isVercel
   });
@@ -790,63 +791,52 @@ app.get(['/api/engine-status', '/engine-status'], async (_req, res) => {
 function getOfflineCoachResponse(raw, lower, timeInfo) {
   // 1. Anti-Social Media / Digital Detox / Procrastination / Urges
   if (/(?:social\s+media|instagram|tiktok|youtube|twitter|reels|shorts|doomscroll|scroll|distract\w*|procrastinat\w*|lazy|unmotivat\w*|can't\s+focus|dopamine|urge)/i.test(lower)) {
-    return `🛡️ **Discipline Coach: Crushing Distraction & Social Media Urges**
+    return `Arre dost, distraction ya phone scroll karne ka man hona bilkul normal hai! Sabke saath hota hai. Lekin exam ke baad regret karne se bachne ke liye bas ye 2 simple hacks follow karo:
 
-Here is your tactical action protocol:
+1. **10-Minute Urge Rule:** Jab bhi Instagram ya reels kholne ka man kare, khud se bolo: *"Sirf 10 minute rukta hoon, phir dekhunga."* 90% cases me 3-4 minute me wo craving khatam ho jati hai.
+2. **Phone Desk se Door:** Phone ko doosre kamre me silent karke rakh do aur bas **15 minute** ka ek topic padho. Action lene se motivation apne aap aata hai!
 
-1. **The 10-Minute Urge Rule:**
-   When you feel an intense urge to open social media, tell yourself: *"I will wait 10 minutes."* In 90% of cases, the dopamine craving peaks and fades in 3–5 minutes.
-
-2. **Dopamine Reset (Why studying feels boring):**
-   Social media floods your brain with cheap, effortless dopamine. When you sit down to study, your brain craves that instant hit. To reset: put your phone in another room, take 5 deep breaths, and commit to just **5 minutes** of reading. Action creates motivation.
-
-3. **Friction is Your Armor:**
-   • Move social apps into deep folders or delete them for exam weeks.
-   • Turn your phone to Grayscale (monochrome) — it reduces screen time by 30%.
-   • Use Synapse's **Strict Study Mode** to lock your focus timer now.
-
-💡 *Remember: Discipline is choosing between what you want NOW and what you want MOST.*`;
+Batao, kya abhi **15 minute ka focus timer** start karein? Saath me niptate hain! 🚀
+[[START_TIMER: 15]]`;
   }
 
   // 2. Study Techniques & Mastery (Feynman, Active Recall, Spaced Repetition, Blurting)
   if (/(?:feynman|active\s+recall|spaced\s+repetition|blurting|pomodoro|study\s+technique|how\s+to\s+study|memoriz|exam\s+prep|revision)\b/i.test(lower)) {
     if (/feynman/i.test(lower)) {
-      return `🧠 **The Feynman Technique (Master Any Hard Topic):**
+      return `Bhai, **Feynman Technique** kisi bhi tough concept ko master karne ka sabse solid tareeqa hai:
 
-1. **Pick the Concept:** Choose a specific formula, theory, or chapter.
-2. **Teach it to a 10-Year-Old:** Write down or speak out loud an explanation without using any technical jargon or textbooks.
-3. **Identify Gaps:** Where did you stumble or need complex words? That is your exact weak point.
-4. **Simplify & Create Analogies:** Re-study that specific gap until you can explain it with a simple everyday metaphor.
+1. **Topic Chuno:** Koi bhi ek formula ya chapter pick karo.
+2. **Ek Bachhe ko Samjhao:** Aise samjhao jaise kisi 10 saal ke bachhe ko simple bhasha me samjha rahe ho—zero bookish jargon.
+3. **Weak Point Pakdo:** Jahan ruk rahe ho, wahi tumhara actual doubt hai.
+4. **Simple Analogy Banao:** Us gap ko book se dobara dekho aur ek aasan real-life example ke saath fix karo.
 
-🔥 *Rule: If you cannot explain it simply, you do not understand it deeply.*`;
+*Rule: Agar simple words me nahi samjha sakte, toh matlab abhi deep clear nahi hua.* Kaunsa topic samajhna hai? Batao, simple words me breakdown karte hain! 💡`;
     }
     if (/active\s+recall/i.test(lower)) {
-      return `⚡ **Active Recall (The #1 Science-Backed Study Method):**
+      return `⚡ **Active Recall (Top Science-Backed Method):**
 
-Passive reading (highlighting, re-reading notes) gives an **illusion of competence**. Active recall forces your brain to retrieve knowledge.
+Bar-bar notes read karna ek fake illusion deta hai ki yaad ho gaya. Real test retrieval me hota hai!
 
-**3 Ways to Use It Right Now:**
-• **Closed-Book Questioning:** Read a page, close the book, and write down everything you remember.
-• **Flashcard Testing:** Write questions on one side and answers on the other. Test yourself repeatedly.
-• **Teach the Wall:** Stand up and explain the core ideas without looking at notes.`;
+**Aise Use Karo Abhi:**
+• **Closed-Book Quiz:** Ek page padho, book band karo, aur jo yaad aaya wo likh dalo.
+• **Teach the Wall:** Khade hoke bina notes dekhe concept bol kar samjhao.
+• **Flashcard Testing:** Khud se sawaal pucho aur bina dekhe answer do!`;
     }
     if (/spaced\s+repetition/i.test(lower)) {
       return `📅 **Spaced Repetition Schedule (Never Forget a Topic):**
 
-The Ebbinghaus Forgetting Curve shows you lose 70% of new information in 24 hours unless reviewed at spaced intervals.
-
-**The Golden Review Timeline:**
-• **Day 1:** Initial study + active recall test.
-• **Day 2 (24h later):** Quick 10-minute retrieval quiz.
-• **Day 4 (3 days later):** Solve 3 practice problems.
-• **Day 7 (1 week later):** High-level summary from memory.
-• **Day 30 (1 month later):** Final consolidation review.`;
+The Ebbinghaus Curve shows memory fades quickly without revision. Review timeline:
+• **Day 1:** Pehla study session.
+• **Day 2:** 10-minute quick quiz.
+• **Day 4:** 3 practice problems solve karo.
+• **Day 7:** Mind map ya summary draw karo.
+• **Day 30:** Final consolidation review.`;
     }
-    return `📚 **Top 3 Science-Backed Study Strategies:**
+    return `📚 **Top 3 Smart Study Strategies (Jo Actually Kaam Karti Hain):**
 
-1. **Active Recall:** Always test yourself instead of re-reading. Force your brain to retrieve answers.
-2. **50/10 Study Blocks:** 50 minutes of deep, uninterrupted work followed by 10 minutes of screen-free physical rest.
-3. **The Blurting Method:** Read a topic, close the book, and write every fact you can recall on a blank sheet in 5 minutes. Check errors in red.`;
+1. **Active Recall:** Book band karke khud se sawaal pucho. Mind par thoda zor padna zaroori hai.
+2. **50/10 Study Sprints:** 50 minute deep focus, phir 10 minute screen-free walk ya paani peeo.
+3. **Blurting Method:** Topic padhne ke baad blank paper par 5 min me sab likho jo yaad hai. Missing parts red pen se check karo!`;
   }
 
   // 3. Routine & Daily Timetable Generation
@@ -1126,15 +1116,14 @@ async function fetchWikipediaConcept(query) {
 }
 
 function getDefaultCoachingResponse(raw) {
-  return `💡 **Discipline & Study Insight:**
+  return `Arre dost, **"${raw}"** ke liye tension bilkul mat lo!
 
-Regarding **"${raw}"**:
+Chal ek smart approach lagate hain:
+1. **15-Min Sprint:** Pehle isko sirf 15 minute ke chhote sprint me divide karo. Shuruat karne ke baad flow apne aap ban jata hai.
+2. **Simple Words:** Samajhne ke baad khud ke shabdon me bina dekhe repeat karo (Feynman style).
+3. **Zero Distraction:** Phone ko desk se door rakho taaki mind poora focus me rahe.
 
-• **Action First:** Break this topic into an uninterrupted 15-minute study sprint. Momentum always follows action.
-• **Active Engagement:** Test yourself by explaining this in your own words without checking your notes (The Feynman Method).
-• **Eliminate Friction:** Keep your study desk clean and put your phone in another room.
-
-Would you like me to create a dedicated **Task**, schedule a **Study Timer**, or add this to your **Routine**?`;
+Batao, kya iske liye ek **Focus Timer** laga doon ya checklist me task add karoon? Saath me niptate hain! 🚀`;
 }
 
 // ========================================================
@@ -1308,25 +1297,22 @@ function executeActionTags(fullText, sendEvent, userMessage = '') {
 }
 
 function getAssistantSystemPrompt(appContext = '') {
-  return `You are Synapse, an omniscient, razor-sharp AI study companion and notebook tutor (matching the standard of ChatGPT and Meta AI).
+  return `You are Synapse, a warm, super-smart, and motivating AI study buddy & mentor (like an encouraging dost or smart study partner).
 
-CORE CAPABILITIES & DIRECTIVES:
-1. UNIVERSAL NOTEBOOK KNOWLEDGE: You possess comprehensive mastery across Science (Physics, Chemistry, Biology), Mathematics, Engineering, Coding, Humanities, and General Knowledge. You can solve, explain, and derive solutions for any question methodically.
-2. NO UNPROMPTED BOOK / TASK FIXATION: NEVER randomly mention specific textbooks (like HC Verma, Irodov, RD Sharma, etc.) or user tasks unless the user explicitly asks about them in their prompt.
-3. CONVERSATIONAL TONE: Talk like a smart, warm friend/dost—conversational, punchy, and encouraging. Fluently use natural Hinglish/Hindi or English matching the user.
-4. ADAPTIVE DEPTH:
-   - For quick queries (e.g. "What is ATP?", "Formula of momentum", greetings): Give a direct, punchy 2-4 line answer with bold keywords. Do not invent context.
-   - For academic questions, derivations, numericals, complex concepts, or document/notes analysis: Provide a comprehensive, structured response with clear bold sections (### Core Concept, ### Step-by-Step Breakdown, ### Key Formulas/Takeaways, ### Exam Traps to Avoid).
-   - When analyzing uploaded study material or notes: Extract the main themes, key formulas/dates, and generate 3 active recall practice questions.
-5. Standard clean Markdown: Bold keywords (**key term**), neat bullet points, and code/math blocks. Never output messy raw tags.
-6. NEVER introduce yourself or say "I am Synapse OS" or "As an AI". Jump straight into answering.
+KEY PERSONALITY & DIRECTIVES:
+1. NATURAL, FRIENDLY HINGLISH: Talk like a real, supportive friend—relatable, encouraging, high-energy, and completely natural. When the user asks in Hindi/Hinglish, reply in warm, natural Hinglish ("Arre dost!", "Bhai tension mat le", "Dekh simple words me samjhein toh", "Deal?", "Ekdum aasan hai"). When the user asks in English, reply in friendly, conversational English.
+2. ZERO ROBOTIC FLUFF: Never speak like a mechanical robot, encyclopedia, or strict corporate lecturer. Avoid preachy headers like "### Tactical Action Protocol". Keep explanations lively, punchy, and clear.
+3. INTUITION FIRST: Always explain the core concept with a simple, everyday real-life analogy so the student instantly gets it ("Aha! moment"). Then provide clean, exam-ready points/formulas.
+4. BEAT PROCRASTINATION & MOTIVATE: When the user feels lazy, bored, distracted, or demotivated, show high empathy ("Bhai bilkul normal hai, sabka burnout hota hai"). Give them the 10-15 minute Micro-Sprint hack: "Zabardasti 4 ghante mat baith, bas 15 min ka sprint laga aur phone doosre room me rakh. Saath me niptate hain!"
+5. UNIVERSAL NOTEBOOK MASTERY: Master across Science (Physics, Chemistry, Biology), Maths, Coding, Engineering, and General Knowledge. Solve numericals step-by-step with clean math formatting.
+6. NO UNPROMPTED BOOK FIXATION: Never randomly mention specific textbooks (like HC Verma, Irodov) unless the user explicitly asks about them.
+7. NEVER INTRODUCE YOURSELF: Do not say "I am Synapse OS" or "As an AI". Jump straight into answering with energy and warmth.
 
-APP COMMAND TAGS (append on a new line at the very end only when needed):
-- [[ADD_TASK: <task title>]]
-- [[START_TIMER: <minutes>]]
-- [[ADD_ROUTINE: <time> | <title>]]
-- [[SAVE_NOTE: <title> | <content>]]
-- [[DEFEAT_URGE]]
+ACTION COMMAND TAGS (append on a new line at the very end only when appropriate):
+- [[START_TIMER: <minutes>]] (when offering or starting a focus timer)
+- [[ADD_TASK: <task title>]] (when adding a task to user's checklist)
+- [[DEFEAT_URGE]] (when user resists distraction)
+- [[SAVE_NOTE: <title> | <content>]] (when saving study notes)
 
 ${appContext ? `CONTEXT: ${appContext}` : ''}`;
 }
@@ -1334,7 +1320,7 @@ ${appContext ? `CONTEXT: ${appContext}` : ''}`;
 function createStreamTokenizer(sendEvent, userMessage) {
   let fullResponse = '';
   let streamBuffer = '';
-  const ACTION_TAG_REGEX = /\[\[?\s*(?:ADD_TASK|START_TIMER|ADD_ROUTINE|SAVE_NOTE|DEFEAT_URGE|TASK|TIMER|ROUTINE|NOTE)[\s\S]*?(?:\]\]?|$)|:\s*\d+\s*\]+|\[Pending Tasks[\s\S]*?\]|\[Pending Checklist Tasks[\s\S]*?\]|\]\]/gi;
+  const ACTION_TAG_REGEX = /\[\[[\s\S]*?(?:\]\]|$)|\[\[?\s*(?:ADD_TASK|START_TIMER|ADD_ROUTINE|SAVE_NOTE|DEFEAT_URGE|TASK|TIMER|ROUTINE|NOTE)[\s\S]*?(?:\]\]?|$)|:\s*\d+\s*\]+|\[Pending Tasks[\s\S]*?\]|\[Pending Checklist Tasks[\s\S]*?\]|\]\]/gi;
 
   return {
     push(token) {
@@ -1616,7 +1602,63 @@ async function streamOllamaChat({ message, history = [], sendEvent }) {
   tokenizer.finish();
 }
 
-// 4. Live Knowledge Retrieval Engine (DuckDuckGo & Wikipedia)
+// 4. Free Zero-Key Instant Cloud AI Stream (Pollinations OpenAI Engine)
+// Always works out-of-the-box with ZERO API keys or setup!
+async function streamFreeCloudChat({ message, history = [], sendEvent }) {
+  const appContext = await getAppContext(message);
+  const systemPrompt = getAssistantSystemPrompt(appContext);
+  const tokenizer = createStreamTokenizer(sendEvent, message);
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.slice(-8).map(h => ({ role: h.role, content: h.content })),
+    { role: 'user', content: message }
+  ];
+
+  const res = await fetch('https://text.pollinations.ai/openai/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'openai',
+      messages,
+      stream: true,
+      temperature: 0.7
+    }),
+    signal: AbortSignal.timeout(45000)
+  });
+
+  if (!res.ok) {
+    throw new Error('Free cloud AI status ' + res.status);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      const jsonStr = trimmed.slice(5).trim();
+      if (jsonStr === '[DONE]') break;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const token = parsed.choices?.[0]?.delta?.content || '';
+        if (token) tokenizer.push(token);
+      } catch (e) {}
+    }
+  }
+
+  tokenizer.finish();
+}
+
+// 5. Live Knowledge Retrieval Engine (DuckDuckGo & Wikipedia)
 async function synthesizeKnowledge(query) {
   try {
     const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
@@ -1848,22 +1890,19 @@ app.post(['/api/chat-stream', '/chat-stream'], async (req, res) => {
     }
   }
 
-  // Option D: Live Knowledge Retrieval (DuckDuckGo / Wikipedia) when user asks factual question
-  if (/^(?:tell\s+me\s+about|what\s+is|who\s+is|explain|kya\s+hai|define|history\s+of|summary\s+of)\b/i.test(lower) || raw.endsWith('?')) {
-    try {
-      const knowledge = await synthesizeKnowledge(raw);
-      if (knowledge) {
-        const synthesizedReply = `💡 **${knowledge.title}**\n\n${knowledge.text}\n\n` +
-          `• **Key Takeaway:** Real-time knowledge retrieved from ${knowledge.source}.\n` +
-          `• **Next Step:** Would you like to schedule a **25m Focus Block** on this or save it to **📝 Notes**?\n\n` +
-          `⚡ *Pro Tip: Connect a free Gemini or Groq key in Settings (top bar) to unlock 100% full conversational AI on your mobile with zero downloads!*`;
-        sendEvent({ token: synthesizedReply, done: true });
-        return res.end();
-      }
-    } catch (e) {}
+  // Option D: Free Zero-Key Instant Cloud AI Stream (Always active, no API keys needed!)
+  try {
+    await streamFreeCloudChat({ message: raw, history, sendEvent: wrappedSendEvent });
+    return res.end();
+  } catch (err) {
+    console.warn('Free Cloud AI streaming notice:', err.message);
+    if (streamedAny) {
+      sendEvent({ done: true });
+      return res.end();
+    }
   }
 
-  // Option E: Smart Context-Aware Fallback (Urges, Focus Timers, Tasks, Offline Coach)
+  // Option E: Smart Context-Aware Fallback (100% Offline Airplane Mode: Urges, Focus Timers, Tasks, Offline Coach)
   smartContextFallback({ raw, lower, timeInfo, sendEvent });
   return res.end();
 });

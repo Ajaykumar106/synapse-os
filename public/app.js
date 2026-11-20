@@ -4109,16 +4109,16 @@ async function updateEngineStatusBadge() {
 
   if (isOnline) {
     if (userGroq || serverEngineStatus.hasGroq) {
-      title = '⚡ Groq AI (Active)';
-      detail = 'Ultra-fast Meta / Qwen 27B cloud intelligence active.';
+      title = '✨ Synapse AI (Ultra-Fast)';
+      detail = 'Ultra-fast study intelligence active.';
       dot = '🟢';
     } else if (userGemini || serverEngineStatus.hasGemini) {
-      title = '🧠 Gemini AI (Active)';
-      detail = 'Google Gemini cloud intelligence active.';
+      title = '🧠 Synapse AI (Gemini)';
+      detail = 'Google Gemini study intelligence active.';
       dot = '🟢';
     } else {
-      title = '⚡ Cloud AI';
-      detail = 'Cloud assistant active.';
+      title = '✨ Synapse AI (Active & Free)';
+      detail = 'Conversational study coach ready — zero setup or API keys needed!';
       dot = '🟢';
     }
   } else {
@@ -4127,8 +4127,8 @@ async function updateEngineStatusBadge() {
       detail = 'On-device neural brain active in 100% Airplane Mode.';
       dot = '🟢';
     } else {
-      title = '📱 Offline Mode';
-      detail = 'Built-in 0MB study coach active with zero internet.';
+      title = '📱 Offline Study Coach';
+      detail = 'Built-in 0MB study buddy active with zero internet.';
       dot = '🟠';
     }
   }
