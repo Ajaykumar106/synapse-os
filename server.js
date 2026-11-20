@@ -1358,22 +1358,27 @@ function createStreamTokenizer(sendEvent, userMessage) {
   };
 }
 
-// 1. Groq Ultra-Fast Cloud Stream (Meta Llama 3.3 70B - 300+ tok/sec, Meta AI's Open Engine)
-async function streamGroqChat({ message, history = [], apiKey, sendEvent }) {
+// 1. Groq Ultra-Fast Cloud Stream (Meta Llama 3.3 70B & Qwen Multimodal Vision)
+async function streamGroqChat({ message, history = [], apiKey, sendEvent, image = null }) {
   const appContext = await getAppContext(message);
   let systemPrompt = getAssistantSystemPrompt(appContext);
 
-  if (message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('Extracted Content:')) {
-    systemPrompt += `\n\nDOCUMENT / IMAGE SOLVER & PEDAGOGICAL DIRECTIVE:
-The student has attached study notes, syllabus, or an exam question extracted via OCR/document parser.
-You must analyze this with extreme academic precision, similar to ChatGPT and Meta AI:
-1. Direct Answer & Core Thesis: Provide the core takeaway or answer first in 2-3 crisp sentences.
-2. Step-by-Step Breakdown: Break down the logic, formulas, mathematical derivation, or concepts methodically.
-3. Exam Traps & Common Mistakes: Explicitly warn about tricky mistakes students often make on this topic.
-4. Active Recall & Formulas: Highlight key revision formulas or provide 2 quick self-test questions.`;
+  if (image || message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('[STUDY QUESTION PHOTO') || message.includes('Extracted Content:')) {
+    systemPrompt += `\n\nPHOTO QUESTION & ACADEMIC DOUBT SOLVER DIRECTIVE:
+The student has attached an exam question, textbook numerical, notes, or handwritten problem photo.
+You must analyze this with extreme academic precision, step-by-step clarity, and an encouraging mentor voice:
+1. Direct Answer & Final Solution: Clearly state the final numerical answer, formula result, or core concept in bold upfront.
+2. Step-by-Step Derivation & Working: Detail every intermediate algebraic, physical, or chemical step with formulas written in clear notation.
+3. Exam Traps & Common Mistakes: Explicitly warn about negative sign errors, unit conversion slips, or typical misconceptions examiners test.
+4. Active Recall / Quick Check: Provide one quick follow-up question or formula reminder to solidify the student's mastery.`;
   }
 
   const tokenizer = createStreamTokenizer(sendEvent, message);
+
+  const userContent = image ? [
+    { type: 'text', text: message },
+    { type: 'image_url', image_url: { url: image } }
+  ] : message;
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -1381,18 +1386,22 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
       role: h.role === 'assistant' ? 'assistant' : 'user',
       content: h.content
     })),
-    { role: 'user', content: message }
+    { role: 'user', content: userContent }
   ];
 
-  const isMathOrTechnical = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(message);
-  const dynamicTemp = isMathOrTechnical ? 0.35 : 0.65;
+  const isMathOrTechnical = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(message) || !!image;
+  const dynamicTemp = isMathOrTechnical ? 0.25 : 0.65;
 
-  const candidateModels = [
-    process.env.GROQ_MODEL,
-    'qwen/qwen3.8-27b',
-    'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant'
-  ].filter(Boolean);
+  const candidateModels = image
+    ? ['qwen/qwen3.8-27b']
+    : [
+        process.env.GROQ_MODEL,
+        'qwen/qwen3.8-27b',
+        'openai/gpt-oss-120b',
+        'openai/gpt-oss-20b',
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant'
+      ].filter(Boolean);
 
   let groqRes = null;
   let lastError = null;
@@ -1409,10 +1418,10 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
           model,
           messages,
           temperature: dynamicTemp,
-          max_tokens: 850,
+          max_tokens: 450,
           stream: true
         }),
-        signal: AbortSignal.timeout(9000)
+        signal: AbortSignal.timeout(12000)
       });
 
       if (res.ok) {
@@ -1464,19 +1473,19 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
   tokenizer.finish();
 }
 
-// 2. Google Gemini 1.5 Flash Cloud Stream (Google AI Studio Free Tier, Multilingual, 1M Context)
-async function streamGeminiChat({ message, history = [], apiKey, sendEvent }) {
+// 2. Google Gemini 1.5 Flash Cloud Stream (Google AI Studio Free Tier, Multimodal Vision, 1M Context)
+async function streamGeminiChat({ message, history = [], apiKey, sendEvent, image = null }) {
   const appContext = await getAppContext(message);
   let systemPrompt = getAssistantSystemPrompt(appContext);
 
-  if (message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('Extracted Content:')) {
-    systemPrompt += `\n\nDOCUMENT / IMAGE SOLVER & PEDAGOGICAL DIRECTIVE:
-The student has attached study notes, syllabus, or an exam question extracted via OCR/document parser.
-You must analyze this with extreme academic precision, similar to ChatGPT and Meta AI:
-1. Direct Answer & Core Thesis: Provide the core takeaway or answer first in 2-3 crisp sentences.
-2. Step-by-Step Breakdown: Break down the logic, formulas, mathematical derivation, or concepts methodically.
-3. Exam Traps & Common Mistakes: Explicitly warn about tricky mistakes students often make on this topic.
-4. Active Recall & Formulas: Highlight key revision formulas or provide 2 quick self-test questions.`;
+  if (image || message.includes('[UPLOADED STUDY MATERIAL') || message.includes('[ATTACHED STUDY FILE') || message.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || message.includes('[STUDY QUESTION PHOTO') || message.includes('Extracted Content:')) {
+    systemPrompt += `\n\nPHOTO QUESTION & ACADEMIC DOUBT SOLVER DIRECTIVE:
+The student has attached an exam question, textbook numerical, notes, or handwritten problem photo.
+You must analyze this with extreme academic precision, step-by-step clarity, and an encouraging mentor voice:
+1. Direct Answer & Final Solution: Clearly state the final numerical answer, formula result, or core concept in bold upfront.
+2. Step-by-Step Derivation & Working: Detail every intermediate algebraic, physical, or chemical step with formulas written in clear notation.
+3. Exam Traps & Common Mistakes: Explicitly warn about negative sign errors, unit conversion slips, or typical misconceptions examiners test.
+4. Active Recall / Quick Check: Provide one quick follow-up question or formula reminder to solidify the student's mastery.`;
   }
 
   const tokenizer = createStreamTokenizer(sendEvent, message);
@@ -1488,9 +1497,27 @@ You must analyze this with extreme academic precision, similar to ChatGPT and Me
       parts: [{ text: h.content }]
     });
   }
+
+  const userParts = [{ text: message }];
+  if (image && typeof image === 'string' && image.includes('base64,')) {
+    try {
+      const [header, base64Data] = image.split('base64,');
+      const mimeMatch = header.match(/data:([^;]+);/);
+      const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      userParts.push({
+        inlineData: {
+          mimeType,
+          data: base64Data
+        }
+      });
+    } catch (e) {
+      console.warn('Gemini image part parse notice:', e.message);
+    }
+  }
+
   contents.push({
     role: 'user',
-    parts: [{ text: message }]
+    parts: userParts
   });
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey.trim()}`;
@@ -1762,9 +1789,20 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
   }
 
 
-  if (raw.includes('[UPLOADED STUDY MATERIAL') || raw.includes('[ATTACHED STUDY FILE') || raw.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS')) {
+  // If document/notes text was uploaded offline, provide structured problem-solving framework
+  if (raw.includes('[UPLOADED STUDY MATERIAL') || raw.includes('[ATTACHED STUDY FILE') || raw.includes('[DOCUMENT / STUDY MATERIAL ANALYSIS') || raw.includes('[STUDY QUESTION PHOTO')) {
+    const extractedMatch = raw.match(/Extracted Content:\s*([\s\S]*?)(?:\[USER INSTRUCTION|\n\nUser Question|$)/i) || raw.match(/User Question\/Note:\s*([\s\S]*?)$/i);
+    const extracted = extractedMatch ? extractedMatch[1].trim() : raw;
+    const coachAnswer = getOfflineCoachResponse(extracted, extracted.toLowerCase(), timeInfo);
+    if (coachAnswer) {
+      sendEvent({
+        token: `📄 **Analysis & Solution:**\n\n${coachAnswer}`,
+        done: true
+      });
+      return;
+    }
     sendEvent({
-      token: `📄 **Document Content Extracted:**\n\nTo run deep reasoning, step-by-step problem solving, and formula derivations on your uploaded document, make sure your free Groq or Gemini API key is configured in Settings (or download an on-device WebLLM model).`,
+      token: `📷 **Study Question / Material Received:**\n\n### ⚡ Step-by-Step Problem-Solving Approach:\n1. **Identify the Given Quantities & Knowns:** Write down every known variable, unit, and condition stated in the problem.\n2. **Isolate the Target Variable:** What exact quantity or concept is the question asking for?\n3. **Select Governing Formulas:** Connect the given variables to the unknown using core first-principles formulas.\n4. **Check Units & Signs:** Ensure all quantities are converted to SI units (e.g. meters, seconds, kg) before final calculation.\n\n*💡 Tip: For instant step-by-step AI derivations directly on your phone, configure your free Groq or Gemini key in settings!*`,
       done: true
     });
     return;
@@ -1792,7 +1830,7 @@ function smartContextFallback({ raw, lower, timeInfo, sendEvent }) {
 // REAL-TIME STREAMING CHAT (CLOUD AI & ON-DEVICE NEURAL ENGINES)
 // ========================================================
 app.post(['/api/chat-stream', '/chat-stream'], async (req, res) => {
-  const { message, history = [], groqKey: bodyGroqKey, geminiKey: bodyGeminiKey } = req.body;
+  const { message, history = [], image = null, groqKey: bodyGroqKey, geminiKey: bodyGeminiKey } = req.body;
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'Message cannot be empty' });
   }
@@ -1847,10 +1885,10 @@ app.post(['/api/chat-stream', '/chat-stream'], async (req, res) => {
     sendEvent(data);
   };
 
-  // Option A: Groq Cloud (Meta Llama 3.3 70B - Fastest, Meta AI's actual model)
+  // Option A: Groq Cloud (Meta Llama 3.3 70B & Qwen Vision - Fastest LPU Engine)
   if (groqApiKey) {
     try {
-      await streamGroqChat({ message: raw, history, apiKey: groqApiKey, sendEvent: wrappedSendEvent });
+      await streamGroqChat({ message: raw, history, apiKey: groqApiKey, sendEvent: wrappedSendEvent, image });
       return res.end();
     } catch (err) {
       console.warn('Groq streaming notice:', err.message);
@@ -1861,10 +1899,10 @@ app.post(['/api/chat-stream', '/chat-stream'], async (req, res) => {
     }
   }
 
-  // Option B: Google Gemini 1.5 Flash (Google AI Studio Free Tier, Multilingual, 1M Context)
+  // Option B: Google Gemini 1.5 Flash (Google AI Studio Free Tier, Multimodal Vision, 1M Context)
   if (geminiApiKey) {
     try {
-      await streamGeminiChat({ message: raw, history, apiKey: geminiApiKey, sendEvent: wrappedSendEvent });
+      await streamGeminiChat({ message: raw, history, apiKey: geminiApiKey, sendEvent: wrappedSendEvent, image });
       return res.end();
     } catch (err) {
       console.warn('Gemini streaming notice:', err.message);

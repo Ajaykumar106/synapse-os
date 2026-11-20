@@ -1953,32 +1953,35 @@ chatFileInput?.addEventListener('change', async (e) => {
 
   try {
     if (isImg) {
-      if (fileBadgeStatus) {
-        fileBadgeStatus.textContent = '⏳ Scanning Image (OCR)...';
-        fileBadgeStatus.className = 'file-badge-status processing';
-      }
+      // 1. Immediately read image as dataUrl (<15ms) - Zero hanging, zero CDN wait
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Failed to read image file'));
+        reader.readAsDataURL(file);
+      });
+
+      // 2. Immediately show thumbnail and arm attachedFile!
       if (fileBadgeThumb) {
-        const previewReader = new FileReader();
-        previewReader.onload = (ev) => {
-          fileBadgeThumb.src = ev.target.result;
-          fileBadgeThumb.classList.remove('hidden');
-          if (fileBadgeIcon) fileBadgeIcon.classList.add('hidden');
-        };
-        previewReader.readAsDataURL(file);
+        fileBadgeThumb.src = dataUrl;
+        fileBadgeThumb.classList.remove('hidden');
+        if (fileBadgeIcon) fileBadgeIcon.classList.add('hidden');
       }
 
-      const { text, dataUrl } = await extractTextFromImage(file);
       attachedFile = {
         name: file.name,
         size: file.size,
-        text: text || '[Problem photo/diagram uploaded]',
+        text: '',
         isImage: true,
+        dataUrl: dataUrl,
         previewUrl: dataUrl
       };
+
       if (fileBadgeStatus) {
-        fileBadgeStatus.textContent = text ? '✅ Text Extracted' : '✅ Diagram Ready';
+        fileBadgeStatus.textContent = '✅ Photo Attached — Ready to solve!';
         fileBadgeStatus.className = 'file-badge-status';
       }
+      showToast('📷 Question Photo attached! Type your question or tap Send to solve.', 'info', '📷');
     } else if (isPdf) {
       if (fileBadgeIcon) {
         fileBadgeIcon.textContent = '📕';
@@ -2267,25 +2270,34 @@ chatForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (isGenerating) return;
 
+  const quota = getDailyDoubtsStatus();
+  if (!quota.isPro && quota.count >= quota.max) {
+    if (proModal) proModal.classList.remove('hidden');
+    showToast('👑 Today’s 10 Free Doubts reached! Upgrade to Synapse Pro for Unlimited Doubts.', 'warning', '👑', 5000);
+    return;
+  }
+
   const rawText = userInput.value.trim();
   if (!rawText && !attachedFile) return;
 
   let displayHtml = '';
   let promptText = rawText;
+  let attachedImgData = null;
 
   if (attachedFile) {
     const kb = (attachedFile.size / 1024).toFixed(1);
     if (attachedFile.isImage) {
+      attachedImgData = attachedFile.dataUrl;
       displayHtml = `
         <div class="user-attached-thumb-wrap">
           <img src="${attachedFile.previewUrl}" class="user-attached-img" alt="Uploaded Question">
           <div>
             <strong>📷 ${escapeHtml(attachedFile.name)}</strong>
-            <span style="font-size:11px; color:var(--text-muted); display:block;">(${kb} KB • OCR Extracted)</span>
+            <span style="font-size:11px; color:var(--text-muted); display:block;">(${kb} KB • Question Photo)</span>
           </div>
-        </div>` + (rawText ? `<div>${escapeHtml(rawText)}</div>` : `<div><em>Please solve and explain this question step-by-step.</em></div>`);
+        </div>` + (rawText ? `<div>${escapeHtml(rawText)}</div>` : `<div><em>Please solve this question step-by-step.</em></div>`);
 
-      promptText = `[DOCUMENT / STUDY MATERIAL ANALYSIS: "${attachedFile.name}"]\nType: Problem/Question Photo (OCR Extracted Text)\nExtracted Content:\n${attachedFile.text}\n\n[USER INSTRUCTION / QUESTION]:\n${rawText || 'Solve this step-by-step with clear formulas, scientific/mathematical logic, and key exam pitfalls to avoid.'}`;
+      promptText = `[STUDY QUESTION PHOTO: "${attachedFile.name}"]\nPlease examine this question photo carefully. Provide the final answer clearly upfront, followed by a step-by-step mathematical/scientific derivation, formulas used, and common exam traps.\n\nUser Question/Note: ${rawText || 'Solve this step-by-step'}`;
     } else {
       const docType = attachedFile.isPdf ? `PDF Notes (${attachedFile.pages || 1} pages)` : 'Study Document';
       displayHtml = `<div class="user-attached-file-pill">📄 <strong>${escapeHtml(attachedFile.name)}</strong> <span>(${kb} KB • ${docType})</span></div>` + (rawText ? `<div>${escapeHtml(rawText)}</div>` : `<div><em>Please analyze and summarize this uploaded study material.</em></div>`);
@@ -2309,6 +2321,8 @@ chatForm.addEventListener('submit', async (e) => {
   } else {
     displayHtml = rawText;
   }
+
+  incrementDailyDoubts();
 
   userInput.value = '';
   appendUserMessage(displayHtml);
@@ -2339,6 +2353,7 @@ chatForm.addEventListener('submit', async (e) => {
       },
       body: JSON.stringify({
         message: promptText,
+        image: attachedImgData,
         history: chatSessionHistory.slice(-8)
       }),
       signal: controller.signal
@@ -2903,9 +2918,63 @@ if ('Notification' in window && Notification.permission !== 'granted') {
 }
 
 // ========================================================
-// 12. SYNAPSE PRO LIFETIME ENGINE ($1.99 Freemium Unlock)
+// 12. SYNAPSE PRO & DAILY DOUBTS MONETIZATION ENGINE
 // ========================================================
 let isProLifetimeUnlocked = localStorage.getItem('synapse_pro_unlocked') === 'true' || localStorage.getItem('zenith_pro_unlocked') === 'true';
+
+const doubtQuotaBtn = document.getElementById('doubtQuotaBtn');
+const doubtQuotaText = document.getElementById('doubtQuotaText');
+const proPromoInput = document.getElementById('proPromoInput');
+const redeemPromoBtn = document.getElementById('redeemPromoBtn');
+
+function getDailyDoubtsStatus() {
+  const today = new Date().toISOString().slice(0, 10);
+  const savedDate = localStorage.getItem('synapse_doubts_date');
+  let count = parseInt(localStorage.getItem('synapse_doubts_used') || '0', 10);
+  if (savedDate !== today) {
+    count = 0;
+    localStorage.setItem('synapse_doubts_date', today);
+    localStorage.setItem('synapse_doubts_used', '0');
+  }
+  const isPro = isProLifetimeUnlocked;
+  return { today, count, max: 10, isPro, remaining: Math.max(0, 10 - count) };
+}
+
+function incrementDailyDoubts() {
+  const status = getDailyDoubtsStatus();
+  if (status.isPro) return status;
+  const newCount = status.count + 1;
+  localStorage.setItem('synapse_doubts_used', newCount.toString());
+  updateDoubtQuotaUI();
+  return getDailyDoubtsStatus();
+}
+
+function updateDoubtQuotaUI() {
+  const status = getDailyDoubtsStatus();
+  if (doubtQuotaBtn && doubtQuotaText) {
+    if (status.isPro) {
+      doubtQuotaBtn.classList.add('pro-active');
+      doubtQuotaText.textContent = '👑 Pro VIP';
+      doubtQuotaBtn.title = 'Synapse Pro Member • Unlimited AI Doubts Active';
+    } else {
+      doubtQuotaBtn.classList.remove('pro-active');
+      doubtQuotaText.textContent = `⚡ ${status.remaining}/10 Doubts`;
+      doubtQuotaBtn.title = `${status.remaining} Free AI Doubts remaining today. Tap to upgrade Pro.`;
+    }
+  }
+}
+
+function unlockProLifetime(reason = 'Promotional VIP Code') {
+  isProLifetimeUnlocked = true;
+  localStorage.setItem('synapse_pro_unlocked', 'true');
+  updateProUI();
+  playAlertChime();
+  showToast(`🎉 Synapse Pro Activated (${reason})! Unlimited Doubts, Vault & Workflows unlocked!`, 'success', '👑', 5000);
+  if (window.confetti) {
+    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch (e) {}
+  }
+  if (proModal) proModal.classList.add('hidden');
+}
 
 function updateProUI() {
   if (isProLifetimeUnlocked) {
@@ -2927,6 +2996,7 @@ function updateProUI() {
       activateProBtn.disabled = true;
     }
   }
+  updateDoubtQuotaUI();
 }
 
 openProModalBtn?.addEventListener('click', () => {
@@ -2942,12 +3012,32 @@ closeProModal?.addEventListener('click', () => {
 });
 
 activateProBtn?.addEventListener('click', () => {
-  isProLifetimeUnlocked = true;
-  localStorage.setItem('synapse_pro_unlocked', 'true');
-  updateProUI();
-  playAlertChime();
-  showToast('🎉 Synapse Pro Lifetime Activated! Enjoy unlimited workflows & luxury themes.', 'success', '👑', 5000);
-  if (proModal) proModal.classList.add('hidden');
+  unlockProLifetime('Free Test Pass');
+});
+
+redeemPromoBtn?.addEventListener('click', () => {
+  const code = (proPromoInput?.value || '').trim().toUpperCase();
+  if (!code) {
+    showToast('Please enter a promo code', 'warning', '⚠️');
+    return;
+  }
+  const validCodes = ['TOPPER100', 'SYNAPSEVIP', 'AJAY', 'PRO2026', 'STUDENT100', 'BOARDEXAM'];
+  if (validCodes.includes(code)) {
+    unlockProLifetime(`Code: ${code}`);
+  } else {
+    showToast('Invalid promo code. Try TOPPER100 or SYNAPSEVIP', 'error', '❌');
+  }
+});
+
+proPromoInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    redeemPromoBtn?.click();
+  }
+});
+
+doubtQuotaBtn?.addEventListener('click', () => {
+  if (proModal) proModal.classList.remove('hidden');
 });
 
 // ========================================================

@@ -10,16 +10,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Synapse">
-  <link rel="shortcut icon" href="/favicon.ico?v=3.2.5">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=3.2.5">
-  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.5">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.5">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.5">
-  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.5">
-  <link rel="manifest" href="/manifest.json?v=3.2.5">
+  <link rel="shortcut icon" href="/favicon.ico?v=3.2.6">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=3.2.6">
+  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.6">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.6">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.6">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.6">
+  <link rel="manifest" href="/manifest.json?v=3.2.6">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.2.5">
+  <link rel="stylesheet" href="/style.css?v=3.2.6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -137,26 +137,33 @@
       <div class="modal-body pro-modal-body">
         <div class="pro-price-box glass-inset">
           <div class="price-left">
-            <span class="price-strikethrough">$19.99 / year</span>
+            <span class="price-strikethrough">₹999 / year</span>
             <div class="price-main-tag">
-              <span class="price-currency">$</span>
-              <span class="price-amount">1.99</span>
-              <span class="price-period">LIFETIME PASS</span>
+              <span class="price-currency">₹</span>
+              <span class="price-amount">99</span>
+              <span class="price-period">/ MONTH</span>
             </div>
-            <span class="price-inr">or ₹199 (One-Time Payment)</span>
+            <span class="price-inr">or ₹299 Lifetime VIP Pass ($3.99)</span>
           </div>
           <div class="price-right">
             <span class="save-tag">SAVE 90%</span>
-            <span class="rival-tag">Competitors charge $99/yr</span>
+            <span class="rival-tag">Instant Photo Doubt Solving</span>
           </div>
         </div>
 
         <div class="pro-features-list">
           <div class="pro-feat-item">
+            <span class="feat-icon">📷</span>
+            <div class="feat-info">
+              <strong>Unlimited AI Photo Doubt Solver</strong>
+              <span>Snap textbook questions, math numericals, circuits or handwritten notes. Instant step-by-step solutions with derivations in under 2 seconds.</span>
+            </div>
+          </div>
+          <div class="pro-feat-item">
             <span class="feat-icon">🧠</span>
             <div class="feat-info">
               <strong>Synapse On-Device Deep Intelligence</strong>
-              <span>Unlimited offline reasoning models running directly on your phone/PC. 100% private, zero server crashes, zero subscription token limits.</span>
+              <span>Unlimited offline reasoning models running directly on your phone/PC. 100% private, zero server crashes, zero token limits.</span>
             </div>
           </div>
           <div class="pro-feat-item">
@@ -167,13 +174,6 @@
             </div>
           </div>
           <div class="pro-feat-item">
-            <span class="feat-icon">🎧</span>
-            <div class="feat-info">
-              <strong>Binaural Focus Audio Synthesizer</strong>
-              <span>Offline Brown Noise, 40Hz Gamma Focus Waves & Rain without streaming data.</span>
-            </div>
-          </div>
-          <div class="pro-feat-item">
             <span class="feat-icon">📚</span>
             <div class="feat-info">
               <strong>Complete STEM & Study Knowledge Vault</strong>
@@ -181,10 +181,10 @@
             </div>
           </div>
           <div class="pro-feat-item">
-            <span class="feat-icon">🌓</span>
+            <span class="feat-icon">🎧</span>
             <div class="feat-info">
-              <strong>Distraction-Free Black & White</strong>
-              <span>Pure OLED Black & Crisp Paper White designed for zero eye strain.</span>
+              <strong>Binaural Focus Audio Synthesizer</strong>
+              <span>Offline Brown Noise, 40Hz Gamma Focus Waves & Rain without streaming data.</span>
             </div>
           </div>
           <div class="pro-feat-item">
@@ -196,11 +196,26 @@
           </div>
         </div>
 
+        <!-- Student Promo Code Box -->
+        <div class="pro-promo-box" style="margin-top: 14px; padding: 12px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border);">
+          <div style="font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">🎓 Have a School / VIP Promo Code?</div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="proPromoInput" placeholder="Try TOPPER100 or SYNAPSEVIP" style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--glass-card-bg); color: var(--text-main); font-size: 12.5px; font-weight: 600; text-transform: uppercase;">
+            <button type="button" id="redeemPromoBtn" class="btn-primary-sm" style="padding: 8px 14px; border-radius: 10px; font-weight: 700; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; border: none; cursor: pointer;">Redeem</button>
+          </div>
+        </div>
+
         <div class="pro-actions-box">
           <button type="button" class="btn-pro-activate" id="activateProBtn">
-            ✨ Unlock Pro Lifetime ($1.99 / Free Test)
+            ✨ Unlock Pro Pass (₹299 / Free Test)
           </button>
-          <span class="pro-guarantee-note">🔒 Google Play In-App Billing Ready • 100% Offline License</span>
+          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
+            <a href="https://wa.me/?text=Hi%2C+I+want+to+unlock+Synapse+Pro+for+Class+10+Boards" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #10b981; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+              💬 Instant WhatsApp Upgrade
+            </a>
+            <span style="color: var(--text-muted); font-size: 11px;">•</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">UPI / GPay / Cards Accepted</span>
+          </div>
         </div>
       </div>
     </div>
@@ -437,7 +452,7 @@
     <div class="boot-content">
       <div class="boot-logo-container">
         <div class="boot-logo-aura"></div>
-        <img src="/icon.svg?v=3.2.5" class="boot-logo-img" alt="Synapse Neural Core">
+        <img src="/icon.svg?v=3.2.6" class="boot-logo-img" alt="Synapse Neural Core">
         <div class="boot-quantum-ring"></div>
       </div>
       <div class="boot-brand">
@@ -461,7 +476,7 @@
     <aside class="sidebar glass-panel" id="sidebar">
       <div class="sidebar-top">
         <div class="brand-row">
-          <img src="/icon.svg?v=3.2.5" width="36" height="36" alt="Synapse OS" class="sidebar-brand-icon">
+          <img src="/icon.svg?v=3.2.6" width="36" height="36" alt="Synapse OS" class="sidebar-brand-icon">
           <div class="brand-info">
             <span class="brand-title">Synapse OS</span>
             <span class="brand-sub">AI Study & Focus Engine</span>
@@ -531,7 +546,7 @@
         <div class="sidebar-legal-row">
           <a href="/privacy.html" target="_blank" rel="noopener noreferrer" class="privacy-link">Privacy Policy</a>
           <span class="privacy-link-sep">·</span>
-          <span class="privacy-link">v3.2.5</span>
+          <span class="privacy-link">v3.2.6</span>
         </div>
       </div>
     </aside>
@@ -564,6 +579,10 @@
           <button type="button" class="btn-pro-pill hidden" id="openProModalBtn" title="Upgrade Pro" style="display: none;">
             👑 Upgrade Pro
           </button>
+          <!-- Daily Doubts Quota Pill -->
+          <button type="button" class="btn-doubt-quota-pill" id="doubtQuotaBtn" title="Daily Doubts Quota (Tap to Upgrade Pro)">
+            <span id="doubtQuotaText">⚡ 10/10 Doubts</span>
+          </button>
           <!-- New Chat / Reset Button -->
           <button type="button" class="btn-subtle" id="clearChatBtn" title="New Chat (Reset conversation)" style="font-size: 11.5px; padding: 4px 9px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--glass-border); background: var(--glass-inset);">
             <span>➕</span>
@@ -571,7 +590,7 @@
           </button>
           <!-- Clean Synapse AI Pill in Top Right -->
           <button type="button" class="btn-synapse-top-pill" id="openAiEngineBtn" title="Synapse AI Coach & Settings">
-            <img src="/icon.svg?v=3.2.5" width="16" height="16" alt="Synapse" class="topbar-logo-img">
+            <img src="/icon.svg?v=3.2.6" width="16" height="16" alt="Synapse" class="topbar-logo-img">
             <span class="synapse-pill-label" id="engineBadgeText">Synapse AI</span>
             <span class="synapse-live-dot" id="engineDot" title="Neural Core Active"></span>
           </button>
@@ -587,7 +606,7 @@
             <div class="chat-welcome-simple" id="chatHero">
               <div class="gpt-hero-brand">
                 <div class="gpt-brand-logo" style="background: transparent; box-shadow: none; width: auto; height: auto;">
-                  <img src="/icon.svg?v=3.2.5" width="56" height="56" alt="Synapse OS" class="hero-brand-icon-animated">
+                  <img src="/icon.svg?v=3.2.6" width="56" height="56" alt="Synapse OS" class="hero-brand-icon-animated">
                 </div>
                 <h2>What can I help with today?</h2>
                 <p>On-device neural intelligence. Ask questions, plan routines, manage tasks, or run your timer.</p>
@@ -1178,14 +1197,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.2.5"></script>
+  <script src="app.js?v=3.2.6"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.2.5)
+    // PWA Auto-Updating Engine (v3.2.6)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.2.5';
+        const CURRENT_VERSION = 'synapse-os-v3.2.6';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1196,7 +1215,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.2.5').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.2.6').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 
