@@ -81,25 +81,6 @@ function updateDailyMissionHud() {
     streakEl.textContent = `${streak} Days`;
     streakEl.title = todayMins >= 60 ? 'Daily 1h study goal achieved! Streak active.' : `Study ${Math.max(0, 60 - todayMins)}m more today to lock streak!`;
   }
-
-  // Update Play Store Style Home Screen Mission Card
-  const hubStreakBadge = document.getElementById('hubStreakBadge');
-  const hubGoalProgressText = document.getElementById('hubGoalProgressText');
-  const hubProgressBar = document.getElementById('hubProgressBar');
-  const hubRemainingGoalText = document.getElementById('hubRemainingGoalText');
-
-  const curStreak = disciplineStats.streak || 0;
-  const curMins = disciplineStats.todayFocusMinutes || 0;
-  const pct = Math.min(100, Math.round((curMins / 60) * 100));
-
-  if (hubStreakBadge) hubStreakBadge.textContent = `${curStreak}-Day Study Streak`;
-  if (hubGoalProgressText) hubGoalProgressText.textContent = `${curMins} / 60 Mins Goal (${pct}%)`;
-  if (hubProgressBar) hubProgressBar.style.width = `${pct}%`;
-  if (hubRemainingGoalText) {
-    hubRemainingGoalText.textContent = curMins >= 60
-      ? '🏆 1-Hour Goal Achieved! Streak Locked.'
-      : `Study ${60 - curMins}m more today to lock streak`;
-  }
   if (focusEl) {
     const mins = disciplineStats.todayFocusMinutes || 0;
     const h = Math.floor(mins / 60);
@@ -1928,84 +1909,40 @@ function escapeHtml(str) {
 }
 
 function appendActionDock(wrap, originalQuery, answerText) {
-  const queryText = (originalQuery || '').replace(/[#*`_\[\]]/g, '').trim();
+  // Never show action dock on errors or connection notices
+  if (!answerText || answerText.startsWith('⚠️') || answerText.includes('Connection Notice') || answerText.includes('Could not connect') || answerText.includes('unreachable') || answerText.includes('Connection notice')) {
+    return;
+  }
+  const cleanQuery = (originalQuery || '').replace(/[#*`_\[\]]/g, '').trim();
 
   const dock = document.createElement('div');
   dock.className = 'msg-action-dock meta-style-dock';
 
   dock.innerHTML = `
-    <div class="study-card-actions-row">
-      <button type="button" class="btn-app-action" title="Copy clean study notes" onclick="copyAnswerText(this)">
-        <span>📋</span> Copy Notes
-      </button>
-      <button type="button" class="btn-app-action" title="Save directly to Notes Vault" onclick="saveAnswerAsNote(this)">
-        <span>💾</span> Save to Notebook
-      </button>
-      <button type="button" class="btn-app-action" title="Listen to explanation" onclick="speakAnswerText(this)">
-        <span>🎧</span> Listen
-      </button>
-      <button type="button" class="btn-app-action" title="Start 25m Focus Sprint" onclick="triggerPillTimer(25)">
-        <span>⏱️</span> 25m Practice Sprint
-      </button>
-    </div>
-
-    <div class="study-followup-pills">
-      <button type="button" class="followup-pill" onclick="sendFollowupPrompt(this, 'Is concept par 1 exam standard practice numerical solve karke do step-by-step')">
-        <span>📝</span> Practice Numerical
-      </button>
-      <button type="button" class="followup-pill" onclick="sendFollowupPrompt(this, 'Isko ek simple real-life everyday example / analogy se samjhao')">
-        <span>⚡</span> Real-Life Analogy
-      </button>
-      <button type="button" class="followup-pill" onclick="sendFollowupPrompt(this, 'Is topic me students kaunsi common exam mistakes aur formula traps me fasta hai?')">
-        <span>⚠️</span> Common Exam Traps
-      </button>
-    </div>
+    <button type="button" class="btn-dock-icon" title="Copy answer" onclick="copyAnswerText(this)">
+      ${CHAT_ICONS.copy}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Regenerate response" onclick="retryLastQuery(this)">
+      ${CHAT_ICONS.retry}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Helpful" onclick="handleThumbFeedback(this, true)">
+      ${CHAT_ICONS.thumbUp}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Not helpful" onclick="handleThumbFeedback(this, false)">
+      ${CHAT_ICONS.thumbDown}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Save to Notes" onclick="saveAnswerAsNote(this)">
+      ${CHAT_ICONS.note}
+    </button>
+    <button type="button" class="btn-dock-icon" title="Read Aloud (Voice)" onclick="speakAnswerText(this)">
+      ${CHAT_ICONS.voice}
+    </button>
   `;
 
   dock.dataset.answer = answerText;
-  dock.dataset.query = queryText;
+  dock.dataset.query = cleanQuery;
   wrap.appendChild(dock);
 }
-
-window.sendFollowupPrompt = (btn, promptText) => {
-  if (isGenerating) return;
-  if (userInput && chatForm) {
-    userInput.value = promptText;
-    chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-  }
-};
-
-window.triggerPillTimer = (mins = 25) => {
-  setTimerDuration(mins);
-  switchTab('tab-focus');
-  if (!isPomodoroRunning && pomodoroStartBtn) {
-    pomodoroStartBtn.click();
-  }
-};
-
-window.triggerPillTask = async (btn, taskName) => {
-  if (!taskName) taskName = 'Study Focus Session';
-  btn.innerHTML = '<span>✓</span> Added!';
-  btn.classList.add('action-completed');
-  try {
-    await fetch('/api/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: taskName, category: 'Study' })
-    });
-    fetchTasks();
-  } catch {
-    tasks.push({ id: Date.now().toString(), text: taskName, completed: false, category: 'Study' });
-    localStorage.setItem('synapse_tasks', JSON.stringify(tasks));
-    renderTasks();
-  }
-};
-
-window.triggerPillUrge = async (btn) => {
-  btn.innerHTML = '<span>🔥</span> +1 Win Logged!';
-  btn.classList.add('action-completed');
-  handleDefeatUrge();
-};
 
 window.retryLastQuery = (btn) => {
   const dock = btn.closest('.msg-action-dock');
@@ -2030,9 +1967,9 @@ window.copyAnswerText = (btn) => {
   const dock = btn.closest('.msg-action-dock');
   const txt = dock.dataset.answer || '';
   navigator.clipboard.writeText(txt).then(() => {
-    btn.innerHTML = '<span>✓</span> Copied!';
-    showToast('📋 Study notes copied to clipboard!', 'success', '📋', 2500);
-    setTimeout(() => { btn.innerHTML = '<span>📋</span> Copy Notes'; }, 2000);
+    btn.innerHTML = CHAT_ICONS.check;
+    showToast('Copied to clipboard!', 'success', '📋', 2000);
+    setTimeout(() => { btn.innerHTML = CHAT_ICONS.copy; }, 2000);
   });
 };
 
@@ -2043,14 +1980,14 @@ window.speakAnswerText = (btn) => {
   if ('speechSynthesis' in window) {
     if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel();
-      btn.innerHTML = '<span>🎧</span> Listen';
+      btn.innerHTML = CHAT_ICONS.voice;
       return;
     }
     const cleanSpeech = txt.replace(/[*#`_~\[\]]/g, '').replace(/https?:\/\/\S+/g, '');
     const utter = new SpeechSynthesisUtterance(cleanSpeech.slice(0, 1000));
-    utter.onend = () => { btn.innerHTML = '<span>🎧</span> Listen'; };
-    utter.onerror = () => { btn.innerHTML = '<span>🎧</span> Listen'; };
-    btn.innerHTML = '<span>⏹️</span> Stop';
+    utter.onend = () => { btn.innerHTML = CHAT_ICONS.voice; };
+    utter.onerror = () => { btn.innerHTML = CHAT_ICONS.voice; };
+    btn.innerHTML = CHAT_ICONS.stop;
     window.speechSynthesis.speak(utter);
   }
 };
@@ -2060,20 +1997,20 @@ window.saveAnswerAsNote = async (btn) => {
   const query = dock.dataset.query || 'Study Note';
   const content = dock.dataset.answer || '';
 
-  btn.innerHTML = '<span>✓</span> Saved!';
+  btn.innerHTML = CHAT_ICONS.check;
   try {
     await fetch('/api/notes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: query.slice(0, 36) || 'Study Notes',
+        title: query.slice(0, 36) || 'Study Note',
         content: content
       })
     });
     fetchNotes();
-    showToast('💾 Saved directly to your Study Notebook!', 'success', '📝', 3000);
+    showToast('Saved to your Notes!', 'success', '📝', 2500);
   } catch {}
-  setTimeout(() => { btn.innerHTML = '<span>💾</span> Save to Notebook'; }, 2500);
+  setTimeout(() => { btn.innerHTML = CHAT_ICONS.note; }, 2000);
 };
 
 // Direct Google Button
@@ -2546,9 +2483,6 @@ chatForm.addEventListener('submit', async (e) => {
 
   let displayHtml = '';
   let promptText = rawText;
-  if (currentSubjectFocus && currentSubjectFocus !== 'general') {
-    promptText = `[SUBJECT: ${currentSubjectFocus.toUpperCase()}]\n${rawText}`;
-  }
   let attachedImgData = null;
 
   if (attachedFile) {
@@ -2805,19 +2739,23 @@ chatForm.addEventListener('submit', async (e) => {
         fullReply = getClientOfflineCoachReply(promptText);
         bubble.innerHTML = formatMarkdown(fullReply);
       }
-    } else if (!navigator.onLine) {
-      const offlineReply = getClientOfflineCoachReply(promptText);
-      fullReply = offlineReply;
-      bubble.innerHTML = formatMarkdown(fullReply);
     } else {
-      // User is ONLINE — do NOT fall back to WebGPU or canned templates!
-      fullReply = `⚠️ **Backend Connection Notice:** ${err.message || 'Server did not stream response'}.\n\nPlease ensure the Synapse backend is active on http://localhost:5100 or check your network.`;
-      bubble.innerHTML = formatMarkdown(fullReply);
+      const offlineReply = getClientOfflineCoachReply(promptText);
+      if (offlineReply) {
+        fullReply = offlineReply;
+        bubble.innerHTML = formatMarkdown(fullReply);
+      } else {
+        fullReply = `⚠️ **Connection Notice:** Unable to reach the AI server.\n\nPlease check your connection or ensure the server is active, then tap **Retry**.`;
+        bubble.innerHTML = formatMarkdown(fullReply);
+      }
     }
-    chatSessionHistory.push({ role: 'user', content: promptText });
-    chatSessionHistory.push({ role: 'assistant', content: fullReply });
-    appendActionDock(wrap, googleQuery, fullReply);
-    try { recordAssistantResponse(fullReply, googleQuery); } catch (e) {}
+
+    if (!fullReply.startsWith('⚠️')) {
+      chatSessionHistory.push({ role: 'user', content: promptText });
+      chatSessionHistory.push({ role: 'assistant', content: fullReply });
+      try { appendActionDock(wrap, googleQuery, fullReply); } catch (e) {}
+      try { recordAssistantResponse(fullReply, googleQuery); } catch (e) {}
+    }
     setTimeout(() => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }, 50);
@@ -4235,37 +4173,8 @@ function initHeroPromptChips() {
   });
 }
 
-let currentSubjectFocus = 'general';
-
-function initSubjectSwitcher() {
-  const bar = document.getElementById('chatSubjectBar');
-  if (!bar) return;
-  const pills = bar.querySelectorAll('.subject-pill');
-  pills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      pills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      currentSubjectFocus = pill.dataset.subject || 'general';
-
-      const placeholders = {
-        general: 'Pucho koi bhi study doubt ya numerical...',
-        physics: 'Pucho Physics ka numerical, law ya formula...',
-        chemistry: 'Pucho Chemical equation, reaction ya mechanism...',
-        maths: 'Pucho Maths ka problem, theorem ya formula...',
-        biology: 'Pucho Biology ka process, organelle ya cycle...',
-        coding: 'Pucho Coding, DSA, Python ya problem logic...'
-      };
-      if (userInput) {
-        userInput.placeholder = placeholders[currentSubjectFocus] || 'Pucho koi bhi study doubt...';
-        userInput.focus();
-      }
-    });
-  });
-}
-
 initStudentOnboarding();
 initHeroPromptChips();
-initSubjectSwitcher();
 
 updateProUI();
 renderWorkflowPills();
