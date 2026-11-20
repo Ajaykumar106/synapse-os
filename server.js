@@ -27,7 +27,7 @@ try {
   }
 } catch (e) {}
 
-const APP_VERSION = '3.2.4';
+const APP_VERSION = '3.2.5';
 
 const app = express();
 const PORT = process.env.PORT || 5100;

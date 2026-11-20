@@ -10,14 +10,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Synapse">
-  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.4">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.4">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.4">
-  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.4">
-  <link rel="manifest" href="/manifest.json?v=3.2.4">
+  <link rel="shortcut icon" href="/favicon.ico?v=3.2.5">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=3.2.5">
+  <link rel="apple-touch-icon" href="/icon-192.png?v=3.2.5">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3.2.5">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3.2.5">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg?v=3.2.5">
+  <link rel="manifest" href="/manifest.json?v=3.2.5">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.2.4">
+  <link rel="stylesheet" href="/style.css?v=3.2.5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -357,6 +359,27 @@
   <!-- Celebratory Confetti Canvas (For Streak Wins & Goal Completion) -->
   <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999999;"></canvas>
 
+  <!-- Futuristic Synapse OS Neural Boot Intro Overlay -->
+  <div class="synapse-boot-screen" id="appBootSplash">
+    <div class="boot-matrix-glow"></div>
+    <div class="boot-content">
+      <div class="boot-logo-container">
+        <div class="boot-logo-aura"></div>
+        <img src="/icon.svg?v=3.2.5" class="boot-logo-img" alt="Synapse Neural Core">
+        <div class="boot-quantum-ring"></div>
+      </div>
+      <div class="boot-brand">
+        <h1 class="boot-title">SYNAPSE <span>OS</span></h1>
+        <div class="boot-tag">NEURAL FOCUS ENGINE</div>
+      </div>
+      <div class="boot-progress-wrap">
+        <div class="boot-progress-bar" id="bootProgressBar"></div>
+      </div>
+      <div class="boot-status" id="bootStatusText">INITIALIZING NEURAL CORE...</div>
+      <div class="boot-skip-hint">Tap anywhere to enter</div>
+    </div>
+  </div>
+
   <!-- Main App Shell -->
   <div class="app-shell">
     <!-- Sidebar Mobile Backdrop Overlay -->
@@ -366,19 +389,7 @@
     <aside class="sidebar glass-panel" id="sidebar">
       <div class="sidebar-top">
         <div class="brand-row">
-          <div class="brand-badge-modern" style="background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); box-shadow: 0 4px 14px rgba(79, 172, 254, 0.4);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3" fill="#ffffff"></circle>
-              <circle cx="4" cy="7" r="2"></circle>
-              <circle cx="20" cy="7" r="2"></circle>
-              <circle cx="4" cy="17" r="2"></circle>
-              <circle cx="20" cy="17" r="2"></circle>
-              <line x1="6" y1="8" x2="10" y2="11"></line>
-              <line x1="18" y1="8" x2="14" y2="11"></line>
-              <line x1="6" y1="16" x2="10" y2="13"></line>
-              <line x1="18" y1="16" x2="14" y2="13"></line>
-            </svg>
-          </div>
+          <img src="/icon.svg?v=3.2.5" width="36" height="36" alt="Synapse OS" class="sidebar-brand-icon">
           <div class="brand-info">
             <span class="brand-title">Synapse OS</span>
             <span class="brand-sub">AI Study & Focus Engine</span>
@@ -448,7 +459,7 @@
         <div class="sidebar-legal-row">
           <a href="/privacy.html" target="_blank" rel="noopener noreferrer" class="privacy-link">Privacy Policy</a>
           <span class="privacy-link-sep">·</span>
-          <span class="privacy-link">v2.0.0</span>
+          <span class="privacy-link">v3.2.5</span>
         </div>
       </div>
     </aside>
@@ -465,7 +476,7 @@
               <circle cx="19" cy="12" r="2.2"></circle>
             </svg>
           </button>
-          <span class="active-title-pill" id="pageTitle">🧠 Synapse AI</span>
+          <span class="active-title-pill" id="pageTitle" style="display: none;">🧠 Synapse AI</span>
         </div>
         <div class="topbar-right">
           <!-- Hidden utility triggers (accessible via sidebar or chat voice) -->
@@ -486,10 +497,11 @@
             <span>➕</span>
             <span style="font-weight: 600;">New</span>
           </button>
-          <!-- Clean Minimalist Status Pill -->
-          <button type="button" class="btn-ai-engine-pill" id="openAiEngineBtn" title="AI Coach Status & Settings">
-            <span class="engine-indicator-dot" id="engineDot">⚡</span>
-            <span id="engineBadgeText">AI Coach</span>
+          <!-- Clean Synapse AI Pill in Top Right -->
+          <button type="button" class="btn-synapse-top-pill" id="openAiEngineBtn" title="Synapse AI Coach & Settings">
+            <img src="/icon.svg?v=3.2.5" width="16" height="16" alt="Synapse" class="topbar-logo-img">
+            <span class="synapse-pill-label" id="engineBadgeText">Synapse AI</span>
+            <span class="synapse-live-dot" id="engineDot" title="Neural Core Active"></span>
           </button>
         </div>
       </header>
@@ -502,18 +514,8 @@
             <!-- ChatGPT-style Clean Minimalist Hero -->
             <div class="chat-welcome-simple" id="chatHero">
               <div class="gpt-hero-brand">
-                <div class="gpt-brand-logo">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <circle cx="4" cy="7" r="2"></circle>
-                    <circle cx="20" cy="7" r="2"></circle>
-                    <circle cx="4" cy="17" r="2"></circle>
-                    <circle cx="20" cy="17" r="2"></circle>
-                    <line x1="6" y1="8" x2="10" y2="11"></line>
-                    <line x1="18" y1="8" x2="14" y2="11"></line>
-                    <line x1="6" y1="16" x2="10" y2="13"></line>
-                    <line x1="18" y1="16" x2="14" y2="13"></line>
-                  </svg>
+                <div class="gpt-brand-logo" style="background: transparent; box-shadow: none; width: auto; height: auto;">
+                  <img src="/icon.svg?v=3.2.5" width="56" height="56" alt="Synapse OS" class="hero-brand-icon-animated">
                 </div>
                 <h2>What can I help with today?</h2>
                 <p>On-device neural intelligence. Ask questions, plan routines, manage tasks, or run your timer.</p>
@@ -1104,14 +1106,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.2.4"></script>
+  <script src="app.js?v=3.2.5"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.2.4)
+    // PWA Auto-Updating Engine (v3.2.5)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.2.4';
+        const CURRENT_VERSION = 'synapse-os-v3.2.5';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1122,7 +1124,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.2.4').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.2.5').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 

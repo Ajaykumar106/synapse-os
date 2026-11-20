@@ -375,7 +375,14 @@ function switchTab(tabId) {
   if (panel) panel.classList.add('active');
 
   document.querySelectorAll(`[data-tab="${tabId}"]`).forEach(el => el.classList.add('active'));
-  if (pageTitle) pageTitle.textContent = tabTitles[tabId] || 'Synapse OS';
+  if (pageTitle) {
+    if (tabId === 'tab-chat') {
+      pageTitle.style.display = 'none';
+    } else {
+      pageTitle.style.display = 'inline-flex';
+      pageTitle.textContent = tabTitles[tabId] || 'Synapse OS';
+    }
+  }
 
   toggleSidebar(false);
 
@@ -3658,8 +3665,53 @@ vaultAskCoachBtn?.addEventListener('click', () => {
 });
 
 // ========================================================
-// 16. SYSTEM INITIALIZATION & BOOT SEQUENCE
+// 16. SYSTEM INITIALIZATION & NEURAL BOOT SEQUENCE
 // ========================================================
+function runBootSequence() {
+  const splash = document.getElementById('appBootSplash');
+  if (!splash) return;
+
+  const bar = document.getElementById('bootProgressBar');
+  const status = document.getElementById('bootStatusText');
+
+  let dismissed = false;
+  const dismissSplash = () => {
+    if (dismissed) return;
+    dismissed = true;
+    splash.classList.add('fade-out');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+    }, 550);
+  };
+
+  // Tap or click anywhere skips immediately
+  splash.addEventListener('click', dismissSplash);
+  splash.addEventListener('touchstart', dismissSplash, { passive: true });
+
+  // Progressive high-tech boot sequence (~1.2s total)
+  setTimeout(() => {
+    if (bar) bar.style.width = '35%';
+    if (status) status.textContent = '⚡ NEURAL KERNEL 3.2.5 CALIBRATING...';
+  }, 220);
+
+  setTimeout(() => {
+    if (bar) bar.style.width = '70%';
+    if (status) status.textContent = '🧠 SYNCING OFFLINE FOCUS & VAULT ENGINES...';
+  }, 550);
+
+  setTimeout(() => {
+    if (bar) bar.style.width = '100%';
+    if (status) status.textContent = '✨ ALL SYSTEMS OPERATIONAL • WELCOME DOST';
+  }, 900);
+
+  setTimeout(() => {
+    dismissSplash();
+  }, 1250);
+}
+
+runBootSequence();
+
 updateProUI();
 renderWorkflowPills();
 renderVaultCards();
@@ -4081,8 +4133,12 @@ async function updateEngineStatusBadge() {
     }
   }
 
-  if (engineDot) engineDot.textContent = dot;
-  if (engineBadgeText) engineBadgeText.textContent = title;
+  if (engineDot) {
+    engineDot.title = isOnline ? 'Online • ' + title : 'Offline Study Coach Active';
+    engineDot.className = 'synapse-live-dot ' + (isOnline ? 'online' : 'offline');
+    engineDot.textContent = '';
+  }
+  if (engineBadgeText) engineBadgeText.textContent = 'Synapse AI';
   if (engineActiveDot) engineActiveDot.textContent = dot;
   if (engineActiveName) engineActiveName.textContent = title;
   if (engineActiveDetail) engineActiveDetail.textContent = detail;
