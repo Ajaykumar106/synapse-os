@@ -1442,7 +1442,7 @@ You must analyze this with extreme academic precision, step-by-step clarity, and
       } else {
         const errText = await res.text().catch(() => '');
         lastError = new Error(`Groq model ${model} error (${res.status}): ${errText}`);
-        if (res.status === 404 || res.status === 400 || res.status === 429) {
+        if (res.status === 404 || res.status === 400 || res.status === 429 || res.status >= 500) {
           continue;
         } else {
           break;
@@ -1663,7 +1663,7 @@ async function streamFreeCloudChat({ message, history = [], sendEvent }) {
       stream: true,
       temperature: 0.7
     }),
-    signal: AbortSignal.timeout(45000)
+    signal: AbortSignal.timeout(8000)
   });
 
   if (!res.ok) {
@@ -1856,7 +1856,11 @@ app.post(['/api/chat-stream', '/chat-stream'], async (req, res) => {
   const headerGeminiKey = (req.headers['x-gemini-key'] || '').trim();
   const envGroq = (process.env.GROQ_API_KEY || process.env.GROQ_KEY || process.env.GROQ || GROQ_API_KEY || '').trim();
   const envGemini = (process.env.GEMINI_API_KEY || process.env.GEMINI_KEY || process.env.GEMINI || GEMINI_API_KEY || '').trim();
-  const groqApiKey = (headerGroqKey || bodyGroqKey || envGroq || '').replace(/^["']|["']$/g, '').trim();
+  
+  // Clean client keys: only accept if valid format (gsk_...)
+  const validHeaderGroq = headerGroqKey.startsWith('gsk_') ? headerGroqKey : '';
+  const validBodyGroq = (bodyGroqKey || '').startsWith('gsk_') ? bodyGroqKey : '';
+  const groqApiKey = validHeaderGroq || validBodyGroq || envGroq;
   const geminiApiKey = (headerGeminiKey || bodyGeminiKey || envGemini || '').replace(/^["']|["']$/g, '').trim();
 
   // Set SSE Headers with Vercel & proxy buffering bypass
@@ -1897,13 +1901,23 @@ app.post(['/api/chat-stream', '/chat-stream'], async (req, res) => {
     sendEvent(data);
   };
 
-  // Option A: Groq Cloud (Meta Llama 3.3 70B & Qwen Vision - Fastest LPU Engine)
+  // Option A: Groq Cloud (Ultra-Fast LPU Engine - 120B / 27B / 20B)
   if (groqApiKey) {
     try {
       await streamGroqChat({ message: raw, history, apiKey: groqApiKey, sendEvent: wrappedSendEvent, image });
       return res.end();
     } catch (err) {
-      console.warn('Groq streaming notice:', err.message);
+      console.warn('Groq streaming notice with primary key:', err.message);
+      // If primary key failed (e.g. bad user key) but verified server key exists, retry immediately with envGroq!
+      if (!streamedAny && envGroq && groqApiKey !== envGroq) {
+        try {
+          console.log('Retrying Groq stream with verified server environment key...');
+          await streamGroqChat({ message: raw, history, apiKey: envGroq, sendEvent: wrappedSendEvent, image });
+          return res.end();
+        } catch (retryErr) {
+          console.warn('Groq retry with server key notice:', retryErr.message);
+        }
+      }
       if (streamedAny) {
         sendEvent({ done: true });
         return res.end();

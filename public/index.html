@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.json?v=3.2.6">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.2.6">
+  <link rel="stylesheet" href="/style.css?v=3.2.8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1283,14 +1283,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.2.7"></script>
+  <script src="app.js?v=3.2.8"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.2.7)
+    // PWA Auto-Updating Engine (v3.2.8)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.2.7';
+        const CURRENT_VERSION = 'synapse-os-v3.2.8';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1301,7 +1301,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.2.7').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.2.8').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 

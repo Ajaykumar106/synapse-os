@@ -2590,8 +2590,8 @@ chatForm.addEventListener('submit', async (e) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-gemini-key': localStorage.getItem('synapse_gemini_key') || '',
-        'x-groq-key': localStorage.getItem('synapse_groq_key') || ''
+        'x-gemini-key': (localStorage.getItem('synapse_gemini_key') || '').trim(),
+        'x-groq-key': ((localStorage.getItem('synapse_groq_key') || '').trim().startsWith('gsk_') ? (localStorage.getItem('synapse_groq_key') || '').trim() : '')
       },
       body: JSON.stringify({
         message: promptText,
@@ -2737,8 +2737,8 @@ chatForm.addEventListener('submit', async (e) => {
       try { recordAssistantResponse(fullReply, googleQuery); } catch (e) {}
     }
   } catch (err) {
-    // 100% Client-Side Offline AI Brain (runs directly on Android in Airplane mode / no server)
-    if (webLlmEngine) {
+    // Only use client-side offline engine if browser is ACTUALLY in 100% Airplane Mode / offline
+    if (!navigator.onLine && webLlmEngine) {
       try {
         bubble.innerHTML = '<em>🧠 Generating offline response via WebGPU...</em>';
         const isMathOffline = /(?:calculate|solve|derive|numerical|formula|velocity|acceleration|momentum|gravity|integral|derivative|code|function|algorithm|\d+\s*[-+*/^]\s*\d+)/i.test(promptText);
@@ -2765,9 +2765,13 @@ chatForm.addEventListener('submit', async (e) => {
         fullReply = getClientOfflineCoachReply(promptText);
         bubble.innerHTML = formatMarkdown(fullReply);
       }
-    } else {
+    } else if (!navigator.onLine) {
       const offlineReply = getClientOfflineCoachReply(promptText);
       fullReply = offlineReply;
+      bubble.innerHTML = formatMarkdown(fullReply);
+    } else {
+      // User is ONLINE — do NOT fall back to WebGPU or canned templates!
+      fullReply = `⚠️ **Backend Connection Notice:** ${err.message || 'Server did not stream response'}.\n\nPlease ensure the Synapse backend is active on http://localhost:5100 or check your network.`;
       bubble.innerHTML = formatMarkdown(fullReply);
     }
     chatSessionHistory.push({ role: 'user', content: promptText });
@@ -4935,6 +4939,8 @@ async function checkWebGpuSupport() {
 }
 
 async function autoRestoreWebLlmIfCached() {
+  // Never hijack or initialize local WebLLM when user is online with active backend
+  if (navigator.onLine) return;
   if (localStorage.getItem('synapse_webllm_ready') === 'true' && 'gpu' in navigator) {
     if (!gpuSupported) await initWebGPUDetection();
     const savedModelId = localStorage.getItem('synapse_webllm_model') || (hasShaderF16 ? 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC' : 'Qwen2.5-0.5B-Instruct-q4f32_1-MLC');
