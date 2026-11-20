@@ -4170,6 +4170,35 @@ function initAiEngineModal() {
   closeBtn?.addEventListener('click', closeModal);
   cancelBtn?.addEventListener('click', closeModal);
 
+  // Groq API Key Input Handler
+  const groqInput = document.getElementById('groqApiKeyInput');
+  const saveGroqBtn = document.getElementById('saveGroqKeyBtn');
+  const groqStatus = document.getElementById('groqKeyStatus');
+
+  if (groqInput) {
+    groqInput.value = localStorage.getItem('synapse_groq_key') || '';
+  }
+
+  saveGroqBtn?.addEventListener('click', () => {
+    const val = (groqInput?.value || '').trim();
+    if (val) {
+      localStorage.setItem('synapse_groq_key', val);
+      if (groqStatus) {
+        groqStatus.textContent = '✅ Groq Key Saved Successfully!';
+        groqStatus.style.display = 'block';
+      }
+      showToast('⚡ Groq API Key Saved! Ultra-fast 300+ tok/s active.', 'success', '🔑');
+    } else {
+      localStorage.removeItem('synapse_groq_key');
+      if (groqStatus) {
+        groqStatus.textContent = 'ℹ️ Key removed. Using Free Cloud AI.';
+        groqStatus.style.display = 'block';
+      }
+      showToast('Using Free Cloud AI Engine.', 'info', '✨');
+    }
+    updateEngineStatusBadge();
+  });
+
   updateEngineStatusBadge();
   checkWebGpuSupport();
   autoRestoreWebLlmIfCached();
