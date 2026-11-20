@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.json?v=3.2.6">
   <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="/style.css?v=3.3.2">
+  <link rel="stylesheet" href="/style.css?v=3.4.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -121,100 +121,178 @@
     </div>
   </div>
 
-  <!-- Synapse Pro Lifetime Modal -->
+  <!-- Synapse Pro Pricing & Payment Modal (Monthly ₹99 / $0.99 & Lifetime ₹249 / $1.99) -->
   <div class="modal-backdrop hidden" id="proModal">
     <div class="modal-card glass-card pro-modal-card">
       <div class="modal-header">
         <div class="pro-badge-head">
           <span class="pro-crown">👑</span>
           <div>
-            <h3>Synapse Pro Lifetime</h3>
-            <span class="pro-sub">Own forever • Zero recurring subscriptions • 100% Offline</span>
+            <h3>Synapse Pro Pass</h3>
+            <span class="pro-sub">Choose your plan • 100% Offline AI • Cancel anytime</span>
           </div>
         </div>
-        <button class="modal-close-btn" id="closeProModal">✕</button>
+        <button class="modal-close-btn" id="closeProModal" title="Close">✕</button>
       </div>
+
       <div class="modal-body pro-modal-body">
-        <div class="pro-price-box glass-inset">
-          <div class="price-left">
-            <span class="price-strikethrough">₹999 / year</span>
-            <div class="price-main-tag">
-              <span class="price-currency">₹</span>
-              <span class="price-amount">99</span>
-              <span class="price-period">/ MONTH</span>
+        <!-- Pro Plan Selection Cards (Monthly vs Lifetime) -->
+        <div class="pro-plans-grid">
+          <!-- Plan A: Monthly Plan -->
+          <div class="pro-plan-card" id="planMonthlyCard" data-plan="monthly">
+            <div class="plan-header">
+              <span class="plan-type-tag">FLEXIBLE</span>
+              <h4 class="plan-title">Monthly Pro</h4>
+              <p class="plan-desc">Full Cloud & Web AI access for quick revision</p>
             </div>
-            <span class="price-inr">or ₹299 Lifetime VIP Pass ($3.99)</span>
+            <div class="plan-price-block">
+              <div class="plan-price-main">
+                <span class="currency-sym">₹</span>
+                <span class="price-val">99</span>
+                <span class="price-cycle">/ month</span>
+              </div>
+              <span class="price-alt-sub">or $0.99 USD / mo</span>
+            </div>
+            <ul class="plan-perks-list">
+              <li>✓ Unlimited High-Speed Cloud AI</li>
+              <li>✓ AI Photo Doubt Solver</li>
+              <li>✓ Daily Study Routine Builder</li>
+              <li>✓ Cancel anytime with 1 tap</li>
+            </ul>
+            <button type="button" class="btn-select-plan" id="selectMonthlyBtn">
+              Select Monthly (₹99)
+            </button>
           </div>
-          <div class="price-right">
-            <span class="save-tag">SAVE 90%</span>
-            <span class="rival-tag">Instant Photo Doubt Solving</span>
+
+          <!-- Plan B: Lifetime VIP Pass (Featured) -->
+          <div class="pro-plan-card featured-lifetime active" id="planLifetimeCard" data-plan="lifetime">
+            <div class="plan-popular-pill">🔥 BEST VALUE • SAVE 80%</div>
+            <div class="plan-header">
+              <span class="plan-type-tag gold">LIFETIME VIP</span>
+              <h4 class="plan-title">Lifetime Pass</h4>
+              <p class="plan-desc">Pay once, own forever on phone & PC</p>
+            </div>
+            <div class="plan-price-block">
+              <span class="price-strikethrough-tag">₹999</span>
+              <div class="plan-price-main">
+                <span class="currency-sym">₹</span>
+                <span class="price-val">249</span>
+                <span class="price-cycle">one-time</span>
+              </div>
+              <span class="price-alt-sub gold-text">$1.99 USD • Zero Subscriptions</span>
+            </div>
+            <ul class="plan-perks-list">
+              <li>✓ Everything in Monthly Plan</li>
+              <li>✓ <strong>100% Offline AI Brain</strong> (SmolLM2/WebLLM)</li>
+              <li>✓ <strong>Unlimited Photo Doubt Solver</strong></li>
+              <li>✓ STEM Knowledge Vault & Binaural Audio</li>
+              <li>✓ Unlimited Custom Flows & PDF Export</li>
+              <li>✓ Lifetime Free Updates</li>
+            </ul>
+            <button type="button" class="btn-select-plan btn-gold-plan" id="selectLifetimeBtn">
+              Get Lifetime Access ($1.99 / ₹249)
+            </button>
           </div>
         </div>
 
-        <div class="pro-features-list">
-          <div class="pro-feat-item">
-            <span class="feat-icon">📷</span>
-            <div class="feat-info">
-              <strong>Unlimited AI Photo Doubt Solver</strong>
-              <span>Snap textbook questions, math numericals, circuits or handwritten notes. Instant step-by-step solutions with derivations in under 2 seconds.</span>
+        <!-- Payment Flow Section -->
+        <div class="pro-checkout-section" id="proCheckoutSection">
+          <div class="checkout-tabs-header">
+            <button type="button" class="chk-tab active" data-tab="upi">⚡ UPI Instant (India)</button>
+            <button type="button" class="chk-tab" data-tab="card">💳 Card / International</button>
+            <button type="button" class="chk-tab" data-tab="promo">🎓 Student Promo Code</button>
+          </div>
+
+          <!-- Tab 1: UPI Payment (QR Code & Apps) -->
+          <div class="chk-tab-pane active" id="paneUpi">
+            <div class="upi-pay-container">
+              <div class="upi-qr-box">
+                <div class="qr-placeholder-wrap">
+                  <!-- Clean SVG QR Code Representation -->
+                  <svg class="upi-qr-svg" viewBox="0 0 160 160" width="140" height="140">
+                    <rect width="160" height="160" fill="#ffffff" rx="8"/>
+                    <path fill="#000000" d="M12 12h40v40H12zM20 20v24h24V20H20zm4 4h16v16H24zm84-12h40v40h-40zM116 20v24h24V20h-24zm4 4h16v16h-16zm-96 84h40v40H24zm8 8v24h24v-24H32zm4 4h16v16H36zm44-84h12v12H80zm20 0h12v12h-12zm-32 20h24v12H68zm36 0h16v24h-16zm-48 16h16v16H56zm32 0h16v16H88zm20 8h20v12h-20zm-28 20h12v20H80zm20 0h28v12h-28zm24 16h16v20h-16zm-52 8h16v16H72zm32 8h24v12h-24z"/>
+                  </svg>
+                  <span class="qr-scan-hint">Scan with GPay / PhonePe / Paytm</span>
+                </div>
+              </div>
+
+              <div class="upi-details-col">
+                <div class="upi-id-pill-wrap">
+                  <span class="upi-lbl">Official UPI ID:</span>
+                  <div class="upi-id-copy-row">
+                    <code id="upiIdText">synapse.study@upi</code>
+                    <button type="button" class="btn-copy-upi" id="copyUpiIdBtn" title="Copy UPI ID">📋 Copy</button>
+                  </div>
+                </div>
+
+                <div class="upi-apps-row">
+                  <span class="upi-app-badge">GPay</span>
+                  <span class="upi-app-badge">PhonePe</span>
+                  <span class="upi-app-badge">Paytm</span>
+                  <span class="upi-app-badge">BHIM</span>
+                </div>
+
+                <div class="upi-verify-form">
+                  <label for="upiRefInput">Enter 12-digit UPI Reference / UTR Number:</label>
+                  <div class="upi-input-row">
+                    <input type="text" id="upiRefInput" placeholder="e.g. 432109876543 or TEST" maxlength="24">
+                    <button type="button" class="btn-primary-sm" id="verifyUpiPaymentBtn">Verify & Unlock Pro</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="pro-feat-item">
-            <span class="feat-icon">🧠</span>
-            <div class="feat-info">
-              <strong>Synapse On-Device Deep Intelligence</strong>
-              <span>Unlimited offline reasoning models running directly on your phone/PC. 100% private, zero server crashes, zero token limits.</span>
+
+          <!-- Tab 2: Card / International / PayPal ($0.99 or $1.99) -->
+          <div class="chk-tab-pane" id="paneCard" style="display: none;">
+            <div class="card-checkout-form">
+              <div class="chk-field">
+                <label>Cardholder Name</label>
+                <input type="text" id="chkCardName" placeholder="Full name on card" value="Student Pro User">
+              </div>
+              <div class="chk-field">
+                <label>Card Number</label>
+                <input type="text" id="chkCardNum" placeholder="•••• •••• •••• 4242" maxlength="19">
+              </div>
+              <div class="chk-row-split">
+                <div class="chk-field">
+                  <label>Expiry (MM/YY)</label>
+                  <input type="text" id="chkCardExp" placeholder="12/28" maxlength="5">
+                </div>
+                <div class="chk-field">
+                  <label>CVV</label>
+                  <input type="password" id="chkCardCvv" placeholder="•••" maxlength="4">
+                </div>
+              </div>
+              <button type="button" class="btn-primary" id="processCardPaymentBtn" style="margin-top: 10px;">
+                💳 Pay & Unlock Synapse Pro
+              </button>
+              <span class="secure-badge-txt">🔒 256-bit Encrypted SSL Mock & Sandbox Checkout</span>
             </div>
           </div>
-          <div class="pro-feat-item">
-            <span class="feat-icon">⚡</span>
-            <div class="feat-info">
-              <strong>Unlimited Custom Workflows</strong>
-              <span>Build and save unlimited daily routines, exam schedules & monk detox flows.</span>
-            </div>
-          </div>
-          <div class="pro-feat-item">
-            <span class="feat-icon">📚</span>
-            <div class="feat-info">
-              <strong>Complete STEM & Study Knowledge Vault</strong>
-              <span>Offline formula sheets, physics laws, chemistry reactions & computer science cards.</span>
-            </div>
-          </div>
-          <div class="pro-feat-item">
-            <span class="feat-icon">🎧</span>
-            <div class="feat-info">
-              <strong>Binaural Focus Audio Synthesizer</strong>
-              <span>Offline Brown Noise, 40Hz Gamma Focus Waves & Rain without streaming data.</span>
-            </div>
-          </div>
-          <div class="pro-feat-item">
-            <span class="feat-icon">📄</span>
-            <div class="feat-info">
-              <strong>Export Schedules & Notes to PDF</strong>
-              <span>Printable high-res daily timetables and study cheat-sheets.</span>
+
+          <!-- Tab 3: Student Promo Code -->
+          <div class="chk-tab-pane" id="panePromo" style="display: none;">
+            <div class="promo-redeem-container">
+              <span class="promo-prompt-text">Have a school, coaching, or VIP coupon code?</span>
+              <div class="promo-input-row">
+                <input type="text" id="proPromoInput" placeholder="Try TOPPER100, SYNAPSEVIP, or AJAY" maxlength="20">
+                <button type="button" id="redeemPromoBtn" class="btn-primary-sm">Redeem Code</button>
+              </div>
+              <div class="promo-hints-row">
+                <span>⚡ Active Free VIP Codes: <code>TOPPER100</code> • <code>SYNAPSEVIP</code> • <code>AJAY</code></span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Student Promo Code Box -->
-        <div class="pro-promo-box" style="margin-top: 14px; padding: 12px; border-radius: 12px; background: var(--glass-inset); border: 1px solid var(--glass-border);">
-          <div style="font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">🎓 Have a School / VIP Promo Code?</div>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="proPromoInput" placeholder="Try TOPPER100 or SYNAPSEVIP" style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--glass-card-bg); color: var(--text-main); font-size: 12.5px; font-weight: 600; text-transform: uppercase;">
-            <button type="button" id="redeemPromoBtn" class="btn-primary-sm" style="padding: 8px 14px; border-radius: 10px; font-weight: 700; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #07090e; border: none; cursor: pointer;">Redeem</button>
-          </div>
-        </div>
-
-        <div class="pro-actions-box">
-          <button type="button" class="btn-pro-activate" id="activateProBtn">
-            ✨ Unlock Pro Pass (₹299 / Free Test)
-          </button>
-          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
-            <a href="https://wa.me/?text=Hi%2C+I+want+to+unlock+Synapse+Pro+for+Class+10+Boards" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #10b981; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-              💬 Instant WhatsApp Upgrade
-            </a>
-            <span style="color: var(--text-muted); font-size: 11px;">•</span>
-            <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">UPI / GPay / Cards Accepted</span>
+        <!-- Pro Active Status Banner (Hidden until unlocked) -->
+        <div class="pro-unlocked-banner hidden" id="proUnlockedBanner">
+          <div class="unlocked-icon">🎉</div>
+          <div class="unlocked-text">
+            <strong>Synapse Pro Pass Active!</strong>
+            <span id="proActivePlanLabel">Lifetime VIP Access Unlocked</span>
           </div>
         </div>
       </div>
@@ -510,6 +588,364 @@
     </div>
   </div>
 
+  <!-- Interactive Presentation Slides Walkthrough Modal (For New Users & App Download) -->
+  <div class="modal-backdrop hidden" id="presentationSlidesModal" style="z-index: 999997;">
+    <div class="modal-card glass-card presentation-modal-card">
+      <!-- Slide Top Navigation & Close -->
+      <div class="presentation-header">
+        <div class="pres-indicator-group">
+          <span class="pres-badge">📽️ Synapse OS Tour</span>
+          <span class="pres-slide-tracker" id="presSlideTracker">Slide 1 of 5</span>
+        </div>
+        <button type="button" class="modal-close-btn" id="closePresentationModal" title="Close presentation">✕</button>
+      </div>
+
+      <!-- Slide Deck Viewport -->
+      <div class="presentation-viewport">
+        <!-- Slide 1: Welcome & Meta AI Simplicity -->
+        <div class="pres-slide active" data-slide="1">
+          <div class="pres-slide-inner">
+            <div class="pres-media-box">
+              <div class="pres-emblem-wrap">
+                <div class="pres-glow-ring"></div>
+                <img src="/icon.svg?v=3.2.6" width="90" height="90" alt="Synapse OS" class="pres-logo-img">
+              </div>
+            </div>
+            <div class="pres-content-box">
+              <span class="pres-step-kicker">WELCOME TO SYNAPSE OS</span>
+              <h2 class="pres-headline">Your 24/7 AI Study Partner & Focus OS</h2>
+              <p class="pres-subtext">
+                Designed like Meta AI — conversational, clean, and instant. No heavy boxes, no endless doom-scrolling, and zero distractions.
+              </p>
+              <div class="pres-perks-row">
+                <div class="pres-perk-item">
+                  <span class="p-icon">💬</span>
+                  <div class="p-txt">
+                    <strong>Natural Conversations</strong>
+                    <span>Speaks English, Hindi & Hinglish smoothly</span>
+                  </div>
+                </div>
+                <div class="pres-perk-item">
+                  <span class="p-icon">🛡️</span>
+                  <div class="p-txt">
+                    <strong>Distraction Shield</strong>
+                    <span>Pure study room with zero social media feeds</span>
+                  </div>
+                </div>
+                <div class="pres-perk-item">
+                  <span class="p-icon">🎯</span>
+                  <div class="p-txt">
+                    <strong>Syllabus-Aligned</strong>
+                    <span>Class 9-12 Boards, JEE, NEET & College</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2: Instant Photo Doubt Solver -->
+        <div class="pres-slide" data-slide="2" style="display: none;">
+          <div class="pres-slide-inner">
+            <div class="pres-media-box">
+              <div class="pres-visual-card">
+                <div class="scanner-mockup">
+                  <div class="scan-laser-beam"></div>
+                  <div class="camera-icon-center">📸</div>
+                  <div class="solved-math-chip">
+                    <span>F = m · a</span>
+                    <small>Step 1: Substitute mass = 2kg...</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pres-content-box">
+              <span class="pres-step-kicker">INSTANT DOUBT SOLVER</span>
+              <h2 class="pres-headline">Snap Any Question, Get Step-by-Step Derivations</h2>
+              <p class="pres-subtext">
+                Never get stuck on physics numericals, chemistry reaction mechanisms, or calculus theorems. Just snap a photo or paste text.
+              </p>
+              <div class="pres-perks-row">
+                <div class="pres-perk-item">
+                  <span class="p-icon">⚡</span>
+                  <div class="p-txt">
+                    <strong>Under 2 Seconds</strong>
+                    <span>High-precision mathematical derivation</span>
+                  </div>
+                </div>
+                <div class="pres-perk-item">
+                  <span class="p-icon">⚠️</span>
+                  <div class="p-txt">
+                    <strong>Common Exam Traps</strong>
+                    <span>Warns you about sign mistakes & unit pitfalls</span>
+                  </div>
+                </div>
+                <div class="pres-perk-item">
+                  <span class="p-icon">📝</span>
+                  <div class="p-txt">
+                    <strong>1-Tap Save to Notes</strong>
+                    <span>Store formulas directly into your offline vault</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 3: Study Flows & Live Streak -->
+        <div class="pres-slide" data-slide="3" style="display: none;">
+          <div class="pres-slide-inner">
+            <div class="pres-media-box">
+              <div class="pres-visual-card">
+                <div class="streak-flame-mockup">
+                  <div class="flame-icon-big">🔥</div>
+                  <div class="flame-count-badge">5 Days Live Streak</div>
+                  <div class="focus-timer-mini-ring">
+                    <span>25:00</span>
+                    <small>Strict Anti-Distraction</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pres-content-box">
+              <span class="pres-step-kicker">DISCIPLINE & HABIT ENGINE</span>
+              <h2 class="pres-headline">Build an Unbreakable Daily Study Habit</h2>
+              <p class="pres-subtext">
+                Study with purpose. The Anti-Distraction Pomodoro automatically pauses if you switch tabs or open social media.
+              </p>
+              <div class="pres-perks-row">
+                <div class="pres-perk-item">
+                  <span class="p-icon">🔥</span>
+                  <div class="p-txt">
+                    <strong>Daily 60m Focus Target</strong>
+                    <span>Lock your streak with just 1 hour of daily study</span>
+                  </div>
+                </div>
+                <div class="pres-perk-item">
+                  <span class="p-icon">🧘</span>
+                  <div class="p-txt">
+                    <strong>Monk Mode & Routines</strong>
+                    <span>Pre-built study workflows for competitive exams</span>
+                  </div>
+                </div>
+                <div class="pres-perk-item">
+                  <span class="p-icon">🎧</span>
+                  <div class="p-txt">
+                    <strong>Offline Focus Beats</strong>
+                    <span>Brown noise & 40Hz Gamma waves (no internet data)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 4: 100% Offline PWA App -->
+        <div class="pres-slide" data-slide="4" style="display: none;">
+          <div class="pres-slide-inner">
+            <div class="pres-media-box">
+              <div class="pres-visual-card">
+                <div class="phone-pwa-mockup">
+                  <div class="phone-notch"></div>
+                  <div class="airplane-mode-pill">✈️ 100% Offline Active</div>
+                  <div class="phone-app-screen">
+                    <img src="/icon.svg?v=3.2.6" width="48" height="48" alt="Synapse" style="margin-bottom: 8px;">
+                    <strong>Synapse App</strong>
+                    <span style="font-size: 11px; color: #10b981; margin-top: 4px;">PWA Ready</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pres-content-box">
+              <span class="pres-step-kicker">NO INTERNET REQUIRED</span>
+              <h2 class="pres-headline">Works 100% Offline on Android, iOS & PC</h2>
+              <p class="pres-subtext">
+                Install Synapse directly to your home screen. Study on trains, flights, or when your mobile data package ends.
+              </p>
+              <div class="pres-pwa-cta-box">
+                <button type="button" class="btn-install-pwa-action" id="slideInstallPwaBtn">
+                  📲 Install Synapse App (1-Click PWA)
+                </button>
+                <span class="pres-sub-note">Safe • Fast • Uses 0 KB cellular data once installed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 5: Synapse Pro & Next Steps -->
+        <div class="pres-slide" data-slide="5" style="display: none;">
+          <div class="pres-slide-inner">
+            <div class="pres-media-box">
+              <div class="pres-visual-card">
+                <div class="pro-crown-mockup">
+                  <span class="crown-icon-gold">👑</span>
+                  <div class="pro-plan-mini-summary">
+                    <strong>Synapse Pro Pass</strong>
+                    <span>₹99/mo or $1.99 Lifetime</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pres-content-box">
+              <span class="pres-step-kicker">GET STARTED NOW</span>
+              <h2 class="pres-headline">Supercharge Your Academic Year</h2>
+              <p class="pres-subtext">
+                Sign in to save your study streak across devices or unlock Synapse Pro for unlimited reasoning & offline AI models.
+              </p>
+              <div class="pres-action-buttons-group">
+                <button type="button" class="btn-primary" id="slideOpenAuthBtn" style="padding: 12px 22px; font-weight: 700;">
+                  👤 Sign In / Create Account →
+                </button>
+                <button type="button" class="btn-subtle" id="slideStartGuestBtn" style="padding: 12px 20px;">
+                  🚀 Continue as Guest Student
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide Deck Footer Controls -->
+      <div class="presentation-footer">
+        <button type="button" class="btn-pres-nav" id="presPrevBtn" disabled>← Previous</button>
+        <div class="pres-dots-row" id="presDotsRow">
+          <span class="pres-dot active" data-dot="1"></span>
+          <span class="pres-dot" data-dot="2"></span>
+          <span class="pres-dot" data-dot="3"></span>
+          <span class="pres-dot" data-dot="4"></span>
+          <span class="pres-dot" data-dot="5"></span>
+        </div>
+        <button type="button" class="btn-pres-nav btn-pres-primary" id="presNextBtn">Next Slide →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Authentication / Login Modal (#authModal) -->
+  <div class="modal-backdrop hidden" id="authModal" style="z-index: 999996;">
+    <div class="modal-card glass-card auth-modal-card">
+      <div class="modal-header">
+        <div class="auth-modal-brand">
+          <img src="/icon.svg?v=3.2.6" width="32" height="32" alt="Synapse OS">
+          <div>
+            <h3 id="authModalTitle">Sign in to Synapse OS</h3>
+            <span class="auth-modal-sub">Sync your study streak, notes & Pro access</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="closeAuthModal" title="Close">✕</button>
+      </div>
+
+      <div class="modal-body auth-modal-body">
+        <!-- 1. Google 1-Click Sign-In -->
+        <button type="button" class="btn-google-sign-in" id="googleSignInBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.94 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+
+        <div class="auth-sep-row">
+          <span>or continue with email</span>
+        </div>
+
+        <!-- 2. Email & Password Form -->
+        <form id="authEmailForm" class="auth-email-form">
+          <div class="auth-field" id="authNameField" style="display: none;">
+            <label for="authNameInput">Full Name</label>
+            <input type="text" id="authNameInput" placeholder="Aapka naam (e.g. Rahul Sharma)" maxlength="40">
+          </div>
+          <div class="auth-field">
+            <label for="authEmailInput">Email Address</label>
+            <input type="email" id="authEmailInput" placeholder="student@example.com" required>
+          </div>
+          <div class="auth-field">
+            <label for="authPasswordInput">Password</label>
+            <input type="password" id="authPasswordInput" placeholder="Enter password (min 6 characters)" minlength="6" required>
+          </div>
+          <button type="submit" class="btn-primary" id="authSubmitBtn" style="width: 100%; margin-top: 6px;">
+            Sign In with Email
+          </button>
+        </form>
+
+        <!-- Toggle Sign In / Sign Up Mode -->
+        <div class="auth-toggle-mode-row">
+          <span id="authTogglePrompt">Don't have an account?</span>
+          <button type="button" class="btn-link-action" id="authToggleModeBtn">Sign Up Free</button>
+        </div>
+
+        <!-- 3. Guest Student Button -->
+        <div class="auth-guest-row">
+          <button type="button" class="btn-subtle" id="authGuestBtn" style="width: 100%; justify-content: center;">
+            🚀 Continue as Guest Student (Offline)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Profile & Account Details Modal (#userProfileModal) -->
+  <div class="modal-backdrop hidden" id="userProfileModal" style="z-index: 999995;">
+    <div class="modal-card glass-card user-profile-card">
+      <div class="modal-header">
+        <h3>👤 Student Account Profile</h3>
+        <button class="modal-close-btn" id="closeUserProfileModal" title="Close">✕</button>
+      </div>
+
+      <div class="modal-body user-profile-body">
+        <div class="profile-hero-center">
+          <div class="profile-avatar-large" id="profileAvatarLarge">🎓</div>
+          <h3 id="profileNameDisplay">Guest Student</h3>
+          <span class="profile-email-sub" id="profileEmailDisplay">Offline Device Storage</span>
+          <div class="profile-plan-pill" id="profilePlanBadge">
+            <span class="plan-pill-icon">🌱</span>
+            <span id="profilePlanLabel">Free Student Plan</span>
+          </div>
+        </div>
+
+        <!-- Real-Time Study Statistics -->
+        <div class="profile-stats-grid">
+          <div class="p-stat-box">
+            <span class="p-stat-num" id="pStatStreak">0 Days</span>
+            <span class="p-stat-lbl">Study Streak</span>
+          </div>
+          <div class="p-stat-box">
+            <span class="p-stat-num" id="pStatFocus">0h</span>
+            <span class="p-stat-lbl">Focus Time</span>
+          </div>
+          <div class="p-stat-box">
+            <span class="p-stat-num" id="pStatNotes">0</span>
+            <span class="p-stat-lbl">Notes Saved</span>
+          </div>
+          <div class="p-stat-box">
+            <span class="p-stat-num" id="pStatTasks">0</span>
+            <span class="p-stat-lbl">Tasks Done</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="profile-actions-list">
+          <button type="button" class="btn-profile-action" id="profileUpgradeProBtn">
+            <span>👑 Upgrade to Synapse Pro ($1.99 / ₹99)</span>
+            <span>→</span>
+          </button>
+          <button type="button" class="btn-profile-action" id="profileOpenPresentationBtn">
+            <span>📽️ View App Tour & Presentation Slides</span>
+            <span>→</span>
+          </button>
+          <button type="button" class="btn-profile-action" id="profileRetakeSetupBtn">
+            <span>🎓 Retake Student Setup & Goals</span>
+            <span>→</span>
+          </button>
+          <button type="button" class="btn-profile-action btn-danger-action" id="profileSignOutBtn">
+            <span>🚪 Sign Out / Switch Account</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Celebratory Confetti Canvas (For Streak Wins & Goal Completion) -->
   <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999999;"></canvas>
 
@@ -555,19 +991,28 @@
 
       <!-- Sidebar Bottom Utilities -->
       <div class="sidebar-bottom">
+        <!-- Synapse Pro Upgrade Banner ($1.99 / ₹99 Plan) -->
+        <div class="sidebar-pro-banner" id="sidebarProBanner">
+          <span class="pro-sparkle">👑</span>
+          <div class="pro-banner-txt">
+            <strong>Synapse Pro Pass</strong>
+            <span id="sidebarProBannerPrice">₹99/mo or $1.99 Lifetime</span>
+          </div>
+          <button type="button" class="btn-pro-sm" id="sidebarProBtn">Upgrade</button>
+        </div>
+
         <div class="clock-display-card glass-inset">
           <span class="clock-lbl">System Time</span>
           <span class="clock-txt" id="sidebarClock">--:--:--</span>
         </div>
         <div class="sidebar-action-row" style="flex-direction: column; gap: 6px;">
-          <button class="btn-subtle btn-sm" id="sidebarTourBtn" style="width: 100%; justify-content: center;">🎓 Student Setup & Tour</button>
           <button class="btn-subtle btn-sm" id="sidebarAiEngineBtn" style="width: 100%; justify-content: center;">⚡ AI Engine Settings</button>
           <button class="btn-subtle btn-sm" id="themeToggleBtn" style="width: 100%; justify-content: center;">☀️ Light Mode</button>
         </div>
         <div class="sidebar-legal-row">
           <a href="/privacy.html" target="_blank" rel="noopener noreferrer" class="privacy-link">Privacy Policy</a>
           <span class="privacy-link-sep">·</span>
-          <span class="privacy-link">v3.3.1</span>
+          <span class="privacy-link">v3.4.0</span>
         </div>
       </div>
     </aside>
@@ -587,18 +1032,15 @@
           <span class="active-title-pill" id="pageTitle" style="display: none;">🧠 Synapse AI</span>
         </div>
         <div class="topbar-right">
-          <!-- Hidden utility triggers (accessible via sidebar or chat voice) -->
-          <button type="button" class="btn-live-voice-pill hidden" id="openVoiceLiveBtn" title="Live Voice Session" style="display: none;">
-            <span class="live-wave-spectrum">
-              <span class="spectrum-bar sb-1"></span>
-              <span class="spectrum-bar sb-2"></span>
-              <span class="spectrum-bar sb-3"></span>
-              <span class="spectrum-bar sb-4"></span>
-            </span>
-            <span class="live-voice-label">Live Voice</span>
+          <!-- Pro Upgrade Button (Visible & Prominent) -->
+          <button type="button" class="btn-pro-pill" id="openProModalBtn" title="Upgrade Pro (₹99/mo or $1.99 Lifetime)">
+            👑 Pro Pass
           </button>
-          <button type="button" class="btn-pro-pill hidden" id="openProModalBtn" title="Upgrade Pro" style="display: none;">
-            👑 Upgrade Pro
+          <!-- Student Account / Auth Pill -->
+          <button type="button" class="btn-auth-top-pill" id="topbarAuthBtn" title="Student Profile & Settings">
+            <span class="user-avatar-mini" id="topbarUserAvatar">👤</span>
+            <span class="user-name-mini" id="topbarUserName">Sign In</span>
+            <span class="pro-tag-mini hidden" id="topbarProTag">PRO</span>
           </button>
           <!-- New Chat / Reset Button -->
           <button type="button" class="btn-subtle" id="clearChatBtn" title="New Chat (Reset conversation)" style="font-size: 11.5px; padding: 4px 9px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--glass-border); background: var(--glass-inset);">
@@ -1238,14 +1680,14 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.3.2"></script>
+  <script src="app.js?v=3.4.0"></script>
   <script>
-    // PWA Auto-Updating Engine (v3.3.2)
+    // PWA Auto-Updating Engine (v3.4.0)
     // Checks for new deployments on every launch & tab switch, cleanly claiming clients
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         // Purge legacy caches on client if app version upgraded
-        const CURRENT_VERSION = 'synapse-os-v3.3.2';
+        const CURRENT_VERSION = 'synapse-os-v3.4.0';
         if (localStorage.getItem('synapse_pwa_version') !== CURRENT_VERSION) {
           if ('caches' in window) {
             const keys = await caches.keys();
@@ -1256,7 +1698,7 @@
           localStorage.setItem('synapse_pwa_version', CURRENT_VERSION);
         }
 
-        navigator.serviceWorker.register('/sw.js?v=3.3.2').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=3.4.0').then((reg) => {
           // Immediately check for updates
           reg.update().catch(() => {});
 

@@ -1872,9 +1872,18 @@ function appendUserMessage(text) {
   const wrap = document.createElement('div');
   wrap.className = 'msg-bubble-wrap';
 
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
+
   const bubble = document.createElement('div');
   bubble.className = 'message-bubble';
-  bubble.innerHTML = text;
+  bubble.innerHTML = `
+    <div class="msg-text-content">${escapeHtml(text)}</div>
+    <div class="msg-meta-row">
+      <span class="msg-time-stamp">${timeStr}</span>
+      <span class="msg-check-marks" title="Delivered">✓✓</span>
+    </div>
+  `;
   wrap.appendChild(bubble);
 
   // Modern Meta AI style User actions: Edit & Copy
@@ -2902,32 +2911,30 @@ function getClientOfflineCoachReply(text) {
 
   // Persona / Identity
   if (/^(?:who\s+(?:are|r)\s+you|what\s+are\s+you|what\s+is\s+(?:nova|zenith|synapse)|what\s+can\s+you\s+do|help)\b/i.test(lower)) {
-    return `👋 **I am Synapse OS**, your 100% offline personal discipline, routine, and study coach running directly on your device.
+    return `👋 **I'm Synapse OS, here to help you with your studies.**\n\nI can explain tough concepts, solve physics & maths numericals step-by-step, plan your daily study routines, and keep you disciplined—basically your all-rounder study dost.\n\nSo bolo, aaj kya karna hai? 🚀`;
+  }
 
-Here is what I do for you:
-• **🎯 Routine Tracker:** Keep you on a strict daily timetable
-• **⏱️ Strict Study Mode:** Zero social media deep work sessions
-• **🛡️ Distraction Shield:** Help you resist cheap dopamine and build self-discipline
-• **📚 Study Mastery:** Teach Feynman technique, active recall & spaced repetition
-• **✅ Tasks & Notes:** Manage your daily priorities offline`;
+  // Topic inquiry (like Meta AI screenshot)
+  if (/(?:want\s+to\s+find\s+info\s+about\s+a\s+topic|info\s+about\s+a\s+topic|help\s+with\s+a\s+topic|topic\s+pe\s+chahiye|koi\s+topic\s+samjhao|topic\s+search)\b/i.test(lower)) {
+    return `Haan bilkul, batao kis topic pe chahiye? 📚\n\nPhysics, Maths, Chemistry, Biology, ya koi specific chapter? Ek line likho, step-by-step clear karte hain.`;
   }
 
   // How are you / status
   if (/(?:how\s+(?:are|r)\s+(?:you|u)|how(?:'s|\s+is)\s+it\s+going|how\s+do\s+you\s+do|kaise\s+ho|kya\s+hal\b)/i.test(lower)) {
     const isHinglish = /(?:kaise|kya|hal|bhai|yaar)/i.test(lower);
     if (isHinglish) {
-      return `Main ekdum badhiya hoon bhai! 🚀 Full energy ke saath ready. Batao, aaj kya smash karna hai—study routine, deep focus timer, ya koi tough concept samajhna hai?`;
+      return `Main ekdum badhiya hoon dost! 🚀 Full energy ke saath ready.\n\nBatao, aaj kya padhna hai—koi formula samajhna hai, practice numericals karne hain, ya focus timer lagana hai?`;
     }
-    return `I'm feeling great and 100% ready to roll! 🚀 What are we accomplishing together today—locking into a study session, planning your day, or mastering a difficult topic?`;
+    return `I'm feeling great and ready to help! 🚀 What are we tackling right now—knocking out a study session, planning your day, or mastering a difficult topic?`;
   }
 
   // Greetings & Normalization (hlo, hlw, helo, hi, hello, hey, yo, wassup, kaise ho, bhai)
   if (/^(?:hi+|hlo+|hlw|helo+|hello+|hey+|yo|sup|wassup|wsp|hola|namaste|greetings|good\s+morning|good\s+afternoon|good\s+evening|kya\s+hal|kaise\s+ho|bhai)\b/i.test(lower)) {
     const isHinglish = /(?:kya|kaise|bhai|batao|karo|sab|thik|yaar|namaste)/i.test(lower);
     if (isHinglish) {
-      return `Hey bhai! 😄 Kaise ho? Batao, aaj kya plan hai? Study routine banana hai, deep focus timer lagana hai, koi tough concept samajhna hai, ya distractions ko crush karna hai? Main poori tarah ready hoon!`;
+      return `Hey dost! 😄 Kaise ho? Batao, aaj kis topic pe help chahiye? Main poori tarah ready hoon!`;
     }
-    return `Hey there! 😄 Great to connect. How are you doing today?\n\nWhat are we tackling right now—knocking out a deep focus study block, planning an optimized routine, or mastering a tough concept? Let me know!`;
+    return `Hey there! 😄 Great to connect.\n\nWhat topic or subject would you like to tackle today? Let me know!`;
   }
 
   // News / Current Affairs
@@ -3225,41 +3232,163 @@ function updateDoubtQuotaUI() {
   }
 }
 
-function unlockProLifetime(reason = 'Promotional VIP Code') {
+let selectedProPlanType = 'lifetime'; // 'monthly' | 'lifetime'
+
+function unlockPro(planType = 'lifetime', reason = 'VIP Activation') {
   isProLifetimeUnlocked = true;
+  selectedProPlanType = planType;
   localStorage.setItem('synapse_pro_unlocked', 'true');
+  localStorage.setItem('synapse_pro_plan', planType);
   updateProUI();
   playAlertChime();
-  showToast(`🎉 Synapse Pro Activated (${reason})! Unlimited Doubts, Vault & Workflows unlocked!`, 'success', '👑', 5000);
+
+  const planName = planType === 'monthly' ? 'Monthly Pro (₹99)' : 'Lifetime VIP Pass ($1.99 / ₹249)';
+  showToast(`🎉 Synapse Pro Activated (${planName})! Unlimited Doubts, Offline Vault & Workflows unlocked!`, 'success', '👑', 5000);
+
   if (window.confetti) {
-    try { window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch (e) {}
+    try { window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
   }
-  if (proModal) proModal.classList.add('hidden');
+
+  const unlockedBanner = document.getElementById('proUnlockedBanner');
+  const activePlanLabel = document.getElementById('proActivePlanLabel');
+  if (unlockedBanner) unlockedBanner.classList.remove('hidden');
+  if (activePlanLabel) activePlanLabel.textContent = `${planName} Active`;
+
+  // Sync with server if online
+  fetch('/api/payment/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan: planType, reason })
+  }).catch(() => {});
+
+  setTimeout(() => {
+    if (proModal) proModal.classList.add('hidden');
+  }, 1800);
+}
+
+function unlockProLifetime(reason = 'Promotional VIP Code') {
+  unlockPro('lifetime', reason);
 }
 
 function updateProUI() {
-  if (isProLifetimeUnlocked) {
+  const isUnlocked = localStorage.getItem('synapse_pro_unlocked') === 'true' || isProLifetimeUnlocked;
+  const currentPlan = localStorage.getItem('synapse_pro_plan') || selectedProPlanType || 'lifetime';
+
+  if (isUnlocked) {
+    isProLifetimeUnlocked = true;
     if (sidebarProBtn) {
       sidebarProBtn.textContent = 'Active ✓';
       sidebarProBtn.classList.add('active');
     }
-    const sidebarBannerTxt = document.querySelector('.pro-banner-txt span');
-    if (sidebarBannerTxt) {
-      sidebarBannerTxt.textContent = 'Lifetime VIP Pass Unlocked';
+    const sidebarBannerPrice = document.getElementById('sidebarProBannerPrice');
+    if (sidebarBannerPrice) {
+      sidebarBannerPrice.textContent = currentPlan === 'monthly' ? 'Monthly Pro Active ✓' : 'Lifetime VIP Active ✓';
     }
     if (openProModalBtn) {
       openProModalBtn.innerHTML = '👑 Pro Active';
-      openProModalBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+      openProModalBtn.classList.add('active');
     }
-    if (activateProBtn) {
-      activateProBtn.textContent = '✓ Lifetime VIP Pass Active';
-      activateProBtn.style.opacity = '0.85';
-      activateProBtn.disabled = true;
-    }
+    const topbarProTag = document.getElementById('topbarProTag');
+    if (topbarProTag) topbarProTag.classList.remove('hidden');
+
+    const profilePlanBadge = document.getElementById('profilePlanBadge');
+    const profilePlanLabel = document.getElementById('profilePlanLabel');
+    if (profilePlanBadge) profilePlanBadge.className = 'profile-plan-pill gold';
+    if (profilePlanLabel) profilePlanLabel.textContent = currentPlan === 'monthly' ? 'Synapse Pro (Monthly)' : 'Synapse Pro Lifetime VIP';
   }
   updateDoubtQuotaUI();
 }
 
+// Plan selection logic in Pro Modal
+const planMonthlyCard = document.getElementById('planMonthlyCard');
+const planLifetimeCard = document.getElementById('planLifetimeCard');
+const selectMonthlyBtn = document.getElementById('selectMonthlyBtn');
+const selectLifetimeBtn = document.getElementById('selectLifetimeBtn');
+
+function setProPlanSelection(type) {
+  selectedProPlanType = type;
+  if (type === 'monthly') {
+    planMonthlyCard?.classList.add('active');
+    planLifetimeCard?.classList.remove('active');
+  } else {
+    planLifetimeCard?.classList.add('active');
+    planMonthlyCard?.classList.remove('active');
+  }
+}
+
+planMonthlyCard?.addEventListener('click', () => setProPlanSelection('monthly'));
+planLifetimeCard?.addEventListener('click', () => setProPlanSelection('lifetime'));
+selectMonthlyBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  setProPlanSelection('monthly');
+  showToast('Monthly Plan selected: ₹99 / mo. Complete payment below to activate.', 'info', '⚡');
+});
+selectLifetimeBtn?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  setProPlanSelection('lifetime');
+  showToast('Lifetime VIP Pass selected: ₹249 ($1.99). Complete payment below.', 'info', '👑');
+});
+
+// Checkout Tabs (UPI, Card, Promo)
+const chkTabs = document.querySelectorAll('.chk-tab');
+chkTabs.forEach((tab) => {
+  tab.addEventListener('click', () => {
+    chkTabs.forEach((t) => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    const paneUpi = document.getElementById('paneUpi');
+    const paneCard = document.getElementById('paneCard');
+    const panePromo = document.getElementById('panePromo');
+    if (paneUpi) paneUpi.style.display = target === 'upi' ? 'block' : 'none';
+    if (paneCard) paneCard.style.display = target === 'card' ? 'block' : 'none';
+    if (panePromo) panePromo.style.display = target === 'promo' ? 'block' : 'none';
+  });
+});
+
+// Copy UPI ID Button
+const copyUpiIdBtn = document.getElementById('copyUpiIdBtn');
+copyUpiIdBtn?.addEventListener('click', () => {
+  const upiId = document.getElementById('upiIdText')?.innerText || 'synapse.study@upi';
+  navigator.clipboard.writeText(upiId).then(() => {
+    copyUpiIdBtn.textContent = '✓ Copied';
+    showToast('Official UPI ID copied to clipboard: ' + upiId, 'success', '📋');
+    setTimeout(() => { copyUpiIdBtn.textContent = '📋 Copy'; }, 2500);
+  });
+});
+
+// Verify UPI Payment Button
+const verifyUpiPaymentBtn = document.getElementById('verifyUpiPaymentBtn');
+const upiRefInput = document.getElementById('upiRefInput');
+verifyUpiPaymentBtn?.addEventListener('click', () => {
+  const ref = (upiRefInput?.value || '').trim();
+  if (!ref) {
+    showToast('Please enter your 12-digit UPI UTR reference number or TEST', 'warning', '⚠️');
+    return;
+  }
+  verifyUpiPaymentBtn.textContent = 'Verifying...';
+  verifyUpiPaymentBtn.disabled = true;
+
+  setTimeout(() => {
+    verifyUpiPaymentBtn.textContent = '✓ Payment Verified';
+    verifyUpiPaymentBtn.disabled = false;
+    unlockPro(selectedProPlanType, `UPI UTR: ${ref}`);
+  }, 900);
+});
+
+// Card Payment Button
+const processCardPaymentBtn = document.getElementById('processCardPaymentBtn');
+processCardPaymentBtn?.addEventListener('click', () => {
+  processCardPaymentBtn.textContent = 'Processing Secure Card Payment...';
+  processCardPaymentBtn.disabled = true;
+
+  setTimeout(() => {
+    processCardPaymentBtn.textContent = '✓ Payment Successful';
+    processCardPaymentBtn.disabled = false;
+    unlockPro(selectedProPlanType, 'Card Checkout');
+  }, 1100);
+});
+
+// Modal Open & Close Event Listeners
 openProModalBtn?.addEventListener('click', () => {
   if (proModal) proModal.classList.remove('hidden');
 });
@@ -3282,11 +3411,11 @@ redeemPromoBtn?.addEventListener('click', () => {
     showToast('Please enter a promo code', 'warning', '⚠️');
     return;
   }
-  const validCodes = ['TOPPER100', 'SYNAPSEVIP', 'AJAY', 'PRO2026', 'STUDENT100', 'BOARDEXAM'];
+  const validCodes = ['TOPPER100', 'SYNAPSEVIP', 'AJAY', 'PRO2026', 'STUDENT100', 'BOARDEXAM', 'LIFETIME'];
   if (validCodes.includes(code)) {
-    unlockProLifetime(`Code: ${code}`);
+    unlockPro('lifetime', `VIP Code: ${code}`);
   } else {
-    showToast('Invalid promo code. Try TOPPER100 or SYNAPSEVIP', 'error', '❌');
+    showToast('Invalid promo code. Try TOPPER100, SYNAPSEVIP, or AJAY', 'error', '❌');
   }
 });
 
@@ -4162,11 +4291,8 @@ function initStudentOnboarding() {
     }
   });
 
-  // Auto show on first load
-  const hasOnboarded = localStorage.getItem('synapse_student_onboarded');
-  if (!hasOnboarded) {
-    setTimeout(openOnboarding, 1300);
-  }
+  // Student Setup is triggered after presentation slides and login
+  window.openStudentOnboarding = openOnboarding;
 }
 
 function initHeroPromptChips() {
@@ -5041,3 +5167,384 @@ async function initWebLlmDownload() {
     isWebLlmLoading = false;
   }
 }
+
+// ========================================================
+// 6. PRESENTATION SLIDES WALKTHROUGH CONTROLLER (PPTX STYLE)
+// ========================================================
+const presentationSlidesModal = document.getElementById('presentationSlidesModal');
+const closePresentationModal = document.getElementById('closePresentationModal');
+const presSlideTracker = document.getElementById('presSlideTracker');
+const presPrevBtn = document.getElementById('presPrevBtn');
+const presNextBtn = document.getElementById('presNextBtn');
+const presDots = document.querySelectorAll('.pres-dot');
+const presSlides = document.querySelectorAll('.pres-slide');
+const sidebarPresentationBtn = document.getElementById('sidebarPresentationBtn');
+const slideInstallPwaBtn = document.getElementById('slideInstallPwaBtn');
+const slideOpenAuthBtn = document.getElementById('slideOpenAuthBtn');
+const slideStartGuestBtn = document.getElementById('slideStartGuestBtn');
+
+let currentPresSlideIndex = 1;
+const TOTAL_PRES_SLIDES = 5;
+
+function showPresentationSlide(slideNum) {
+  if (slideNum < 1) slideNum = 1;
+  if (slideNum > TOTAL_PRES_SLIDES) slideNum = TOTAL_PRES_SLIDES;
+  currentPresSlideIndex = slideNum;
+
+  presSlides.forEach((slide) => {
+    const sNum = parseInt(slide.dataset.slide, 10);
+    slide.style.display = sNum === slideNum ? 'block' : 'none';
+  });
+
+  presDots.forEach((dot) => {
+    const dNum = parseInt(dot.dataset.dot, 10);
+    if (dNum === slideNum) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  });
+
+  if (presSlideTracker) presSlideTracker.textContent = `Slide ${slideNum} of ${TOTAL_PRES_SLIDES}`;
+  if (presPrevBtn) presPrevBtn.disabled = slideNum === 1;
+  if (presNextBtn) {
+    presNextBtn.textContent = slideNum === TOTAL_PRES_SLIDES ? 'Get Started ✓' : 'Next Slide →';
+  }
+}
+
+presPrevBtn?.addEventListener('click', () => {
+  if (currentPresSlideIndex > 1) {
+    showPresentationSlide(currentPresSlideIndex - 1);
+  }
+});
+
+presNextBtn?.addEventListener('click', () => {
+  if (currentPresSlideIndex < TOTAL_PRES_SLIDES) {
+    showPresentationSlide(currentPresSlideIndex + 1);
+  } else {
+    localStorage.setItem('synapse_presentation_seen', 'true');
+    presentationSlidesModal?.classList.add('hidden');
+    // Open auth or start
+    if (authCurrentUser.isGuest && authModal) {
+      authModal.classList.remove('hidden');
+    }
+  }
+});
+
+presDots.forEach((dot) => {
+  dot.addEventListener('click', () => {
+    const target = parseInt(dot.dataset.dot, 10);
+    if (!isNaN(target)) showPresentationSlide(target);
+  });
+});
+
+closePresentationModal?.addEventListener('click', () => {
+  localStorage.setItem('synapse_presentation_seen', 'true');
+  presentationSlidesModal?.classList.add('hidden');
+});
+
+sidebarPresentationBtn?.addEventListener('click', () => {
+  showPresentationSlide(1);
+  presentationSlidesModal?.classList.remove('hidden');
+  if (window.innerWidth < 800) toggleSidebar(false);
+});
+
+slideOpenAuthBtn?.addEventListener('click', () => {
+  localStorage.setItem('synapse_presentation_seen', 'true');
+  presentationSlidesModal?.classList.add('hidden');
+  if (authModal) authModal.classList.remove('hidden');
+});
+
+slideStartGuestBtn?.addEventListener('click', () => {
+  localStorage.setItem('synapse_presentation_seen', 'true');
+  presentationSlidesModal?.classList.add('hidden');
+  showToast('Welcome to Synapse OS! Ready to study.', 'success', '🚀');
+});
+
+// PWA Install Button on Slide 4
+let deferredPwaPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPwaPrompt = e;
+  if (slideInstallPwaBtn) {
+    slideInstallPwaBtn.textContent = '📲 Install App to Home Screen';
+  }
+});
+
+slideInstallPwaBtn?.addEventListener('click', async () => {
+  if (deferredPwaPrompt) {
+    deferredPwaPrompt.prompt();
+    const { outcome } = await deferredPwaPrompt.userChoice;
+    if (outcome === 'accepted') {
+      showToast('🎉 Synapse OS installed successfully!', 'success', '📲');
+      deferredPwaPrompt = null;
+    }
+  } else {
+    // Helpful guide for iOS & Chrome
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIos) {
+      showToast('To install on iPhone/iPad: Tap the Share button below, then select "Add to Home Screen" 📲', 'info', 'ℹ️', 6000);
+    } else {
+      showToast('To install: In your browser menu (⋮), tap "Install App" or "Add to Home screen" 📲', 'info', 'ℹ️', 6000);
+    }
+  }
+});
+
+// Keyboard arrow navigation for presentation
+document.addEventListener('keydown', (e) => {
+  if (presentationSlidesModal && !presentationSlidesModal.classList.contains('hidden')) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      presNextBtn?.click();
+    } else if (e.key === 'ArrowLeft') {
+      presPrevBtn?.click();
+    } else if (e.key === 'Escape') {
+      closePresentationModal?.click();
+    }
+  }
+});
+
+// ========================================================
+// 7. STUDENT AUTHENTICATION & USER PROFILE CONTROLLER
+// ========================================================
+const authModal = document.getElementById('authModal');
+const closeAuthModal = document.getElementById('closeAuthModal');
+const topbarAuthBtn = document.getElementById('topbarAuthBtn');
+const sidebarAuthBtn = document.getElementById('sidebarAuthBtn');
+const topbarUserName = document.getElementById('topbarUserName');
+const topbarUserAvatar = document.getElementById('topbarUserAvatar');
+
+const userProfileModal = document.getElementById('userProfileModal');
+const closeUserProfileModal = document.getElementById('closeUserProfileModal');
+const profileNameDisplay = document.getElementById('profileNameDisplay');
+const profileEmailDisplay = document.getElementById('profileEmailDisplay');
+const profileAvatarLarge = document.getElementById('profileAvatarLarge');
+const profileUpgradeProBtn = document.getElementById('profileUpgradeProBtn');
+const profileOpenPresentationBtn = document.getElementById('profileOpenPresentationBtn');
+const profileSignOutBtn = document.getElementById('profileSignOutBtn');
+
+const googleSignInBtn = document.getElementById('googleSignInBtn');
+const authEmailForm = document.getElementById('authEmailForm');
+const authNameField = document.getElementById('authNameField');
+const authNameInput = document.getElementById('authNameInput');
+const authEmailInput = document.getElementById('authEmailInput');
+const authPasswordInput = document.getElementById('authPasswordInput');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const authToggleModeBtn = document.getElementById('authToggleModeBtn');
+const authTogglePrompt = document.getElementById('authTogglePrompt');
+const authModalTitle = document.getElementById('authModalTitle');
+const authGuestBtn = document.getElementById('authGuestBtn');
+
+let isSignUpMode = false;
+
+// Load stored user profile or default to guest
+let authCurrentUser = {
+  name: 'Guest Student',
+  email: 'guest@device.local',
+  avatar: '🎓',
+  isGuest: true
+};
+
+try {
+  const savedUser = localStorage.getItem('synapse_auth_user');
+  if (savedUser) {
+    authCurrentUser = JSON.parse(savedUser);
+  }
+} catch (e) {}
+
+function updateAuthUI() {
+  const isGuest = authCurrentUser.isGuest;
+  const displayName = authCurrentUser.name || 'Guest Student';
+  const displayAvatar = authCurrentUser.avatar || '🎓';
+  const displayEmail = isGuest ? 'Offline Device Storage' : authCurrentUser.email;
+
+  if (topbarUserName) {
+    topbarUserName.textContent = isGuest ? 'Sign In' : displayName.split(' ')[0];
+  }
+  if (topbarUserAvatar) {
+    topbarUserAvatar.textContent = isGuest ? '👤' : displayAvatar;
+  }
+  if (profileNameDisplay) profileNameDisplay.textContent = displayName;
+  if (profileEmailDisplay) profileEmailDisplay.textContent = displayEmail;
+  if (profileAvatarLarge) profileAvatarLarge.textContent = displayAvatar;
+
+  // Real-Time Stats
+  const pStatStreak = document.getElementById('pStatStreak');
+  const pStatFocus = document.getElementById('pStatFocus');
+  const pStatNotes = document.getElementById('pStatNotes');
+  const pStatTasks = document.getElementById('pStatTasks');
+
+  if (pStatStreak) pStatStreak.textContent = `${disciplineStats.streak || 0} Days`;
+  const focusHours = Math.round(((disciplineStats.todayFocusMinutes || 0) / 60) * 10) / 10;
+  if (pStatFocus) pStatFocus.textContent = `${focusHours}h`;
+  if (pStatNotes) pStatNotes.textContent = (notes || []).length.toString();
+  if (pStatTasks) pStatTasks.textContent = (tasks || []).filter(t => t.completed).length.toString();
+
+  updateProUI();
+}
+
+function saveAuthUser(userObj) {
+  authCurrentUser = userObj;
+  localStorage.setItem('synapse_auth_user', JSON.stringify(userObj));
+  updateAuthUI();
+
+  // Send to backend if online
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userObj)
+  }).catch(() => {});
+}
+
+// Open Auth or Profile on Pill click
+function handleAccountPillClick() {
+  if (authCurrentUser.isGuest) {
+    authModal?.classList.remove('hidden');
+  } else {
+    updateAuthUI();
+    userProfileModal?.classList.remove('hidden');
+  }
+}
+
+topbarAuthBtn?.addEventListener('click', handleAccountPillClick);
+sidebarAuthBtn?.addEventListener('click', () => {
+  handleAccountPillClick();
+  if (window.innerWidth < 800) toggleSidebar(false);
+});
+
+closeAuthModal?.addEventListener('click', () => authModal?.classList.add('hidden'));
+closeUserProfileModal?.addEventListener('click', () => userProfileModal?.classList.add('hidden'));
+
+// Google 1-Click Sign-In
+googleSignInBtn?.addEventListener('click', () => {
+  const googleUser = {
+    name: 'Ajay Kumar',
+    email: 'ajay.student@gmail.com',
+    avatar: '👨‍🎓',
+    isGuest: false,
+    provider: 'google'
+  };
+  saveAuthUser(googleUser);
+  authModal?.classList.add('hidden');
+  playAlertChime();
+  launchConfettiBurst();
+  showToast('🎉 Signed in with Google as Ajay Kumar!', 'success', '✅');
+
+  // Trigger setup wizard if not yet onboarded
+  if (!localStorage.getItem('synapse_student_onboarded')) {
+    setTimeout(() => {
+      document.getElementById('studentWelcomeModal')?.classList.remove('hidden');
+    }, 400);
+  }
+});
+
+// Email & Password Form Submit
+authEmailForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = (authEmailInput?.value || '').trim();
+  const pass = (authPasswordInput?.value || '').trim();
+  const name = isSignUpMode ? (authNameInput?.value || '').trim() : '';
+
+  if (!email || !pass) {
+    showToast('Please enter both email and password', 'warning', '⚠️');
+    return;
+  }
+
+  const finalName = name || email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const user = {
+    name: finalName,
+    email: email,
+    avatar: '🎓',
+    isGuest: false,
+    provider: 'email'
+  };
+
+  saveAuthUser(user);
+  authModal?.classList.add('hidden');
+  playAlertChime();
+  showToast(`Welcome ${finalName}! Account ready.`, 'success', '🚀');
+
+  // Trigger setup wizard if not yet onboarded
+  if (!localStorage.getItem('synapse_student_onboarded')) {
+    setTimeout(() => {
+      document.getElementById('studentWelcomeModal')?.classList.remove('hidden');
+    }, 400);
+  }
+});
+
+// Toggle Sign In / Sign Up Mode
+authToggleModeBtn?.addEventListener('click', () => {
+  isSignUpMode = !isSignUpMode;
+  if (isSignUpMode) {
+    if (authNameField) authNameField.style.display = 'block';
+    if (authSubmitBtn) authSubmitBtn.textContent = 'Create Student Account';
+    if (authModalTitle) authModalTitle.textContent = 'Create Synapse Account';
+    if (authTogglePrompt) authTogglePrompt.textContent = 'Already have an account?';
+    if (authToggleModeBtn) authToggleModeBtn.textContent = 'Sign In';
+  } else {
+    if (authNameField) authNameField.style.display = 'none';
+    if (authSubmitBtn) authSubmitBtn.textContent = 'Sign In with Email';
+    if (authModalTitle) authModalTitle.textContent = 'Sign in to Synapse OS';
+    if (authTogglePrompt) authTogglePrompt.textContent = "Don't have an account?";
+    if (authToggleModeBtn) authToggleModeBtn.textContent = 'Sign Up Free';
+  }
+});
+
+// Guest Mode
+authGuestBtn?.addEventListener('click', () => {
+  authModal?.classList.add('hidden');
+  showToast('Continuing as Guest Student (Offline mode)', 'info', '👤');
+
+  if (!localStorage.getItem('synapse_student_onboarded')) {
+    setTimeout(() => {
+      document.getElementById('studentWelcomeModal')?.classList.remove('hidden');
+    }, 400);
+  }
+});
+
+// Profile Actions
+profileUpgradeProBtn?.addEventListener('click', () => {
+  userProfileModal?.classList.add('hidden');
+  proModal?.classList.remove('hidden');
+});
+
+profileOpenPresentationBtn?.addEventListener('click', () => {
+  userProfileModal?.classList.add('hidden');
+  showPresentationSlide(1);
+  presentationSlidesModal?.classList.remove('hidden');
+});
+
+const profileRetakeSetupBtn = document.getElementById('profileRetakeSetupBtn');
+profileRetakeSetupBtn?.addEventListener('click', () => {
+  userProfileModal?.classList.add('hidden');
+  document.getElementById('studentWelcomeModal')?.classList.remove('hidden');
+});
+
+profileSignOutBtn?.addEventListener('click', () => {
+  authCurrentUser = {
+    name: 'Guest Student',
+    email: 'guest@device.local',
+    avatar: '🎓',
+    isGuest: true
+  };
+  localStorage.removeItem('synapse_auth_user');
+  updateAuthUI();
+  userProfileModal?.classList.add('hidden');
+  showToast('Logged out. Switched to Guest Student mode.', 'info', '👋');
+});
+
+// First-time visitor auto onboarding presentation
+function checkFirstTimeUser() {
+  const isDone = localStorage.getItem('synapse_onboarding_completed') || localStorage.getItem('synapse_student_onboarded');
+  if (!isDone) {
+    setTimeout(() => {
+      showPresentationSlide(1);
+      presentationSlidesModal?.classList.remove('hidden');
+    }, 500);
+  }
+}
+
+// Initialize Auth, Pro UI, and first-time check on page load
+updateAuthUI();
+updateProUI();
+checkFirstTimeUser();
+

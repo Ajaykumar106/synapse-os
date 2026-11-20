@@ -776,6 +776,52 @@ app.post('/api/discipline-stats', (req, res) => {
   res.json({ success: true, stats });
 });
 
+// Student Authentication & Account Profile Endpoints
+app.post('/api/auth/login', (req, res) => {
+  const user = req.body;
+  if (!user || (!user.email && !user.name)) {
+    return res.status(400).json({ error: 'User profile required' });
+  }
+  const users = getJsonFile('users.json', []);
+  const idx = users.findIndex(u => (user.email && u.email === user.email) || u.name === user.name);
+  if (idx >= 0) {
+    users[idx] = { ...users[idx], ...user, lastLogin: new Date().toISOString() };
+  } else {
+    users.push({ ...user, createdAt: new Date().toISOString() });
+  }
+  saveJsonFile('users.json', users);
+  res.json({ success: true, user });
+});
+
+app.get('/api/auth/me', (_req, res) => {
+  const users = getJsonFile('users.json', []);
+  res.json({ user: users[users.length - 1] || null });
+});
+
+// Synapse Pro Payment Verification & Plan Status Endpoints
+app.post('/api/payment/verify', (req, res) => {
+  const { plan = 'lifetime', reason = 'Direct checkout' } = req.body;
+  const payments = getJsonFile('payments.json', []);
+  const newPayment = {
+    id: 'pay_' + Date.now(),
+    plan,
+    amount: plan === 'monthly' ? 99 : 249,
+    currency: 'INR',
+    reason,
+    timestamp: new Date().toISOString(),
+    status: 'success'
+  };
+  payments.push(newPayment);
+  saveJsonFile('payments.json', payments);
+  res.json({ success: true, payment: newPayment });
+});
+
+app.get('/api/pro/status', (_req, res) => {
+  const payments = getJsonFile('payments.json', []);
+  const hasActivePayment = payments.some(p => p.status === 'success');
+  res.json({ isPro: hasActivePayment, payments });
+});
+
 // AI Engine Status (Cloud & Local)
 app.get(['/api/engine-status', '/engine-status'], async (_req, res) => {
   const ollamaRunning = await isOllamaAvailable();
@@ -1297,11 +1343,11 @@ function executeActionTags(fullText, sendEvent, userMessage = '') {
 }
 
 function getAssistantSystemPrompt(appContext = '') {
-  return `You are Synapse AI, an elite personal study coach and academic mentor.
+  return `You are Synapse AI, an all-rounder study dost and smart academic mentor (styled with Meta AI simplicity: clean, conversational, friendly, with spacious typography).
 
 CORE DIRECTIVES:
-1. GREETINGS & CASUAL MESSAGES:
-   If the student greets (hi, hello, hey, kaise ho) or asks a quick question: respond warmly, concisely (1-2 sentences), and ask what subject or doubt they'd like to tackle today. Do NOT dump a full academic study notebook for simple greetings.
+1. GREETINGS & CASUAL CONVERSATIONS:
+   If the student greets (hi, hello, hey, kaise ho, wassup) or asks a quick conversational inquiry (e.g., "I want to find info about a topic"): respond warmly, concisely (1-2 sentences), like a smart friend ("Haan bilkul, batao kis topic pe chahiye?"). Do NOT dump a full academic study notebook for simple greetings.
 
 2. ACADEMIC DOUBTS, CONCEPTS & NUMERICALS:
    When the student asks to understand a concept, solve a numerical, or explain a topic:
@@ -1309,10 +1355,10 @@ CORE DIRECTIVES:
    - ⚡ **Formulas & Working:** Standard notation, SI units, and step-by-step mathematical logic.
    - 📝 **Worked Example / Numerical:** Step-by-step substitution with final answer clearly highlighted in bold.
    - 💡 **Exam Tips & Traps:** Crucial points where students lose marks (signs, unit conversions).
-   Keep it clean, high-yield, structured, and easy to read.
+   Keep it clean, high-yield, structured with generous line spacing, and easy to read.
 
-3. CONCISE & HELPFUL:
-   Never give shallow answers to tough concepts, but never pad responses with useless fluff. Be direct, clear, and encouraging.
+3. CONCISE, AIRY & HELPFUL:
+   Never give shallow answers to tough concepts, but never pad responses with robotic boilerplate or unnecessary walls of text. Be direct, clear, encouraging, and easy to digest on mobile screens.
 
 4. LANGUAGE:
    Match the student naturally: clean Hinglish if they ask in Hinglish/Hindi; crisp English if in English.

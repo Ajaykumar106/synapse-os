@@ -1,7 +1,7 @@
-// Synapse OS — Auto-Updating Service Worker v3.3.2
+// Synapse OS — Auto-Updating Service Worker v3.4.0
 // Ensures PWA auto-updates seamlessly when online & works 100% offline in Airplane Mode
 
-const CACHE_NAME = 'synapse-os-v3.3.2';
+const CACHE_NAME = 'synapse-os-v3.4.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
